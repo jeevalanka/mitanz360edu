@@ -1,0 +1,59 @@
+﻿@page "/content-viewer"
+@layout MainLayout
+@using Microsoft.AspNetCore.Components
+
+@inject IWebHostEnvironment Environment
+
+<PageTitle>Content Viewer</PageTitle>
+
+<div class="viewer-page">
+
+    @if (IsHtml)
+    {
+        @((MarkupString)HtmlContent)
+    }
+    else
+    {
+        <div>
+
+            Unsupported file.
+
+        </div>
+    }
+
+</div>
+
+@code {
+
+    [SupplyParameterFromQuery]
+    public string File { get; set; } = "";
+
+    private string HtmlContent = "";
+
+    private bool IsHtml =>
+        File.EndsWith(".html",
+            StringComparison.OrdinalIgnoreCase);
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsHtml)
+        {
+            var filePath = Path.Combine(
+                Environment.WebRootPath,
+                "Files",
+                File);
+
+            if (System.IO.File.Exists(filePath))
+            {
+                HtmlContent =
+                    await System.IO.File.ReadAllTextAsync(filePath);
+            }
+            else
+            {
+                HtmlContent =
+                    "<h2>File not found.</h2>";
+            }
+        }
+    }
+
+}

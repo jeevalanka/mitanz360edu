@@ -1,0 +1,641 @@
+﻿@page "/lms-library-CRUD"
+@layout MainLayout_NoRightPan
+
+@using System.IO
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
+@using MITANZ360Edu.Web.Services
+@using Radzen
+@using Radzen.Blazor
+
+@inject SharePointService SharePointService
+@inject DialogService DialogService
+@inject NotificationService NotificationService
+@inject TooltipService TooltipService
+@inject ContextMenuService ContextMenuService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+
+<PageTitle>LMS Library</PageTitle>
+
+<div class="container-fluid p-4">
+
+    <!-- ===================================================== -->
+    <!-- HEADER -->
+    <!-- ===================================================== -->
+
+    <RadzenCard Style="
+        border-radius:20px;
+        margin-bottom:1rem;
+        padding:1rem;
+        background:
+        linear-gradient(
+        135deg,
+        blue,
+        #106EBE,
+        black);
+        color:white;
+        box-shadow:
+        0 12px 30px rgba(0,0,0,0.18);">
+
+        <RadzenStack Orientation="Orientation.Horizontal"
+                     JustifyContent="JustifyContent.SpaceBetween"
+                     AlignItems="AlignItems.Center"
+                     Wrap="FlexWrap.Wrap">
+
+            <div>
+
+                <RadzenText TextStyle="TextStyle.H5"
+                            Style="
+                    color:white;
+                    font-weight:800;">
+
+                    LMS Content Library
+
+                </RadzenText>
+
+            </div>
+
+            <RadzenStack Orientation="Orientation.Horizontal"
+                         Gap="0.75rem"
+                         Wrap="FlexWrap.Wrap">
+
+                <RadzenButton Icon="refresh"
+                              Text="Refresh"
+                              ButtonStyle="ButtonStyle.Light"
+                              Variant="Variant.Flat"
+                              Click="@RefreshAsync"
+                              Style="@ToolbarButtonStyle" />
+
+                <RadzenButton Icon="create_new_folder"
+                              Text="New Folder"
+                              ButtonStyle="ButtonStyle.Light"
+                              Variant="Variant.Flat"
+                              Click="@OpenCreateFolderDialog"
+                              Style="@ToolbarButtonStyle" />
+
+                <RadzenUpload Auto="true"
+                              ChooseText="Upload"
+                              Icon="upload_file"
+                              Url="@UploadUrl"
+                              Progress="@OnUploadProgress"
+                              Complete="@OnUploadComplete"
+                              Style="@ToolbarButtonStyle" />
+
+            </RadzenStack>
+
+        </RadzenStack>
+
+    </RadzenCard>
+
+    <!-- ===================================================== -->
+    <!-- TOOLBAR -->
+    <!-- ===================================================== -->
+
+    <RadzenCard Style="@GlassCardStyle">
+
+        <RadzenRow AlignItems="AlignItems.Center">
+
+            <RadzenColumn Size="12"
+                          SizeMD="4">
+
+                <RadzenStack Orientation="Orientation.Horizontal"
+                             AlignItems="AlignItems.Center"
+                             Gap="0.5rem">
+
+                    <RadzenButton Icon="arrow_back"
+                                  Size="ButtonSize.Small"
+                                  Disabled="@(!CanNavigateUp)"
+                                  Click="@NavigateUp"
+                                  ButtonStyle="ButtonStyle.Light"
+                                  Variant="Variant.Flat"
+                                  Style="
+                    border-radius:12px;" />
+
+                    <RadzenText TextStyle="TextStyle.Body1"
+                                Style="
+                        font-weight:600;">
+
+                        @CurrentPath
+
+                    </RadzenText>
+
+                </RadzenStack>
+
+            </RadzenColumn>
+
+            <RadzenColumn Size="12"
+                          SizeMD="5">
+
+                <RadzenTextBox Placeholder="Search files or folders..."
+                               Style="
+                width:100%;
+                border-radius:14px;"
+                               @bind-Value="SearchText"
+                               Change="@(_ => FilterItems())" />
+
+            </RadzenColumn>
+
+            <RadzenColumn Size="12"
+                          SizeMD="3">
+
+                <RadzenDropDown Data="@FilterOptions"
+                                TValue="string"
+                                Style="
+                width:100%;
+                border-radius:14px;"
+                                @bind-Value="SelectedFilter"
+                                Change="@(_ => FilterItems())" />
+
+            </RadzenColumn>
+
+        </RadzenRow>
+
+    </RadzenCard>
+
+    <!-- ===================================================== -->
+    <!-- CONTENT -->
+    <!-- ===================================================== -->
+
+    <div class="row mt-4">
+
+        @foreach (var item in FilteredItems)
+        {
+            <div class="col-12 col-sm-6 col-md-4 col-xl-3 mb-4">
+
+                <RadzenCard Style="@ItemCardStyle"
+                            Click="@(() => HandleItemClick(item))">
+
+                    <!-- ========================================= -->
+                    <!-- HEADER -->
+                    <!-- ========================================= -->
+
+                    <RadzenStack Orientation="Orientation.Horizontal"
+                                 Gap="0.75rem"
+                                 AlignItems="AlignItems.Center"
+                                 Style="margin-bottom:1rem;">
+
+                        <div style="
+                            width:56px;
+                            height:56px;
+                            min-width:56px;
+                            border-radius:16px;
+                            display:flex;
+                            align-items:center;
+                            justify-content:center;
+                            background:
+                            @(item.IsFolder
+                                 ? "linear-gradient(135deg,#FFD54F,#FFB300)"
+                                 : "linear-gradient(135deg,#0078D4,#106EBE)");
+                            color:white;
+                            box-shadow:
+                            0 6px 18px rgba(0,0,0,0.12);">
+
+                            <RadzenIcon Icon="@GetItemIcon(item)"
+                                        Style="
+                            font-size:30px;
+                            color:white;" />
+
+                        </div>
+
+                        <div style="overflow:hidden;">
+
+                            <RadzenText TextStyle="TextStyle.Subtitle2"
+                                        Style="
+                                font-weight:700;
+                                color:#323130;
+                                white-space:nowrap;
+                                overflow:hidden;
+                                text-overflow:ellipsis;">
+
+                                @item.Name
+
+                            </RadzenText>
+
+                            <RadzenText TextStyle="TextStyle.Caption"
+                                        Style="color:#605E5C;">
+
+                                @(item.IsFolder
+                                    ? "Folder"
+                                    : item.ContentType ?? "Document")
+
+                            </RadzenText>
+
+                        </div>
+
+                    </RadzenStack>
+
+                    <!-- ========================================= -->
+                    <!-- ACTIONS -->
+                    <!-- ========================================= -->
+
+                    <RadzenStack Orientation="Orientation.Horizontal"
+                                 Gap="0.5rem"
+                                 Wrap="FlexWrap.Wrap"
+                                 JustifyContent="JustifyContent.Center">
+
+                        @if (item.IsFolder)
+                        {
+                            <RadzenButton Icon="folder_open"
+                                          Text="Open Folder"
+                                          Variant="Variant.Flat"
+                                          ButtonStyle="ButtonStyle.Warning"
+                                          Shade="Shade.Light"
+                                          Size="ButtonSize.Small"
+                                          Click="@(async () => await OpenFolder(item))"
+                                          Click:stopPropagation="true"
+                                          Style="
+                            border-radius:14px;
+                            font-weight:600;" />
+                        }
+                        else
+                        {
+                            <RadzenButton Icon="open_in_new"
+                                          Variant="Variant.Flat"
+                                          ButtonStyle="ButtonStyle.Info"
+                                          Shade="Shade.Light"
+                                          Size="ButtonSize.Small"
+                                          Click="@(async () =>
+                                                {
+                                                   await JS.InvokeVoidAsync(
+                                                   "open",
+                                                    item.WebUrl,
+                                                    "_blank");
+                                                 })"
+                                          Click:stopPropagation="true"
+                                          Style="border-radius:12px;"
+                                          Title="Open Content" />
+
+                            <RadzenButton Icon="edit"
+                                          Variant="Variant.Flat"
+                                          ButtonStyle="ButtonStyle.Warning"
+                                          Shade="Shade.Light"
+                                          Size="ButtonSize.Small"
+                                          Click="@(() => OpenEditPage(item))"
+                                          Click:stopPropagation="true"
+                                          Style="border-radius:12px;"
+                                          Title="Edit Content" />
+
+                            <RadzenButton Icon="info"
+                                          Variant="Variant.Flat"
+                                          ButtonStyle="ButtonStyle.Secondary"
+                                          Shade="Shade.Light"
+                                          Size="ButtonSize.Small"
+                                          Click="@(() =>
+                                                        {
+                                                            NavigationManager.NavigateTo(
+                                                                $"/lms-library-view/{item.Id}");
+                                                        })"
+                                          Click:stopPropagation="true"
+                                          Style="border-radius:12px;"
+                                          Title="View Details" />
+
+                            <RadzenButton Icon="delete"
+                                          Variant="Variant.Flat"
+                                          ButtonStyle="ButtonStyle.Danger"
+                                          Shade="Shade.Light"
+                                          Size="ButtonSize.Small"
+                                          Click="@(() => ConfirmDelete(item))"
+                                          Click:stopPropagation="true"
+                                          Style="border-radius:12px;"
+                                          Title="Delete" />
+                        }
+
+                    </RadzenStack>
+
+                </RadzenCard>
+
+            </div>
+        }
+
+    </div>
+
+</div>
+
+@code {
+
+    private List<LibraryItem> Items = new();
+
+    private List<LibraryItem> FilteredItems = new();
+
+    private Stack<(string DriveId, string FolderId, string Name)>
+        NavigationHistory = new();
+
+    private string SearchText = string.Empty;
+
+    private string SelectedFilter = "All";
+
+    private bool IsLoading;
+
+    private string? ErrorMessage;
+
+    private string CurrentPath = "/";
+
+    private string SelectedDetailsTab = "overview";
+
+    private string NewFolderName = string.Empty;
+
+    private readonly List<string> FilterOptions =
+    [
+        "All",
+        "Files",
+        "Folders"
+    ];
+
+    private const string GlassCardStyle = @"
+        border-radius:24px;
+        padding:1.25rem;
+        background:
+            rgba(255,255,255,0.72);
+        backdrop-filter:blur(18px);
+        border:1px solid rgba(255,255,255,0.24);
+        box-shadow:
+            0 10px 30px rgba(0,0,0,0.08);";
+
+    private const string ItemCardStyle = @"
+        height:100%;
+        border-radius:24px;
+        padding:1.5rem;
+        cursor:pointer;
+        transition:all .25s ease;
+        background:
+            rgba(255,255,255,0.78);
+        backdrop-filter:blur(18px);
+        border:1px solid rgba(255,255,255,0.24);
+        box-shadow:
+            0 10px 30px rgba(0,0,0,0.08);";
+
+    private const string ToolbarButtonStyle = @"
+        border-radius:20px;
+        height:20px;
+        padding-left:20px;
+        padding-right:20px;
+        font-weight:300;";
+
+    private const string DetailsCardStyle = @"
+        border-radius:24px;
+        padding:1.5rem;
+        background:
+            rgba(255,255,255,0.82);
+        border:
+            1px solid rgba(255,255,255,0.24);
+        box-shadow:
+            0 10px 30px rgba(0,0,0,0.08);";
+
+    private bool CanNavigateUp =>
+        NavigationHistory.Count > 0;
+
+    private string UploadUrl => "api/lms/upload";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRootAsync();
+    }
+
+    private async Task LoadRootAsync()
+    {
+        Items =
+            await SharePointService
+                .GetLibraryRootAsync();
+
+        FilterItems();
+
+        CurrentPath = "/";
+    }
+
+    private void FilterItems()
+    {
+        IEnumerable<LibraryItem> query =
+            Items;
+
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            query = query.Where(x =>
+                x.Name.Contains(
+                    SearchText,
+                    StringComparison.OrdinalIgnoreCase));
+        }
+
+        query = SelectedFilter switch
+        {
+            "Files" =>
+                query.Where(x => !x.IsFolder),
+
+            "Folders" =>
+                query.Where(x => x.IsFolder),
+
+            _ => query
+        };
+
+        FilteredItems =
+            query.ToList();
+    }
+
+    private async Task HandleItemClick(LibraryItem item)
+    {
+        if (item.IsFolder)
+        {
+            await OpenFolder(item);
+        }
+        else if (!string.IsNullOrWhiteSpace(item.WebUrl))
+        {
+            await JS.InvokeVoidAsync(
+                "open",
+                item.WebUrl,
+                "_blank");
+        }
+    }
+
+    private async Task OpenFolder(LibraryItem item)
+    {
+        if (NavigationHistory.Count == 0)
+        {
+            var root =
+                await SharePointService.GetRootContextAsync();
+
+            NavigationHistory.Push(
+                (
+                    root.DriveId,
+                    root.FolderId,
+                    "Home"
+                ));
+        }
+
+        NavigationHistory.Push(
+            (
+                item.DriveId,
+                item.Id,
+                item.Name
+            ));
+
+        Items =
+            await SharePointService
+                .GetLibraryFolderChildrenAsync(
+                    item.DriveId,
+                    item.Id);
+
+        FilterItems();
+
+        BuildPath();
+    }
+
+    private async Task NavigateUp()
+    {
+        if (NavigationHistory.Count <= 1)
+        {
+            NavigationHistory.Clear();
+
+            await LoadRootAsync();
+
+            return;
+        }
+
+        NavigationHistory.Pop();
+
+        var current =
+            NavigationHistory.Peek();
+
+        Items =
+            await SharePointService
+                .GetLibraryFolderChildrenAsync(
+                    current.DriveId,
+                    current.FolderId);
+
+        FilterItems();
+
+        BuildPath();
+    }
+
+    private async Task RefreshAsync()
+    {
+        await LoadRootAsync();
+    }
+
+    private void BuildPath()
+    {
+        if (NavigationHistory.Count == 0)
+        {
+            CurrentPath = "/";
+
+            return;
+        }
+
+        CurrentPath =
+            "/" + string.Join(
+                "/",
+                NavigationHistory
+                    .Reverse()
+                    .Select(x => x.Name));
+    }
+
+    private void ChangeDetailsTab(
+        string tab)
+    {
+        SelectedDetailsTab = tab;
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private string GetTabButtonStyle(
+        string tab)
+    {
+        var active =
+            SelectedDetailsTab == tab;
+
+        return active
+            ? @"
+                width:100%;
+                justify-content:flex-start;
+                border-radius:18px;
+                background:
+                    linear-gradient(
+                        135deg,
+                        #0078D4,
+                        #106EBE);
+                color:white;
+                border:none;
+                padding:14px;
+                font-weight:700;"
+            : @"
+                width:100%;
+                justify-content:flex-start;
+                border-radius:18px;
+                background:
+                    rgba(255,255,255,0.78);
+                color:#323130;
+                border:
+                    1px solid rgba(0,0,0,0.06);
+                padding:14px;
+                font-weight:600;";
+    }
+
+    private string GetPreviewUrl(LibraryItem item)
+    {
+        if (string.IsNullOrWhiteSpace(
+            item.WebUrl))
+        {
+            return string.Empty;
+        }
+
+        return item.WebUrl.Contains("?")
+            ? $"{item.WebUrl}&web=1"
+            : $"{item.WebUrl}?web=1";
+    }
+
+    private void OpenEditPage(LibraryItem item)
+    {
+        NavigationManager.NavigateTo(
+            $"/lms-crud-edit/{item.Id}");
+    }
+
+    private async Task ConfirmDelete(LibraryItem item)
+    {
+        await SharePointService
+            .DeleteItemAsync(
+                item.DriveId,
+                item.Id);
+
+        await RefreshAsync();
+    }
+
+    private async Task OpenCreateFolderDialog()
+    {
+        await Task.CompletedTask;
+    }
+
+    private void OnUploadProgress(
+        UploadProgressArgs args)
+    {
+    }
+
+    private async Task OnUploadComplete(
+        UploadCompleteEventArgs args)
+    {
+        await RefreshAsync();
+    }
+
+    private static string GetItemIcon(LibraryItem item)
+    {
+        if (item.IsFolder)
+            return "folder";
+
+        var extension =
+            Path.GetExtension(item.Name)?
+                .ToLowerInvariant();
+
+        return extension switch
+        {
+            ".doc" or ".docx" => "article",
+            ".xls" or ".xlsx" => "table_chart",
+            ".ppt" or ".pptx" => "slideshow",
+            ".pdf" => "picture_as_pdf",
+            ".png" or ".jpg" or ".jpeg" => "image",
+            ".mp4" or ".avi" => "movie",
+            ".mp3" => "audiotrack",
+            ".zip" => "folder_zip",
+            ".json" => "data_object",
+            ".cs" or ".js" or ".ts" => "code",
+            _ => "description"
+        };
+    }
+}

@@ -1,0 +1,190 @@
+@page "/model-content-admin"
+
+@using MITANZ360Edu.Web.Models
+@using MITANZ360Edu.Web.Services
+@using Radzen
+@using Radzen.Blazor
+
+@inject ModelContentService ModelContentService
+@inject NotificationService NotificationService
+@inject DialogService DialogService
+@inject ILogger<ModelContentAdmin> Logger
+
+<PageTitle>
+    Model Content Admin
+</PageTitle>
+
+<style>
+
+    .page-shell {
+        min-height: 100vh;
+        padding: 1.5rem;
+        background: linear-gradient( 135deg, #020617, #0f172a, #111827);
+    }
+
+    .glass-card {
+        background: rgba(255,255,255,.05);
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 20px;
+        padding: 1.5rem;
+        color: white;
+    }
+
+    .header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .title {
+        font-size: 1.6rem;
+        font-weight: 700;
+    }
+
+    .status-box {
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .error-box {
+        background: rgba(239,68,68,.15);
+        border: 1px solid rgba(239,68,68,.35);
+        color: #fecaca;
+    }
+
+    .success-box {
+        background: rgba(34,197,94,.15);
+        border: 1px solid rgba(34,197,94,.35);
+        color: #bbf7d0;
+    }
+
+</style>
+
+<div class="page-shell">
+
+    <div class="glass-card">
+
+        <div class="header-row">
+
+            <div class="title">
+                Model Content Administration
+            </div>
+
+            <RadzenButton Text="Refresh"
+                          Icon="refresh"
+                          Click="@LoadAsync" />
+
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_error))
+        {
+            <div class="status-box error-box">
+                @_error
+            </div>
+        }
+
+        @if (_loaded)
+        {
+            <div class="status-box success-box">
+                Loaded @Items.Count item(s)
+            </div>
+        }
+
+        <RadzenDataGrid TItem="ModelContentModel"
+                        Data="@Items"
+                        AllowPaging="true"
+                        AllowSorting="true"
+                        AllowFiltering="true"
+                        PageSize="10"
+                        EmptyText="No content records found."
+                        Style="background:white;color:black;">
+
+            <Columns>
+
+                <RadzenDataGridColumn TItem="ModelContentModel"
+                                      Property="Title"
+                                      Title="Title" />
+
+                <RadzenDataGridColumn TItem="ModelContentModel"
+                                      Property="CourseId"
+                                      Title="Course" />
+
+                <RadzenDataGridColumn TItem="ModelContentModel"
+                                      Property="ModuleNo"
+                                      Title="Module" />
+
+                <RadzenDataGridColumn TItem="ModelContentModel"
+                                      Property="ContentTypeDisplay"
+                                      Title="Type" />
+
+                <RadzenDataGridColumn TItem="ModelContentModel"
+                                      Property="PublishStatus"
+                                      Title="Status" />
+
+            </Columns>
+
+        </RadzenDataGrid>
+
+    </div>
+
+</div>
+
+@code {
+
+    private List<ModelContentModel> Items =
+        new();
+
+    private string _error =
+        string.Empty;
+
+    private bool _loaded;
+
+    protected override async Task
+        OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _error =
+                string.Empty;
+
+            _loaded =
+                false;
+
+            Logger.LogInformation(
+                "Loading ModelContent records.");
+
+            Items =
+                await ModelContentService
+                    .GetAllAsync();
+
+            _loaded = true;
+
+            NotificationService.Notify(
+                NotificationSeverity.Success,
+                "Loaded",
+                $"Loaded {Items.Count} record(s).");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(
+                ex,
+                "ModelContent loading failed.");
+
+            _error =
+                ex.Message;
+
+            NotificationService.Notify(
+                NotificationSeverity.Error,
+                "Load Failed",
+                ex.Message);
+        }
+    }
+}

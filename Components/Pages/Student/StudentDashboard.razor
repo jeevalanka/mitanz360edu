@@ -1,0 +1,907 @@
+﻿@page "/student-dashboard"
+
+@using Radzen
+@using Radzen.Blazor
+@using MITANZ360Edu.Web.Services
+
+@inject UserSessionService UserSession
+@inject UserSessionInitializer SessionInitializer
+
+@attribute [Authorize(Roles = "Student")]
+
+<PageTitle>Student Dashboard</PageTitle>
+
+<div class="dashboard-container">
+
+    <!-- HERO HEADER -->
+    <RadzenCard class="hero-card">
+
+        <div class="hero-content">
+
+            <div>
+
+                <h2>
+                    Hi,
+                    @UserSession.CurrentUser.FullName 👋
+                </h2>
+
+                <p class="hero-subtitle">
+                    Here is your academic overview for this semester.
+                </p>
+
+            </div>
+
+            <!-- PROFILE SECTION -->
+            <div class="student-badge-wrapper">
+
+                <!-- CLICKABLE PROFILE -->
+                <div class="student-badge"
+                     @onclick="ToggleProfilePopup">
+
+                    <div class="student-avatar">
+
+                        @GetInitials()
+
+                    </div>
+
+                    <div>
+
+                        <div class="student-name">
+                            @UserSession.CurrentUser.FullName
+                        </div>
+
+                        <div class="student-role">
+                            @UserSession.CurrentUser.Role
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- PROFILE POPUP -->
+                @if (ShowProfilePopup)
+                {
+                    <div class="profile-popup">
+
+                        <div class="popup-header">
+
+                            <div class="popup-avatar">
+                                @GetInitials()
+                            </div>
+
+                            <div>
+
+                                <div class="popup-name">
+                                    @UserSession.CurrentUser.FullName
+                                </div>
+
+                                <div class="popup-role">
+                                    @UserSession.CurrentUser.Role
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="popup-body">
+
+                            <div class="profile-item">
+
+                                <span class="profile-label">
+                                    Email
+                                </span>
+
+                                <span class="profile-value">
+                                    @UserSession.CurrentUser.Email
+                                </span>
+
+                            </div>
+
+                            <div class="profile-item">
+
+                                <span class="profile-label">
+                                    Student ID
+                                </span>
+
+                                <span class="profile-value">
+                                    @UserSession.CurrentUser.StudentId
+                                </span>
+
+                            </div>
+
+                            <div class="profile-item">
+
+                                <span class="profile-label">
+                                    Campus
+                                </span>
+
+                                <span class="profile-value">
+                                    @UserSession.CurrentUser.Campus
+                                </span>
+
+                            </div>
+
+                            <div class="profile-item">
+
+                                <span class="profile-label">
+                                    Semester
+                                </span>
+
+                                <span class="profile-value">
+                                    @UserSession.CurrentUser.Semester
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <div class="popup-close-section">
+
+                            <button class="btn-close-popup"
+                                    @onclick="CloseProfilePopup">
+
+                                ✕
+
+                            </button>
+
+                        </div>
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+    </RadzenCard>
+
+
+    <!-- SUMMARY CARDS -->
+    <RadzenRow Gap="16px" class="mt-4">
+
+        <RadzenColumn Size="12" SizeMD="3">
+
+            <RadzenCard class="summary-card courses-card">
+
+                <div class="summary-icon">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                </div>
+
+                <div>
+                    <div class="summary-title">
+                        Enrolled Courses
+                    </div>
+
+                    <div class="summary-value">
+                        6
+                    </div>
+                </div>
+
+            </RadzenCard>
+
+        </RadzenColumn>
+
+
+        <RadzenColumn Size="12" SizeMD="3">
+
+            <RadzenCard class="summary-card attendance-card">
+
+                <div class="summary-icon">
+                    <i class="bi bi-calendar-check-fill"></i>
+                </div>
+
+                <div>
+                    <div class="summary-title">
+                        Attendance
+                    </div>
+
+                    <div class="summary-value">
+                        92%
+                    </div>
+                </div>
+
+            </RadzenCard>
+
+        </RadzenColumn>
+
+
+        <RadzenColumn Size="12" SizeMD="3">
+
+            <RadzenCard class="summary-card assignment-card">
+
+                <div class="summary-icon">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                </div>
+
+                <div>
+                    <div class="summary-title">
+                        Assignments
+                    </div>
+
+                    <div class="summary-value">
+                        4 Pending
+                    </div>
+                </div>
+
+            </RadzenCard>
+
+        </RadzenColumn>
+
+
+        <RadzenColumn Size="12" SizeMD="3">
+
+            <RadzenCard class="summary-card grade-card">
+
+                <div class="summary-icon">
+                    <i class="bi bi-award-fill"></i>
+                </div>
+
+                <div>
+                    <div class="summary-title">
+                        Average Grade
+                    </div>
+
+                    <div class="summary-value">
+                        A-
+                    </div>
+                </div>
+
+            </RadzenCard>
+
+        </RadzenColumn>
+
+    </RadzenRow>
+
+
+    <!-- MAIN CONTENT -->
+    <RadzenRow Gap="16px" class="mt-4">
+
+        <!-- COURSES -->
+        <RadzenColumn Size="12" SizeLG="8">
+
+            <RadzenCard class="main-card">
+
+                <div class="section-header">
+
+                    <h4>
+                        My Courses
+                    </h4>
+
+                    <RadzenButton Text="View All"
+                                  Icon="visibility"
+                                  ButtonStyle="ButtonStyle.Light" />
+
+                </div>
+
+                <RadzenRow Gap="16px">
+
+                    @foreach (var course in Courses)
+                    {
+                        <RadzenColumn Size="12" SizeMD="6">
+
+                            <RadzenCard class="course-card">
+
+                                <div class="course-header">
+
+                                    <div>
+
+                                        <div class="course-title">
+                                            @course.Name
+                                        </div>
+
+                                        <div class="course-code">
+                                            @course.Code
+                                        </div>
+
+                                    </div>
+
+                                    <RadzenProgressBar Value="@course.Progress"
+                                                       ShowValue="true"
+                                                       Style="width:90px;height:12px;" />
+
+                                </div>
+
+                                <div class="course-info mt-3">
+
+                                    <div>
+                                        <i class="bi bi-person-fill"></i>
+                                        @course.Lecturer
+                                    </div>
+
+                                    <div>
+                                        <i class="bi bi-clock-fill"></i>
+                                        @course.Schedule
+                                    </div>
+
+                                </div>
+
+                                <div class="mt-3">
+
+                                    <RadzenButton Text="Open Course"
+                                                  Icon="launch"
+                                                  ButtonStyle="ButtonStyle.Primary"
+                                                  Class="w-100" />
+
+                                </div>
+
+                            </RadzenCard>
+
+                        </RadzenColumn>
+                    }
+
+                </RadzenRow>
+
+            </RadzenCard>
+
+        </RadzenColumn>
+
+
+        <!-- RIGHT SIDEBAR -->
+        <RadzenColumn Size="12" SizeLG="4">
+
+            <!-- EVENTS -->
+            <RadzenCard class="side-card">
+
+                <div class="section-header">
+                    <h4>Upcoming Events</h4>
+                </div>
+
+                <div class="event-item">
+
+                    <div class="event-date">
+                        12 MAY
+                    </div>
+
+                    <div>
+
+                        <div class="event-title">
+                            Cloud Computing Exam
+                        </div>
+
+                        <div class="event-time">
+                            10:00 AM
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="event-item">
+
+                    <div class="event-date">
+                        18 MAY
+                    </div>
+
+                    <div>
+
+                        <div class="event-title">
+                            Assignment Submission
+                        </div>
+
+                        <div class="event-time">
+                            11:59 PM
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="event-item">
+
+                    <div class="event-date">
+                        22 MAY
+                    </div>
+
+                    <div>
+
+                        <div class="event-title">
+                            Azure Workshop
+                        </div>
+
+                        <div class="event-time">
+                            2:00 PM
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </RadzenCard>
+
+
+            <!-- ANNOUNCEMENTS -->
+            <RadzenCard class="side-card mt-4">
+
+                <div class="section-header">
+                    <h4>Announcements</h4>
+                </div>
+
+                <div class="announcement-item">
+                    <i class="bi bi-megaphone-fill"></i>
+                    <span>
+                        Semester practical labs begin next week.
+                    </span>
+                </div>
+
+                <div class="announcement-item">
+                    <i class="bi bi-megaphone-fill"></i>
+                    <span>
+                        Microsoft Azure student credits now available.
+                    </span>
+                </div>
+
+                <div class="announcement-item">
+                    <i class="bi bi-megaphone-fill"></i>
+                    <span>
+                        Course materials updated for Term 3.
+                    </span>
+                </div>
+
+            </RadzenCard>
+
+        </RadzenColumn>
+
+    </RadzenRow>
+
+</div>
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SessionInitializer.InitializeAsync();
+    }
+
+    private bool ShowProfilePopup;
+
+    private void ToggleProfilePopup()
+    {
+        ShowProfilePopup = !ShowProfilePopup;
+    }
+
+    public class StudentCourse
+    {
+        public string Name { get; set; } = string.Empty;
+
+        public string Code { get; set; } = string.Empty;
+
+        public string Lecturer { get; set; } = string.Empty;
+
+        public string Schedule { get; set; } = string.Empty;
+
+        public int Progress { get; set; }
+    }
+
+    private List<StudentCourse> Courses = new()
+    {
+        new StudentCourse
+        {
+            Name = "Cloud Infrastructure",
+            Code = "AZ900-101",
+            Lecturer = "Mr. Fernando",
+            Schedule = "Mon & Wed",
+            Progress = 75
+        },
+
+        new StudentCourse
+        {
+            Name = "Microsoft Power Platform",
+            Code = "PL900-201",
+            Lecturer = "Mrs. Silva",
+            Schedule = "Tue & Thu",
+            Progress = 62
+        },
+
+        new StudentCourse
+        {
+            Name = "Cyber Security Fundamentals",
+            Code = "SEC-110",
+            Lecturer = "Mr. Perera",
+            Schedule = "Friday",
+            Progress = 84
+        },
+
+        new StudentCourse
+        {
+            Name = "AI Automation Systems",
+            Code = "AI-500",
+            Lecturer = "Dr. Kumar",
+            Schedule = "Saturday",
+            Progress = 48
+        }
+    };
+
+    private string GetInitials()
+    {
+        if (string.IsNullOrWhiteSpace(
+            UserSession.CurrentUser.FullName))
+        {
+            return "GU";
+        }
+
+        var parts =
+            UserSession.CurrentUser.FullName
+                .Split(' ',
+                    StringSplitOptions.RemoveEmptyEntries);
+
+        if (parts.Length == 1)
+        {
+            return parts[0]
+                .Substring(0, 1)
+                .ToUpper();
+        }
+
+        return string.Concat(
+            parts[0][0],
+            parts[1][0]).ToUpper();
+    }
+
+    private void CloseProfilePopup()
+    {
+        ShowProfilePopup = false;
+    }
+}
+
+<style>
+
+    .dashboard-container {
+        padding: 20px;
+        background: #f5f7fb;
+        min-height: 100vh;
+    }
+
+    .hero-card {
+        border-radius: 24px;
+        padding: 28px;
+        background: linear-gradient(135deg,#0f172a,#1e3a8a);
+        color: white;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .hero-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .hero-subtitle {
+        opacity: 0.8;
+    }
+
+    .student-badge-wrapper {
+        position: relative;
+    }
+
+    .student-badge {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+        .student-badge:hover {
+            transform: scale(1.02);
+        }
+
+    .student-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 20px;
+    }
+
+    .student-name {
+        font-weight: 600;
+    }
+
+    .student-role {
+        font-size: 13px;
+        opacity: 0.7;
+    }
+
+    .profile-popup {
+        position: absolute;
+        top: 85px;
+        right: 0;
+        width: 340px;
+        background: white;
+        border-radius: 22px;
+        padding: 22px;
+        z-index: 9999;
+        box-shadow: 0 14px 40px rgba(0,0,0,0.2);
+        animation: popupFade 0.2s ease;
+    }
+
+    @@keyframes popupFade {
+
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .popup-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .popup-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient( 135deg, #2563eb, #1d4ed8);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: bold;
+    }
+
+    .popup-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .popup-role {
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .popup-body {
+        margin-top: 20px;
+    }
+
+    .profile-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 14px;
+    }
+
+    .profile-label {
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .profile-value {
+        color: #0f172a;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .popup-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 22px;
+    }
+
+    .btn-profile,
+    .btn-logout {
+        flex: 1;
+        border: none;
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .btn-profile {
+        background: #2563eb;
+        color: white;
+    }
+
+    .btn-logout {
+        background: #f1f5f9;
+        color: #0f172a;
+    }
+
+    .summary-card {
+        border-radius: 20px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        border: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+        }
+
+    .summary-icon {
+        width: 55px;
+        height: 55px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: white;
+    }
+
+    .summary-title {
+        font-size: 13px;
+        opacity: 0.7;
+    }
+
+    .summary-value {
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .courses-card .summary-icon {
+        background: #2563eb;
+    }
+
+    .attendance-card .summary-icon {
+        background: #16a34a;
+    }
+
+    .assignment-card .summary-icon {
+        background: #f59e0b;
+    }
+
+    .grade-card .summary-icon {
+        background: #9333ea;
+    }
+
+    .main-card,
+    .side-card {
+        border-radius: 22px;
+        border: none;
+        padding: 20px;
+        background: white;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+    .course-card {
+        border-radius: 18px;
+        border: 1px solid #eef2f7;
+        transition: all 0.3s ease;
+    }
+
+        .course-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+
+    .course-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .course-title {
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .course-code {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .course-info {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        color: #475569;
+        font-size: 14px;
+    }
+
+    .event-item {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 18px;
+        align-items: center;
+    }
+
+    .event-date {
+        min-width: 70px;
+        padding: 10px;
+        border-radius: 14px;
+        background: #eff6ff;
+        color: #2563eb;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .event-title {
+        font-weight: 600;
+    }
+
+    .event-time {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .announcement-item {
+        display: flex;
+        gap: 10px;
+        align-items: start;
+        margin-bottom: 14px;
+        color: #334155;
+    }
+
+        .announcement-item i {
+            color: #2563eb;
+        }
+
+    .mt-3 {
+        margin-top: 1rem;
+    }
+
+    .mt-4 {
+        margin-top: 1.5rem;
+    }
+
+    .w-100 {
+        width: 100%;
+    }
+
+    @@media (max-width: 768px) {
+
+        .hero-content {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .profile-popup {
+            right: auto;
+            left: 0;
+            width: 300px;
+        }
+    }
+
+    .popup-close-section {
+        margin-top: 20px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .btn-close-popup {
+        width: 42px;
+        height: 42px;
+        border: none;
+        border-radius: 50%;
+        background: #e2e8f0;
+        color: #0f172a;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+        .btn-close-popup:hover {
+            background: #cbd5e1;
+            transform: scale(1.05);
+        }
+
+</style>

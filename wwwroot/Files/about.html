@@ -1,0 +1,769 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>XCustomer Academic Services</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+          rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Noto+Sans+Sinhala:wght@300;400;500;600;700&family=Noto+Sans+Tamil:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient( 135deg, #f4f8ff 0%, #ffffff 45%, #f7fbff 100% );
+            overflow-x: hidden;
+            color: #0f172a;
+        }
+
+        /* HERO */
+
+        .hero-section {
+            position: relative;
+            padding: 110px 20px;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .hero-background {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top left, rgba(37,99,235,0.18), transparent 30%), radial-gradient(circle at bottom right, rgba(168,85,247,0.15), transparent 30%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 12px 26px;
+            border-radius: 999px;
+            background: linear-gradient( 135deg, #2563eb, #06b6d4 );
+            color: white;
+            font-weight: 600;
+            margin-bottom: 28px;
+            box-shadow: 0 10px 25px rgba(37,99,235,0.25);
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 25px;
+        }
+
+        .hero-subtitle {
+            max-width: 950px;
+            margin: auto;
+            font-size: 1.1rem;
+            line-height: 1.9;
+            color: #475569;
+        }
+
+        .button-group {
+            margin-top: 45px;
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .hero-btn {
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 16px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient( 135deg, #2563eb, #06b6d4 );
+            color: white;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #0f172a;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        }
+
+        .hero-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        /* SECTION */
+
+        .section {
+            padding: 30px 20px 80px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.6rem;
+            font-weight: 800;
+            margin-bottom: 55px;
+        }
+
+        /* GLASS CARD */
+
+        .glass-card {
+            background: rgba(255,255,255,0.58);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.55);
+            border-radius: 30px;
+            padding: 35px;
+            box-shadow: 0 20px 45px rgba(0,0,0,0.08);
+            transition: 0.35s ease;
+        }
+
+            .glass-card:hover {
+                transform: translateY(-8px);
+            }
+
+        /* ABOUT */
+
+        .about-card {
+            max-width: 1350px;
+            margin: auto;
+        }
+
+        .about-header {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .about-icon {
+            width: 90px;
+            height: 90px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            background: linear-gradient( 135deg, #2563eb, #06b6d4 );
+            color: white;
+        }
+
+        .about-text {
+            line-height: 1.9;
+            color: #475569;
+            margin-bottom: 22px;
+        }
+
+        /* LANGUAGE BLOCKS */
+
+        .language-box {
+            margin-top: 25px;
+            padding: 28px;
+            border-radius: 24px;
+            background: linear-gradient( 135deg, rgba(255,255,255,0.75), rgba(255,255,255,0.55) );
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        .language-title {
+            font-size: 3.4rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color:darkorange;
+        }
+
+        .sinhala-text {
+            font-family: 'Noto Sans Sinhala', sans-serif;
+            font-size: 1.05rem;
+            line-height: 2;
+            color: #1e293b;
+        }
+
+        .tamil-text {
+            font-family: 'Noto Sans Tamil', sans-serif;
+            font-size: 1.05rem;
+            line-height: 2;
+            color: #1e293b;
+        }
+
+        /* GRID */
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0,1fr));
+            gap: 28px;
+            max-width: 1450px;
+            margin: auto;
+        }
+
+        /* SERVICE CARDS */
+
+        .card-icon {
+            width: 90px;
+            height: 90px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin-bottom: 25px;
+            background: rgba(255,255,255,0.72);
+        }
+
+        .glass-card h3 {
+            font-size: 1.55rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .glass-card p {
+            line-height: 1.8;
+            color: #475569;
+        }
+
+        /* COLORS */
+
+        .cloud-card {
+            background: linear-gradient( 135deg, rgba(37,99,235,0.15), rgba(14,165,233,0.18) );
+        }
+
+        .ai-card {
+            background: linear-gradient( 135deg, rgba(239,68,68,0.14), rgba(220,38,38,0.18) );
+        }
+
+        .security-card {
+            background: linear-gradient( 135deg, rgba(16,185,129,0.14), rgba(5,150,105,0.18) );
+        }
+
+        /* TAGS */
+
+        .tag-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 22px;
+        }
+
+        .tag {
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.78);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* VIDEO */
+
+        .video-section {
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        .video-card {
+            overflow: hidden;
+        }
+
+        .video-frame {
+            width: 100%;
+            height: 500px;
+            border: none;
+            border-radius: 22px;
+        }
+
+        /* RESOURCES */
+
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(4,minmax(0,1fr));
+            gap: 24px;
+            max-width: 1450px;
+            margin: auto;
+        }
+
+        .resource-card {
+            text-decoration: none;
+            background: rgba(255,255,255,0.65);
+            border-radius: 26px;
+            padding: 30px;
+            text-align: center;
+            color: inherit;
+            transition: 0.35s;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+        }
+
+            .resource-card:hover {
+                transform: translateY(-6px);
+            }
+
+        .resource-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        /* FOOTER */
+
+        .footer {
+            background: linear-gradient( 135deg, #0f172a, #1e293b );
+            color: white;
+            text-align: center;
+            padding: 45px 20px;
+        }
+
+            .footer p {
+                color: rgba(255,255,255,0.70);
+            }
+
+        /* RESPONSIVE */
+
+        @media (max-width: 1200px) {
+
+            .card-grid {
+                grid-template-columns: repeat(2,minmax(0,1fr));
+            }
+
+            .resource-grid {
+                grid-template-columns: repeat(2,minmax(0,1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            .card-grid,
+            .resource-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-title {
+                font-size: 2.4rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .glass-card {
+                padding: 28px;
+            }
+
+            .about-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .video-frame {
+                height: 260px;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <!-- HERO -->
+
+    <section class="hero-section">
+
+        <div class="hero-background"></div>
+
+        <div class="hero-content">
+
+            <div class="hero-badge">
+                🌐 XCustomer Global Academic Platform
+            </div>
+
+            <h1 class="hero-title">
+                Smart Academic & Technology Services
+            </h1>
+
+            <p class="hero-subtitle">
+
+                Professional cloud computing,
+                AI-powered learning,
+                enterprise technology services,
+                global certifications,
+                and digital transformation solutions.
+
+            </p>
+
+            <div class="button-group">
+
+                <a href="https://learn.microsoft.com/"
+                   target="_blank"
+                   class="hero-btn btn-primary">
+
+                    🚀 Microsoft Learn
+
+                </a>
+
+                <a href="https://www.coursera.org/"
+                   target="_blank"
+                   class="hero-btn btn-secondary">
+
+                    🎓 Global Courses
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- ABOUT -->
+
+    <section class="section">
+
+        <div class="glass-card about-card">
+
+            <div class="about-header">
+
+                <div class="about-icon">
+                    🏢
+                </div>
+
+                <div>
+
+                    <h2>
+                        About XCustomer
+                    </h2>
+
+                    <p>
+                        Enterprise Academic & Technology Services
+                    </p>
+
+                </div>
+
+            </div>
+
+            <p class="about-text">
+
+                XCustomer delivers enterprise-grade education,
+                AI systems, cloud computing,
+                cybersecurity, and global certification services
+                aligned with modern industry requirements.
+
+            </p>
+
+            <!-- SINHALA -->
+
+            <div class="language-box">
+
+                <div class="language-title">
+                    සිංහල තොරතුරු
+                </div>
+
+                <div class="sinhala-text">
+
+                    XCustomer ආයතනය නවීන තාක්ෂණික අධ්‍යාපනය,
+                    Cloud Computing,
+                    Artificial Intelligence,
+                    Cyber Security සහ Software Engineering
+                    සේවා සපයන ජාත්‍යන්තර මට්ටමේ
+                    අධ්‍යාපනික ආයතනයකි.
+
+                    <br><br>
+
+                    අපගේ අරමුණ වන්නේ සිසුන්ට
+                    වෘත්තීය මට්ටමේ කුසලතා ලබාදීම,
+                    Microsoft Certification සඳහා
+                    සූදානම් කිරීම,
+                    සහ ගෝලීය රැකියා වෙළඳපොළට
+                    ගැලපෙන දැනුම ලබාදීමයි.
+
+                    <br><br>
+
+                    නවීන AI තාක්ෂණය,
+                    Cloud Platforms,
+                    Automation Systems,
+                    සහ Enterprise Applications
+                    පිළිබඳ පුහුණු වැඩසටහන්
+                    අප විසින් සපයනු ලැබේ.
+
+                </div>
+
+            </div>
+
+            <!-- TAMIL -->
+
+            <div class="language-box">
+
+                <div class="language-title">
+                    🇱🇰 தமிழ் தகவல்
+                </div>
+
+                <div class="tamil-text">
+
+                    XCustomer என்பது
+                    நவீன தொழில்நுட்ப கல்வி,
+                    Cloud Computing,
+                    Artificial Intelligence,
+                    Cyber Security மற்றும்
+                    Software Engineering சேவைகளை
+                    வழங்கும் ஒரு சர்வதேச தரமான
+                    கல்வி நிறுவனம் ஆகும்.
+
+                    <br><br>
+
+                    மாணவர்களுக்கு தொழில்முறை திறன்களை
+                    உருவாக்குதல்,
+                    Microsoft Certification பயிற்சிகள்,
+                    மற்றும் உலகளாவிய வேலை வாய்ப்புகளுக்கான
+                    தயாரிப்புகள் வழங்கப்படுகின்றன.
+
+                    <br><br>
+
+                    AI தொழில்நுட்பம்,
+                    Cloud Platforms,
+                    Automation Systems,
+                    மற்றும் Enterprise Applications
+                    தொடர்பான நவீன பயிற்சிகள்
+                    வழங்கப்படுகின்றன.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- SERVICES -->
+
+    <section class="section">
+
+        <h2 class="section-title">
+            🚀 Professional Services
+        </h2>
+
+        <div class="card-grid">
+
+            <!-- CLOUD -->
+
+            <div class="glass-card cloud-card">
+
+                <div class="card-icon">
+                    ☁️
+                </div>
+
+                <h3>Cloud Computing</h3>
+
+                <p>
+
+                    Microsoft Azure infrastructure,
+                    virtualization,
+                    networking,
+                    and enterprise cloud deployment services.
+
+                </p>
+
+                <div class="tag-container">
+
+                    <span class="tag">🔷 Azure</span>
+                    <span class="tag">🌐 Networking</span>
+                    <span class="tag">🖥️ Infrastructure</span>
+
+                </div>
+
+            </div>
+
+            <!-- AI -->
+
+            <div class="glass-card ai-card">
+
+                <div class="card-icon">
+                    🧠
+                </div>
+
+                <h3>Artificial Intelligence</h3>
+
+                <p>
+
+                    AI-powered enterprise systems,
+                    automation,
+                    predictive analytics,
+                    and intelligent workflows.
+
+                </p>
+
+                <div class="tag-container">
+
+                    <span class="tag">🤖 AI</span>
+                    <span class="tag">⚡ Automation</span>
+                    <span class="tag">📊 Analytics</span>
+
+                </div>
+
+            </div>
+
+            <!-- SECURITY -->
+
+            <div class="glass-card security-card">
+
+                <div class="card-icon">
+                    🔐
+                </div>
+
+                <h3>Cyber Security</h3>
+
+                <p>
+
+                    Enterprise security,
+                    compliance,
+                    identity management,
+                    and Zero Trust solutions.
+
+                </p>
+
+                <div class="tag-container">
+
+                    <span class="tag">🛡️ Security</span>
+                    <span class="tag">🔍 Compliance</span>
+                    <span class="tag">⚙️ Governance</span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- VIDEO -->
+
+    <section class="section">
+
+        <h2 class="section-title">
+            🎥 Learning Video Showcase
+        </h2>
+
+        <div class="video-section">
+
+            <div class="glass-card video-card">
+
+                <iframe class="video-frame"
+                        src="https://www.youtube.com/embed/NKEFWyqJ5XA"
+                        title="YouTube video player"
+                        allowfullscreen>
+                </iframe>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- RESOURCES -->
+
+    <section class="section">
+
+        <h2 class="section-title">
+            🌍 Global Learning Resources
+        </h2>
+
+        <div class="resource-grid">
+
+            <a href="https://learn.microsoft.com/"
+               target="_blank"
+               class="resource-card">
+
+                <div class="resource-icon">
+                    🔷
+                </div>
+
+                <h4>Microsoft Learn</h4>
+
+                <p>
+                    Official Microsoft learning platform.
+                </p>
+
+            </a>
+
+            <a href="https://www.coursera.org/"
+               target="_blank"
+               class="resource-card">
+
+                <div class="resource-icon">
+                    🎓
+                </div>
+
+                <h4>Coursera</h4>
+
+                <p>
+                    Global online courses platform.
+                </p>
+
+            </a>
+
+            <a href="https://www.udemy.com/"
+               target="_blank"
+               class="resource-card">
+
+                <div class="resource-icon">
+                    📘
+                </div>
+
+                <h4>Udemy</h4>
+
+                <p>
+                    Technology and skills learning.
+                </p>
+
+            </a>
+
+            <a href="https://azure.microsoft.com/"
+               target="_blank"
+               class="resource-card">
+
+                <div class="resource-icon">
+                    ☁️
+                </div>
+
+                <h4>Microsoft Azure</h4>
+
+                <p>
+                    Cloud computing services platform.
+                </p>
+
+            </a>
+
+        </div>
+
+    </section>
+
+    <!-- FOOTER -->
+
+    <footer class="footer">
+
+        <h3>
+            🌐 XCustomer
+        </h3>
+
+        <p>
+            Enterprise Academic & Technology Services Platform
+        </p>
+
+    </footer>
+
+</body>
+
+</html>

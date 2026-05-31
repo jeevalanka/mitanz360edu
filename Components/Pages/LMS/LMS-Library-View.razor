@@ -1,0 +1,692 @@
+﻿@page "/lms-library-view/{ItemId}"
+@layout Lib_Cont_Layout
+
+@using System.IO
+@using Microsoft.AspNetCore.Components
+@using Microsoft.JSInterop
+@using MITANZ360Edu.Web.Services
+@using Radzen
+@using Radzen.Blazor
+
+@inject SharePointService SharePointService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+
+<PageTitle>LMS Library View</PageTitle>
+
+<div class="container-fluid p-4">
+
+    <!-- ========================================================= -->
+    <!-- HEADER -->
+    <!-- ========================================================= -->
+
+    <RadzenCard Style="
+        border-radius:32px;
+        margin-bottom:1.5rem;
+        padding:2rem;
+        background:
+        linear-gradient(
+        135deg,
+        #0078D4 0%,
+        #106EBE 50%,
+        #CA5010 100%);
+        color:white;
+        border:none;
+        box-shadow:
+        0 20px 50px rgba(0,0,0,0.18);">
+
+        <RadzenRow AlignItems="AlignItems.Center">
+
+            <RadzenColumn Size="12"
+                          SizeMD="9">
+
+                <RadzenStack Orientation="Orientation.Horizontal"
+                             Gap="1rem"
+                             AlignItems="AlignItems.Center">
+
+                    <div style="
+                        width:88px;
+                        height:88px;
+                        min-width:88px;
+                        border-radius:24px;
+                        background:
+                        rgba(255,255,255,0.18);
+                        backdrop-filter:blur(12px);
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        box-shadow:
+                        0 10px 24px rgba(0,0,0,0.16);">
+
+                        <RadzenIcon Icon="@GetItemIcon()"
+                                    Style="
+                        font-size:48px;
+                        color:white;" />
+
+                    </div>
+
+                    <div>
+
+                        <RadzenText TextStyle="TextStyle.H2"
+                                    Style="
+                            color:white;
+                            font-weight:800;
+                            margin-bottom:0.35rem;">
+
+                            @Item?.Name
+
+                        </RadzenText>
+
+                        <RadzenText TextStyle="TextStyle.Body1"
+                                    Style="
+                            color:rgba(255,255,255,0.92);
+                            font-size:1rem;">
+
+                            Enterprise LMS Content Viewer
+
+                        </RadzenText>
+
+                    </div>
+
+                </RadzenStack>
+
+            </RadzenColumn>
+
+            <RadzenColumn Size="12"
+                          SizeMD="3">
+
+                <div style="
+                    display:flex;
+                    justify-content:flex-end;">
+
+                    <RadzenButton Icon="close"
+                                  Text="Close"
+                                  ButtonStyle="ButtonStyle.Light"
+                                  Variant="Variant.Flat"
+                                  Click="@ClosePage"
+                                  Style="
+                    border-radius:18px;
+                    font-weight:700;
+                    height:52px;
+                    padding-left:22px;
+                    padding-right:22px;" />
+
+                </div>
+
+            </RadzenColumn>
+
+        </RadzenRow>
+
+    </RadzenCard>
+
+    <!-- ========================================================= -->
+    <!-- LOADING -->
+    <!-- ========================================================= -->
+    @if (Item == null)
+    {
+        <RadzenCard Style="@GlassCardStyle">
+
+            <div style="
+                height:70vh;
+                display:flex;
+                align-items:center;
+                justify-content:center;">
+
+                <RadzenStack Gap="1rem"
+                             AlignItems="AlignItems.Center">
+
+                    <RadzenProgressBarCircular Mode="ProgressBarMode.Indeterminate"
+                                               Size="ProgressBarCircularSize.Large" />
+
+                    <RadzenText TextStyle="TextStyle.Body1"
+                                Style="
+                        color:#605E5C;
+                        font-weight:600;">
+
+                        Loading LMS content...
+
+                    </RadzenText>
+
+                </RadzenStack>
+
+            </div>
+
+        </RadzenCard>
+    }
+    else
+    {
+        <!-- ===================================================== -->
+        <!-- MAIN VIEW -->
+        <!-- ===================================================== -->
+
+        <RadzenTabs SelectedIndex="0"
+                    RenderMode="TabRenderMode.Client">
+
+            <!-- ================================================= -->
+            <!-- PREVIEW -->
+            <!-- ================================================= -->
+
+            <RadzenTabsItem Text="Preview"
+                            Icon="preview">
+
+                <RadzenCard Style="@GlassCardStyle">
+
+                    <div style="
+                        height:78vh;
+                        overflow:hidden;
+                        border-radius:28px;
+                        background:white;
+                        box-shadow:
+                        0 10px 30px rgba(0,0,0,0.08);">
+
+                        @if (IsImage(Item.Name))
+                        {
+                            <img src="@Item.WebUrl"
+                                 style="
+                            width:100%;
+                            height:100%;
+                            object-fit:contain;
+                            background:#F8F9FA;" />
+                        }
+                        else
+                        {
+                            <iframe src="@GetPreviewUrl()"
+                                    style="
+                                width:100%;
+                                height:100%;
+                                border:none;">
+                            </iframe>
+                        }
+
+                    </div>
+
+                </RadzenCard>
+
+            </RadzenTabsItem>
+
+            <!-- ================================================= -->
+            <!-- OVERVIEW -->
+            <!-- ================================================= -->
+
+            <RadzenTabsItem Text="Overview"
+                            Icon="dashboard">
+
+                <RadzenCard Style="@GlassCardStyle">
+
+                    <RadzenRow RowGap="24px">
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="6">
+
+                            <div style="@MetadataBoxStyle">
+
+                                <RadzenText TextStyle="TextStyle.Caption">
+                                    File Name
+                                </RadzenText>
+
+                                <RadzenText Style="@MetadataValueStyle">
+                                    @Item.Name
+                                </RadzenText>
+
+                            </div>
+
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="6">
+
+                            <div style="@MetadataBoxStyle">
+
+                                <RadzenText TextStyle="TextStyle.Caption">
+                                    Content Type
+                                </RadzenText>
+
+                                <RadzenText Style="@MetadataValueStyle">
+                                    @(Item.IsFolder
+                                        ? "Folder"
+                                        : Item.ContentType)
+                                </RadzenText>
+
+                            </div>
+
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="6">
+
+                            <div style="@MetadataBoxStyle">
+
+                                <RadzenText TextStyle="TextStyle.Caption">
+                                    File Size
+                                </RadzenText>
+
+                                <RadzenText Style="@MetadataValueStyle">
+                                    @FormatBytes(Item.Size)
+                                </RadzenText>
+
+                            </div>
+
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="6">
+
+                            <div style="@MetadataBoxStyle">
+
+                                <RadzenText TextStyle="TextStyle.Caption">
+                                    Source
+                                </RadzenText>
+
+                                <RadzenText Style="@MetadataValueStyle">
+                                    @Item.Source
+                                </RadzenText>
+
+                            </div>
+
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12">
+
+                            <div style="@MetadataBoxStyle">
+
+                                <RadzenText TextStyle="TextStyle.Caption">
+                                    Web URL
+                                </RadzenText>
+
+                                <RadzenLink Path="@Item.WebUrl"
+                                            Text="@Item.WebUrl"
+                                            Target="_blank" />
+
+                            </div>
+
+                        </RadzenColumn>
+
+                    </RadzenRow>
+
+                </RadzenCard>
+
+            </RadzenTabsItem>
+
+            <!-- ================================================= -->
+            <!-- LMS METADATA -->
+            <!-- ================================================= -->
+
+            <RadzenTabsItem Text="LMS Metadata"
+                            Icon="inventory_2">
+
+                <RadzenCard Style="@GlassCardStyle">
+
+                    <RadzenRow RowGap="24px">
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="6">
+
+                            <div style="@MetadataBoxStyle">
+
+                                <RadzenText TextStyle="TextStyle.Caption">
+                                    Content ID
+                                </RadzenText>
+
+                                <RadzenText Style="@MetadataValueStyle">
+                                    @Item.ContentId
+                                </RadzenText>
+
+                            </div>
+
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="6">
+
+                            <div style="@MetadataBoxStyle">
+
+                                <RadzenText TextStyle="TextStyle.Caption">
+                                    Course ID
+                                </RadzenText>
+
+                                <RadzenText Style="@MetadataValueStyle">
+                                    @Item.CourseId
+                                </RadzenText>
+
+                            </div>
+
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12">
+
+                            <div style="@MetadataBoxStyle">
+
+                                <RadzenText TextStyle="TextStyle.Caption">
+                                    Description
+                                </RadzenText>
+
+                                <RadzenText Style="
+                                    color:#323130;
+                                    line-height:1.8;">
+
+                                    @Item.Description
+
+                                </RadzenText>
+
+                            </div>
+
+                        </RadzenColumn>
+
+                    </RadzenRow>
+
+                </RadzenCard>
+
+            </RadzenTabsItem>
+
+            <!-- ================================================= -->
+            <!-- SHAREPOINT METADATA -->
+            <!-- ================================================= -->
+
+            <RadzenTabsItem Text="SharePoint Metadata"
+                            Icon="storage">
+
+                <RadzenCard Style="@GlassCardStyle">
+
+                    <RadzenRow RowGap="24px">
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="6">
+
+                            <div style="@MetadataBoxStyle">
+
+                                <RadzenText TextStyle="TextStyle.Caption">
+                                    Item ID
+                                </RadzenText>
+
+                                <RadzenText Style="@MetadataValueStyle">
+                                    @Item.Id
+                                </RadzenText>
+
+                            </div>
+
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="6">
+
+                            <div style="@MetadataBoxStyle">
+
+                                <RadzenText TextStyle="TextStyle.Caption">
+                                    Drive ID
+                                </RadzenText>
+
+                                <RadzenText Style="
+                                    color:#323130;
+                                    font-weight:700;
+                                    word-break:break-all;">
+
+                                    @Item.DriveId
+
+                                </RadzenText>
+
+                            </div>
+
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12">
+
+                            <div style="@MetadataBoxStyle">
+
+                                <RadzenText TextStyle="TextStyle.Caption">
+                                    Raw SharePoint Metadata
+                                </RadzenText>
+
+                                <pre style="
+                                background:#F3F2F1;
+                                padding:1rem;
+                                border-radius:18px;
+                                overflow:auto;
+                                max-height:500px;
+                                font-size:12px;
+                                color:#323130;">
+
+                                @Item.MetadataJson
+
+                            </pre>
+
+                        </div>
+
+                    </RadzenColumn>
+
+                </RadzenRow>
+
+            </RadzenCard>
+
+        </RadzenTabsItem>
+
+        <!-- ================================================= -->
+        <!-- GOVERNANCE -->
+        <!-- ================================================= -->
+
+        <RadzenTabsItem Text="Governance"
+                        Icon="shield">
+
+            <RadzenCard Style="@GlassCardStyle">
+
+                <RadzenRow RowGap="24px">
+
+                    <RadzenColumn Size="12"
+                                  SizeMD="6">
+
+                        <div style="@MetadataBoxStyle">
+
+                            <RadzenText TextStyle="TextStyle.Caption">
+                                Publishing Status
+                            </RadzenText>
+
+                            <div style="margin-top:0.5rem;">
+
+                                <RadzenBadge Text="@(Item.IsPublished
+                                                                                     ? "Published"
+                                                                                     : "Draft")"
+                                             BadgeStyle="@(Item.IsPublished
+                                                                                                 ? BadgeStyle.Success
+                                                                                                 : BadgeStyle.Warning)" />
+
+                            </div>
+
+                        </div>
+
+                    </RadzenColumn>
+
+                    <RadzenColumn Size="12"
+                                  SizeMD="6">
+
+                        <div style="@MetadataBoxStyle">
+
+                            <RadzenText TextStyle="TextStyle.Caption">
+                                Archive Status
+                            </RadzenText>
+
+                            <div style="margin-top:0.5rem;">
+
+                                <RadzenBadge Text="@(Item.IsArchived
+                                                                                     ? "Archived"
+                                                                                     : "Active")"
+                                             BadgeStyle="@(Item.IsArchived
+                                                                                                 ? BadgeStyle.Danger
+                                                                                                 : BadgeStyle.Success)" />
+
+                            </div>
+
+                        </div>
+
+                    </RadzenColumn>
+
+                </RadzenRow>
+
+            </RadzenCard>
+
+        </RadzenTabsItem>
+
+        <!-- ================================================= -->
+        <!-- RAW JSON -->
+        <!-- ================================================= -->
+
+        <RadzenTabsItem Text="Raw JSON"
+                        Icon="code">
+
+            <RadzenCard Style="@GlassCardStyle">
+
+                <pre style="
+                background:#111827;
+                color:#E5E7EB;
+                padding:1.5rem;
+                border-radius:24px;
+                overflow:auto;
+                max-height:78vh;
+                font-size:12px;
+                line-height:1.6;">
+
+                @Item.MetadataJson
+
+            </pre>
+
+        </RadzenCard>
+
+    </RadzenTabsItem>
+
+</RadzenTabs>
+    }
+
+</div>
+
+@code {
+
+    [Parameter]
+    public string ItemId { get; set; } = string.Empty;
+
+    private LibraryItem? Item;
+
+    private const string GlassCardStyle = @"
+        border-radius:28px;
+        padding:1.5rem;
+        background:
+            rgba(255,255,255,0.78);
+        backdrop-filter:blur(20px);
+        border:
+            1px solid rgba(255,255,255,0.24);
+        box-shadow:
+            0 10px 30px rgba(0,0,0,0.08);";
+
+    private const string MetadataBoxStyle = @"
+        background:
+            rgba(255,255,255,0.82);
+        border:
+            1px solid rgba(0,0,0,0.06);
+        border-radius:20px;
+        padding:1.25rem;
+        height:100%;";
+
+    private const string MetadataValueStyle = @"
+        color:#323130;
+        font-weight:700;
+        font-size:1rem;
+        margin-top:0.35rem;";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Item =
+            await SharePointService
+                .GetLibraryItemByIdAsync(ItemId);
+    }
+
+    private void ClosePage()
+    {
+        NavigationManager.NavigateTo(
+            "/lms-library-CRUD");
+    }
+
+    private bool IsImage(
+        string fileName)
+    {
+        var ext =
+            Path.GetExtension(fileName)?
+                .ToLowerInvariant();
+
+        return ext is
+            ".png" or
+            ".jpg" or
+            ".jpeg" or
+            ".gif" or
+            ".webp";
+    }
+
+    private string GetPreviewUrl()
+    {
+        if (Item == null
+            || string.IsNullOrWhiteSpace(
+                Item.WebUrl))
+        {
+            return string.Empty;
+        }
+
+        return Item.WebUrl.Contains("?")
+            ? $"{Item.WebUrl}&web=1"
+            : $"{Item.WebUrl}?web=1";
+    }
+
+    private string GetItemIcon()
+    {
+        if (Item == null)
+        {
+            return "description";
+        }
+
+        if (Item.IsFolder)
+        {
+            return "folder";
+        }
+
+        var extension =
+            Path.GetExtension(Item.Name)?
+                .ToLowerInvariant();
+
+        return extension switch
+        {
+            ".doc" or ".docx" => "article",
+            ".xls" or ".xlsx" => "table_chart",
+            ".ppt" or ".pptx" => "slideshow",
+            ".pdf" => "picture_as_pdf",
+            ".png" or ".jpg" or ".jpeg" => "image",
+            ".mp4" or ".avi" => "movie",
+            ".mp3" => "audiotrack",
+            ".zip" => "folder_zip",
+            ".json" => "data_object",
+            ".cs" or ".js" or ".ts" => "code",
+            _ => "description"
+        };
+    }
+
+    private static string FormatBytes(
+        long bytes)
+    {
+        string[] suffix =
+        [
+            "B",
+            "KB",
+            "MB",
+            "GB",
+            "TB"
+        ];
+
+        double len = bytes;
+
+        int order = 0;
+
+        while (len >= 1024
+               && order < suffix.Length - 1)
+        {
+            order++;
+
+            len /= 1024;
+        }
+
+        return $"{len:0.##} {suffix[order]}";
+    }
+}

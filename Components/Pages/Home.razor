@@ -1,0 +1,112 @@
+﻿@page "/"
+@layout MainLayout
+
+<link href="css/home.css" rel="stylesheet" />
+
+<section class="hero-fin">
+
+    <div class="hero-container">
+
+        <!-- Home IMAGE -->
+        <div class="hero-image">
+            <img src="images/fin-hero.png" class="hero-img" />
+        </div>
+
+    </div>
+
+</section>
+
+@code {
+    [Inject] NavigationManager Navigation { get; set; } = default!;
+
+    private void GoToReconciliation()
+    {
+        Navigation.NavigateTo("/reconciliation");
+    }
+}
+
+
+<style>
+
+    /* =========================
+       HERO SECTION
+    ========================= */
+
+    .hero-fin {
+        padding: 16px;
+        background: #f5f6f8;
+    }
+
+    /* FULL WIDTH FLEX */
+    .hero-container {
+        display: flex;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* IMAGE WRAPPER (CARD STYLE) */
+    .hero-image {
+        width: 100%;
+        border-radius: 16px;
+        padding: 12px;
+        background: #ffffff;
+        border: 2px solid #ff9800;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* IMAGE FIT PERFECTLY */
+    .hero-img {
+        width: 100%;
+        height: auto;
+        max-height: 70vh; /* 🔥 KEY: responsive to screen */
+
+        object-fit: contain;
+        border-radius: 10px;
+        transition: transform 0.3s ease;
+    }
+
+    /* HOVER EFFECT */
+    .hero-image:hover .hero-img {
+        transform: scale(1.01);
+    }
+
+    /* =========================
+       RESPONSIVE
+    ========================= */
+
+    @@media (max-width: 1200px) {
+        .hero-fin {
+            padding: 12px;
+        }
+
+        .hero-img {
+            max-height: 60vh;
+        }
+    }
+
+    @@media (max-width: 992px) {
+
+        .hero-container {
+            flex-direction: column;
+        }
+
+        .hero-img {
+            max-height: 50vh;
+        }
+    }
+
+    @@media (max-width: 576px) {
+
+        .hero-fin {
+            padding: 8px;
+        }
+
+        .hero-img {
+            max-height: 40vh;
+        }
+    }
+
+</style>

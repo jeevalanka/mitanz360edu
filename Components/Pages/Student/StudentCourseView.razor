@@ -1,0 +1,191 @@
+﻿@page "/student/view/{StudentId:int}"
+
+@using MITANZ360Edu.Web.Models
+@using MITANZ360Edu.Web.Services
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject SharePointService SharePointService
+
+<PageTitle>My Learning</PageTitle>
+
+<h3 class="page-title">My Courses</h3>
+
+<AuthorizeView Roles="Student" Context="auth">
+    <Authorized>
+
+        @if (loading)
+        {
+            <p class="loading">Loading your courses...</p>
+        }
+        else if (courses.Count == 0)
+        {
+            <p class="loading">No courses available.</p>
+        }
+        else
+        {
+            @foreach (var course in courses)
+            {
+                <div class="glass form-card">
+
+                    <!-- COURSE HEADER -->
+                    <h4>@course.Title</h4>
+                    <p class="text-muted">
+                        @course.CourseCode • @course.Level • @course.Language
+                    </p>
+
+                    <div class="btn-group">
+                        <button class="tab active"
+                                @onclick="() => Toggle(course.Id)">
+                            @(expandedCourseId == course.Id ? "Hide Content" : "View Content")
+                        </button>
+                    </div>
+
+                    @if (expandedCourseId == course.Id)
+                    {
+                        <div class="card-grid mt-3">
+                            @foreach (var item in contentByCourse[course.Id])
+                            {
+                                <div class="course-card glass">
+                                    <div class="course-body">
+
+                                        <span class="tag">@item.ContentType</span>
+
+                                        <h5 class="mt-2 mb-1">@item.Title</h5>
+
+                                        <div class="text-muted" style="font-size:13px;">
+                                            Module: <strong>@item.ModuleNo</strong><br />
+                                            Duration: @(item.DurationMinutes ?? 0) minutes
+                                        </div>
+
+                                        @if (!string.IsNullOrWhiteSpace(item.ContentBody))
+                                        {
+                                            <p class="mt-2">
+                                                @item.ContentBody
+                                            </p>
+                                        }
+
+                                        @if (!string.IsNullOrWhiteSpace(item.ResourceUrl))
+                                        {
+                                            <a href="@item.ResourceUrl" target="_blank">
+                                                Open Resource
+                                            </a>
+                                        }
+
+                                        @if (!string.IsNullOrWhiteSpace(item.FileUrl))
+                                        {
+                                            <br />
+                                            <a href="@item.FileUrl" target="_blank">
+                                                Open File
+                                            </a>
+                                        }
+
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                </div>
+            }
+        }
+
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    [Parameter] public int StudentId { get; set; }
+
+    private bool loading = true;
+
+    private List<CourseModel> courses = new();
+    private Dictionary<int, List<ModelContentModel>> contentByCourse = new();
+    private int? expandedCourseId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // ✅ Student enrolled courses
+       // courses = await SharePointService.GetStudentCoursesAsync(StudentId);
+
+        // ✅ Load ONLY published + student-visible content
+       // foreach (var course in courses)
+      //  {
+     //       contentByCourse[course.Id] =
+      //          await SharePointService.GetStudentModelContentByCourseAsync(course.Id);
+      //  }
+
+        loading = false;
+    }
+
+    private void Toggle(int courseId)
+    {
+        expandedCourseId = expandedCourseId == courseId
+            ? null
+            : courseId;
+    }
+}
+<style>
+    .page-title { margin-bottom: 12px; font-weight: 700; }
+    .loading { color: #64748b; }
+
+    .tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+    .tab {
+        padding: 6px 14px;
+        border-radius: 999px;
+        border: 1px solid #ccc;
+        background: #f8fafc;
+        cursor: pointer;
+    }
+    .tab.active {
+        background: #0ea5e9;
+        color: white;
+        border-color: #0ea5e9;
+    }
+
+    .form-card {
+        padding: 18px;
+        border-radius: 18px;
+        margin-bottom: 16px;
+    }
+
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 16px;
+    }
+
+    .course-card {
+        border-radius: 18px;
+        overflow: hidden;
+    }
+
+    .glass {
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+    }
+
+    .course-body {
+        padding: 14px;
+    }
+
+    .tag {
+        display: inline-block;
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    @@media (max-width:768px) {
+        .card-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

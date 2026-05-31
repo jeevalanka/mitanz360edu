@@ -1,0 +1,202 @@
+﻿@page "/course/{CourseId:int}"
+@layout MainLayout
+
+@using MITANZ360Edu.Web.Models
+@using MITANZ360Edu.Web.Services
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject SharePointService SharePointService
+@inject NavigationManager Nav
+
+<h3 class="page-title">Course Information</h3>
+
+@if (isLoading)
+{
+    <p class="loading">Loading course...</p>
+}
+else if (course == null)
+{
+    <p class="loading">Course not found.</p>
+}
+else
+{
+    <!-- ===== TABS ===== -->
+    <div class="tabs">
+
+        <!-- ✅ BACK BUTTON (FIXED LABEL) -->
+        <button class="tab back-tab" @onclick="GoBack">
+            ← Back
+        </button>
+
+        <button class="tab @(activeTab == Tab.Description ? "active" : "")"
+                @onclick="() => activeTab = Tab.Description">
+            Description
+        </button>
+
+        <button class="tab @(activeTab == Tab.Outcomes ? "active" : "")"
+                @onclick="() => activeTab = Tab.Outcomes">
+            Learning Outcomes
+        </button>
+
+        <button class="tab @(activeTab == Tab.Basic ? "active" : "")"
+                @onclick="() => activeTab = Tab.Basic">
+            Basic Information
+        </button>
+
+        <AuthorizeView Roles="Admin,SysAdmin">
+            <Authorized Context="_auth">
+                <button class="tab @(activeTab == Tab.Admin ? "active" : "")"
+                        @onclick="() => activeTab = Tab.Admin">
+                    Admin Info
+                </button>
+            </Authorized>
+        </AuthorizeView>
+    </div>
+
+    <!-- ===== CARD ===== -->
+    <div class="course-card glass full-card">
+
+        @if (activeTab == Tab.Description)
+        {
+            <div class="course-body">
+                <h4>Description</h4>
+                @((MarkupString)(course.Description ?? "<p>—</p>"))
+            </div>
+        }
+
+        @if (activeTab == Tab.Outcomes)
+        {
+            <div class="course-body">
+                <h4>Learning Outcomes</h4>
+                @((MarkupString)(course.LearningOutcomes ?? "<p>—</p>"))
+            </div>
+        }
+
+        @if (activeTab == Tab.Basic)
+        {
+            <div class="course-body">
+                <h4>Basic Information</h4>
+
+                <p><strong>Category:</strong> @course.CourseCategory</p>
+                <p><strong>Level:</strong> @course.Level</p>
+                <p><strong>Language:</strong> @course.Language</p>
+                <p><strong>Delivery Mode:</strong> @course.DeliveryMode</p>
+
+                <p>
+                    <strong>Duration (minutes):</strong>
+                    @(course.DurationMinutes.HasValue
+                        ? course.DurationMinutes.Value.ToString()
+                        : "—")
+                </p>
+            </div>
+        }
+
+        <AuthorizeView Roles="Admin,SysAdmin">
+            <Authorized Context="_auth">
+                @if (activeTab == Tab.Admin)
+                {
+                    <div class="course-body">
+                        <h4>Admin Info</h4>
+
+                        <p><strong>Status:</strong> @course.CourseStatus</p>
+                        <p><strong>Approval:</strong> @course.ApprovalStatus</p>
+                        <p><strong>Version:</strong> @course.CourseVersion</p>
+                        <p><strong>Archived:</strong> @course.Archived</p>
+                    </div>
+                }
+            </Authorized>
+        </AuthorizeView>
+
+    </div>
+}
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+
+    private CourseModel? course;
+    private bool isLoading = true;
+
+    private Tab activeTab = Tab.Description;
+
+    protected override async Task OnInitializedAsync()
+    {
+        course = await SharePointService.GetCourseByIdAsync(CourseId);
+        isLoading = false;
+    }
+
+    private void GoBack()
+    {
+        Nav.NavigateTo("/courses");
+    }
+
+    private enum Tab
+    {
+        Description,
+        Outcomes,
+        Basic,
+        Admin
+    }
+}
+
+<style>
+    .page-title {
+        margin-bottom: 12px;
+        font-weight: 700;
+    }
+
+    .loading {
+        color: #64748b;
+    }
+
+    /* ===== Tabs ===== */
+    .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .tab {
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(0,0,0,0.12);
+        background: #f8fafc;
+        cursor: pointer;
+        font-weight: 600;
+        color: #334155;
+        white-space: nowrap;
+    }
+
+        .tab.active {
+            background: #0ea5e9;
+            color: #ffffff;
+            border-color: #0ea5e9;
+        }
+
+    .back-tab {
+        background: #e5e7eb;
+        border-color: #cbd5e1;
+    }
+
+    /* ===== Card ===== */
+    .full-card {
+        width: 100%;
+    }
+
+    .course-card {
+        border-radius: 18px;
+        overflow: hidden;
+    }
+
+    .glass {
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+    }
+
+    .course-body {
+        padding: 18px;
+        line-height: 1.6;
+    }
+</style>

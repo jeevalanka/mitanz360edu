@@ -1,0 +1,50 @@
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Components.Authorization;
+using MITANZ360Edu.Web.Models;
+
+namespace MITANZ360Edu.Web.Services;
+
+public class UserSessionInitializer
+{
+    private readonly AuthenticationStateProvider _authProvider;
+
+    private readonly UserSessionService _userSession;
+
+    public UserSessionInitializer(
+        AuthenticationStateProvider authProvider,
+        UserSessionService userSession)
+    {
+        _authProvider = authProvider;
+        _userSession = userSession;
+    }
+
+    public async Task InitializeAsync()
+    {
+        var authState =
+            await _authProvider
+                .GetAuthenticationStateAsync();
+
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated != true)
+        {
+            return;
+        }
+
+        _userSession.SetUser(new UserSessionModel
+        {
+            FullName =
+                user.Identity?.Name ?? "",
+
+            Email =
+                user.FindFirst(ClaimTypes.Email)?.Value
+                ?? "",
+
+            Role =
+                user.FindFirst(ClaimTypes.Role)?.Value
+                ?? "Student",
+
+            IsAuthenticated = true
+        });
+    }
+}

@@ -1,0 +1,1117 @@
+﻿@page "/lms-documents"
+@layout MainLayout_NoRightPan
+
+@using System.Text.Json
+@using Microsoft.AspNetCore.Components
+@using Microsoft.JSInterop
+@using MITANZ360Edu.Web.Services
+@using Radzen
+@using Radzen.Blazor
+
+@inject SharePointService SharePointService
+@inject NotificationService NotificationService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+
+<PageTitle>LMS Documents</PageTitle>
+
+<div class="lms-doc-layout">
+
+    <!-- ===================================================== -->
+    <!-- SIDEBAR -->
+    <!-- ===================================================== -->
+
+    <div class="@(IsSidebarCollapsed
+                             ? "lms-sidebar collapsed"
+                             : "lms-sidebar")">
+
+        <!-- HEADER -->
+
+        <div class="lms-sidebar-header">
+
+
+            @if (!IsSidebarCollapsed)
+            {
+                <div class="lms-sidebar-branding">
+
+                    <div class="lms-sidebar-title">
+                        📚 LMS Content
+                    </div>
+
+                </div>
+            }
+            <div class="lms-sidebar-actions">
+
+                <button class="lms-icon-button" @onclick="ToggleSidebar">
+                    ☰
+                </button>
+
+
+            </div>
+
+
+        </div>
+
+        @if (!IsSidebarCollapsed)
+        {
+            <div class="lms-sidebar-section-title">
+                🧠 Knowledge
+            </div>
+        }
+
+        <!-- TREE -->
+        @if (IsLoading)
+        {
+            <div class="p-4 text-white">
+
+                <RadzenProgressBarCircular Mode="ProgressBarMode.Indeterminate" />
+
+            </div>
+        }
+        else
+        {
+            <div class="lms-tree-container">
+
+                @foreach (var item in RootItems)
+                {
+                    @RenderTreeItem(item)
+                }
+
+            </div>
+        }
+
+        <!-- FOOTER -->
+
+        <div class="lms-sidebar-footer">
+            © 2025 LMS360Edu. All rights reserved.
+        </div>
+
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- RIGHT CONTENT -->
+    <!-- ===================================================== -->
+
+    <div class="lms-content-area">
+        @if (SelectedItem == null)
+        {
+            <div class="lms-empty-state">
+
+                <div class="lms-empty-icon">
+                    📘
+                </div>
+
+                <div class="lms-empty-title">
+                    Select LMS Content
+                </div>
+
+                <div class="lms-empty-description">
+                    Select a document or folder from the left panel.
+                </div>
+
+            </div>
+        }
+        else
+        {
+            <!-- TOP HEADER -->
+
+            <div class="lms-top-header">
+
+                <div class="lms-top-left">
+
+                    <div class="lms-file-icon-large">
+                        @GetLargeFileIcon(SelectedItem)
+                    </div>
+
+                    <div>
+
+                        <div class="lms-document-title">
+                            @SelectedItem.Title
+                        </div>
+
+                        <div class="lms-breadcrumb">
+
+                            LMS-Lib-Content
+                            &nbsp; &gt; &nbsp;
+                            @SelectedItem.Source
+                            &nbsp; &gt; &nbsp;
+                            @SelectedItem.Name
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <RadzenButton Text="↗ Open-Doc"
+                              ButtonStyle="ButtonStyle.Light"
+                              Click="OpenInSharePoint"
+                              Style="
+                border:1px solid #34c759;
+                color:#34c759;
+                border-radius:14px;
+                font-weight:700;
+                " />
+
+            </div>
+
+            <!-- SUMMARY -->
+
+            <div class="lms-summary-grid">
+
+                <div class="lms-summary-card">
+
+                    <div class="lms-summary-icon">
+                        📘
+                    </div>
+
+                    <div>
+
+                        <div class="lms-summary-title">
+                            File Name
+                        </div>
+
+                        <div class="lms-summary-value">
+                            @SelectedItem.Name
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="lms-summary-card">
+
+                    <div class="lms-summary-icon">
+                        📂
+                    </div>
+
+                    <div>
+
+                        <div class="lms-summary-title">
+                            Content Type
+                        </div>
+
+                        <div class="lms-summary-value">
+                            @SelectedItem.ContentType
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="lms-summary-card">
+
+                    <div class="lms-summary-icon">
+                        🤖
+                    </div>
+
+                    <div>
+
+                        <div class="lms-summary-title">
+                            AI Feed
+                        </div>
+
+                        <div class="lms-summary-value">
+
+                            @(!string.IsNullOrWhiteSpace(
+                                SelectedItem.AiFeed)
+                                    ? SelectedItem.AiFeed
+                                    : "Disabled")
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ================================================= -->
+            <!-- TABS -->
+            <!-- ================================================= -->
+
+            <div class="lms-main-card">
+
+                <RadzenTabs>
+
+                    <!-- ============================================= -->
+                    <!-- PREVIEW -->
+                    <!-- ============================================= -->
+
+                    <RadzenTabsItem Text="👁 Preview">
+
+                        <div class="lms-preview-layout">
+
+                            <!-- PREVIEW -->
+
+                            <div class="lms-preview-panel">
+
+                                @if (SelectedItem.IsFolder)
+                                {
+                                    <div class="lms-preview-placeholder">
+                                        Folder selected.
+                                    </div>
+                                }
+                                else if (GetFileExtension(
+                                    SelectedItem.Name) == "html")
+                                {
+                                    <div class="lms-preview-placeholder">
+
+                                        <div>
+
+                                            <h4>
+                                                HTML Preview Restricted
+                                            </h4>
+
+                                            <p>
+                                                SharePoint blocks iframe rendering
+                                                for HTML files.
+                                            </p>
+
+                                            <RadzenButton Text="Open HTML File"
+                                                          Click="OpenInSharePoint" />
+
+                                        </div>
+
+                                    </div>
+                                }
+                                else if (!string.IsNullOrWhiteSpace(
+                                    SelectedItem.WebUrl))
+                                {
+                                    <iframe src="@SelectedItem.WebUrl"
+                                            class="lms-preview-frame">
+                                    </iframe>
+                                }
+                                else
+                                {
+                                    <div class="lms-preview-placeholder">
+                                        Preview unavailable.
+                                    </div>
+                                }
+
+                            </div>
+
+                            <!-- PROPERTIES -->
+
+                            <div class="lms-properties-panel">
+
+                                @RenderProperty(
+                                    "📄",
+                                    "Name",
+                                    SelectedItem.Name)
+
+                                @RenderProperty(
+                                    "📂",
+                                    "Path",
+                                    $"/LMS-Lib-Content/{SelectedItem.Source}/{SelectedItem.Name}")
+
+                                @RenderProperty(
+                                    "🏷",
+                                    "Content Type",
+                                    SelectedItem.ContentType)
+
+                                @RenderProperty(
+                                    "📘",
+                                    "File Type",
+                                    GetFileExtension(
+                                        SelectedItem.Name))
+
+                                @RenderProperty(
+                                    "💾",
+                                    "Size",
+                                    FormatSize(
+                                        SelectedItem.Size))
+
+                                @RenderProperty(
+                                    "📅",
+                                    "Published",
+                                    SelectedItem.IsPublished
+                                        ? "Yes"
+                                        : "No")
+
+                                @RenderProperty(
+                                    "🤖",
+                                    "AI Feed",
+                                    !string.IsNullOrWhiteSpace(
+                                        SelectedItem.AiFeed)
+                                            ? SelectedItem.AiFeed
+                                            : "Disabled")
+
+                            </div>
+
+                        </div>
+
+                    </RadzenTabsItem>
+
+                    <!-- ============================================= -->
+                    <!-- CONTENT METADATA -->
+                    <!-- ============================================= -->
+
+                    <RadzenTabsItem Text="🧠 Content Metadata">
+
+                        <div class="lms-metadata-grid">
+
+                            <div class="lms-meta-card">
+
+                                <div class="lms-meta-label">
+                                    SharePoint Item ID
+                                </div>
+
+                                <div class="lms-meta-value">
+                                    @SelectedItem.Id
+                                </div>
+
+                            </div>
+
+                            <div class="lms-meta-card">
+
+                                <div class="lms-meta-label">
+                                    Content ID
+                                </div>
+
+                                <div class="lms-meta-value">
+                                    @SelectedItem.ContentId
+                                </div>
+
+                            </div>
+
+                            <div class="lms-meta-card">
+
+                                <div class="lms-meta-label">
+                                    Course ID
+                                </div>
+
+                                <div class="lms-meta-value">
+                                    @SelectedItem.CourseId
+                                </div>
+
+                            </div>
+
+                            <div class="lms-meta-card">
+
+                                <div class="lms-meta-label">
+                                    Content Type
+                                </div>
+
+                                <div class="lms-meta-value">
+                                    @SelectedItem.ContentType
+                                </div>
+
+                            </div>
+
+                            <div class="lms-meta-card">
+
+                                <div class="lms-meta-label">
+                                    Content Title
+                                </div>
+
+                                <div class="lms-meta-value">
+                                    @SelectedItem.Title
+                                </div>
+
+                            </div>
+
+                            <div class="lms-meta-card">
+
+                                <div class="lms-meta-label">
+                                    Published
+                                </div>
+
+                                <div class="lms-meta-value">
+
+                                    @if (SelectedItem.IsPublished)
+                                    {
+                                        <span class="lms-badge success">
+                                            Published
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="lms-badge warning">
+                                            Draft
+                                        </span>
+                                    }
+
+                                </div>
+
+                            </div>
+
+                            <div class="lms-meta-card">
+
+                                <div class="lms-meta-label">
+                                    Archived
+                                </div>
+
+                                <div class="lms-meta-value">
+
+                                    @if (SelectedItem.IsArchived)
+                                    {
+                                        <span class="lms-badge danger">
+                                            Archived
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="lms-badge success">
+                                            Active
+                                        </span>
+                                    }
+
+                                </div>
+
+                            </div>
+
+                            <div class="lms-meta-card">
+
+                                <div class="lms-meta-label">
+                                    Governance Source
+                                </div>
+
+                                <div class="lms-meta-value">
+                                    @SelectedItem.Source
+                                </div>
+
+                            </div>
+
+                            <div class="lms-meta-card">
+
+                                <div class="lms-meta-label">
+                                    AI Feed
+                                </div>
+
+                                <div class="lms-meta-value">
+
+                                    @if (!string.IsNullOrWhiteSpace(
+                                        SelectedItem.AiFeed))
+                                    {
+                                        <span class="lms-badge success">
+                                            @SelectedItem.AiFeed
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="lms-badge warning">
+                                            Disabled
+                                        </span>
+                                    }
+
+                                </div>
+
+                            </div>
+
+                            <div class="lms-meta-card full">
+
+                                <div class="lms-meta-label">
+                                    Extended Metadata
+                                </div>
+
+                                <div class="lms-meta-json">
+
+                                    @if (!string.IsNullOrWhiteSpace(
+                                        SelectedItem.MetadataJson))
+                                    {
+                                        <pre>
+@SelectedItem.MetadataJson
+                                        </pre>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">
+                                            No metadata available.
+                                        </span>
+                                    }
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </RadzenTabsItem>
+
+                </RadzenTabs>
+
+            </div>
+        }
+
+    </div>
+
+</div>
+
+@code {
+
+    private bool IsLoading = true;
+
+    private bool IsSidebarCollapsed;
+
+    private List<LibraryItem> RootItems = [];
+
+    private LibraryItem? SelectedItem;
+
+    private readonly Dictionary<string, List<LibraryItem>>
+        FolderChildren = [];
+
+    private readonly HashSet<string>
+        ExpandedFolders = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRootAsync();
+    }
+
+    private async Task LoadRootAsync()
+    {
+        try
+        {
+            IsLoading = true;
+
+            RootItems =
+                await SharePointService
+                    .GetLibraryRootAsync();
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void ToggleSidebar()
+    {
+        IsSidebarCollapsed =
+            !IsSidebarCollapsed;
+    }
+
+    private async Task SelectItemAsync(
+        LibraryItem item)
+    {
+        SelectedItem = item;
+
+        if (item.IsFolder)
+        {
+            if (ExpandedFolders.Contains(item.Id))
+            {
+                ExpandedFolders.Remove(item.Id);
+            }
+            else
+            {
+                ExpandedFolders.Add(item.Id);
+
+                if (!FolderChildren.ContainsKey(item.Id))
+                {
+                    var children =
+                        await SharePointService
+                            .GetLibraryFolderChildrenAsync(
+                                item.DriveId,
+                                item.Id);
+
+                    FolderChildren[item.Id] = children;
+                }
+            }
+        }
+    }
+
+    private async Task OpenInSharePoint()
+    {
+        if (!string.IsNullOrWhiteSpace(
+            SelectedItem?.WebUrl))
+        {
+            await JS.InvokeVoidAsync(
+                "open",
+                SelectedItem.WebUrl,
+                "_blank");
+        }
+    }
+
+    private void GoHome()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+    private string GetLargeFileIcon(
+        LibraryItem item)
+    {
+        var extension =
+            Path.GetExtension(item.Name)
+                .ToLowerInvariant();
+
+        return extension switch
+        {
+            ".xlsx" => "📗",
+            ".docx" => "📘",
+            ".pdf" => "📕",
+            ".png" => "🖼️",
+            ".jpg" => "🖼️",
+            ".html" => "📄",
+            _ => item.IsFolder ? "📁" : "📄"
+        };
+    }
+
+    private string GetSmallFileIcon(
+        string fileName)
+    {
+        var extension =
+            Path.GetExtension(fileName)
+                .ToLowerInvariant();
+
+        return extension switch
+        {
+            ".xlsx" => "📗",
+            ".docx" => "📘",
+            ".pdf" => "📕",
+            ".png" => "🖼️",
+            ".jpg" => "🖼️",
+            ".html" => "📄",
+            _ => "📄"
+        };
+    }
+
+    private string GetFileExtension(
+        string fileName)
+    {
+        return Path.GetExtension(fileName)
+            .Replace(".", string.Empty)
+            .ToLowerInvariant();
+    }
+
+    private string FormatSize(long bytes)
+    {
+        if (bytes <= 0)
+        {
+            return "0 KB";
+        }
+
+        return $"{bytes / 1024.0:F1} KB";
+    }
+
+    private RenderFragment RenderTreeItem(
+        LibraryItem item)
+        => builder =>
+        {
+            var seq = 0;
+
+            var expanded =
+                ExpandedFolders.Contains(item.Id);
+
+            var icon = item.IsFolder
+                ? expanded
+                    ? "📖"
+                    : "📁"
+                : GetSmallFileIcon(item.Name);
+
+            builder.OpenElement(seq++, "div");
+
+            builder.OpenElement(seq++, "button");
+
+            builder.AddAttribute(
+                seq++,
+                "class",
+                SelectedItem?.Id == item.Id
+                    ? "lms-tree-item active"
+                    : "lms-tree-item");
+
+            builder.AddAttribute(
+                seq++,
+                "onclick",
+                EventCallback.Factory.Create(
+                    this,
+                    async () => await SelectItemAsync(item)));
+
+            builder.AddContent(
+                seq++,
+                IsSidebarCollapsed
+                    ? icon
+                    : $"{icon} {item.Name}");
+
+            builder.CloseElement();
+
+            if (item.IsFolder
+                && expanded
+                && FolderChildren.ContainsKey(item.Id))
+            {
+                builder.OpenElement(seq++, "div");
+
+                builder.AddAttribute(
+                    seq++,
+                    "class",
+                    "lms-child-items");
+
+                foreach (var child
+                         in FolderChildren[item.Id])
+                {
+                    builder.AddContent(
+                        seq++,
+                        RenderTreeItem(child));
+                }
+
+                builder.CloseElement();
+            }
+
+            builder.CloseElement();
+        };
+
+    private RenderFragment RenderProperty(
+        string icon,
+        string label,
+        string value)
+        => builder =>
+        {
+            var seq = 0;
+
+            builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "class", "lms-property-row");
+
+            builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "class", "lms-property-label");
+            builder.AddContent(seq++, $"{icon} {label}");
+            builder.CloseElement();
+
+            builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "class", "lms-property-value");
+            builder.AddContent(seq++, value);
+            builder.CloseElement();
+
+            builder.CloseElement();
+        };
+}
+
+<style>
+
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #f3f6fb;
+        font-family: "Segoe UI", sans-serif;
+    }
+
+    .lms-doc-layout {
+        display: flex;
+        width: 100%;
+        height: calc(100vh - 56px);
+        overflow: hidden;
+    }
+
+    .lms-sidebar {
+        width: 320px;
+        min-width: 320px;
+        display: flex;
+        flex-direction: column;
+        background: rgba(10, 23, 49, 1);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid rgba(255,255,255,0.12);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        color: white;
+        border-radius: 24px;
+        overflow: hidden;
+    }
+
+        .lms-sidebar.collapsed {
+            width: 82px;
+            min-width: 82px;
+        }
+
+    .lms-sidebar-header {
+        display: flex;
+        gap: 16px;
+        padding: 18px;
+    }
+
+    .lms-sidebar-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .lms-icon-button {
+        width: 35px;
+        height: 35px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.15);
+        background: rgba(255,255,255,0.06);
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+    }
+
+        .lms-icon-button.home {
+            background: linear-gradient( 180deg, #ff9800, #ff6b00);
+        }
+
+    .lms-sidebar-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #ff6b00;
+    }
+
+    .lms-sidebar-subtitle {
+        margin-top: 6px;
+        font-size: 12px;
+        opacity: 0.85;
+    }
+
+    .lms-sidebar-section-title {
+        padding: 0 15px;
+        margin-bottom: 10px;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .lms-tree-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 12px 12px 12px;
+    }
+
+    .lms-tree-item {
+        width: 100%;
+        border: none;
+        border-radius: 14px;
+        margin-bottom: 8px;
+        padding: 12px 14px;
+        background: rgba(255,255,255,0.05);
+        color: white;
+        font-size: 13px;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+    }
+
+        .lms-tree-item.active {
+            background: linear-gradient( 90deg, #17b44f, #1ed760);
+        }
+
+    .lms-child-items {
+        margin-left: 18px;
+    }
+
+    .lms-sidebar-footer {
+        height: 34px;
+        padding: 8px 14px;
+        font-size: 11px;
+        background: rgba(0,0,0,0.25);
+    }
+
+    .lms-content-area {
+        flex: 1;
+        overflow-y: auto;
+        padding: 18px;
+    }
+
+    .lms-top-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+    .lms-top-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .lms-file-icon-large {
+        font-size: 40px;
+    }
+
+    .lms-document-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .lms-breadcrumb {
+        margin-top: 6px;
+        font-size: 13px;
+        color: #64748b;
+    }
+
+    .lms-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+
+    .lms-summary-card {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: white;
+        border-radius: 18px;
+        padding: 18px;
+    }
+
+    .lms-summary-icon {
+        font-size: 36px;
+    }
+
+    .lms-summary-title {
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .lms-summary-value {
+        margin-top: 4px;
+        font-size: 13px;
+    }
+
+    .lms-main-card {
+        background: white;
+        border-radius: 18px;
+        padding: 10px;
+    }
+
+    .lms-preview-layout {
+        display: grid;
+        grid-template-columns: 1.4fr 0.8fr;
+        gap: 16px;
+        margin-top: 10px;
+    }
+
+    .lms-preview-panel,
+    .lms-properties-panel {
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        overflow: hidden;
+        background: white;
+    }
+
+    .lms-preview-frame {
+        width: 100%;
+        height: calc(100vh - 360px);
+        border: none;
+    }
+
+    .lms-preview-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 500px;
+        color: #64748b;
+    }
+
+    .lms-property-row {
+        display: grid;
+        grid-template-columns: 180px 1fr;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .lms-property-label {
+        background: #f8fafc;
+        padding: 14px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .lms-property-value {
+        padding: 14px;
+        font-size: 13px;
+    }
+
+    .lms-metadata-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
+        gap: 16px;
+        padding: 18px;
+    }
+
+    .lms-meta-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 18px;
+    }
+
+        .lms-meta-card.full {
+            grid-column: 1 / -1;
+        }
+
+    .lms-meta-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 10px;
+    }
+
+    .lms-meta-value {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .lms-meta-json {
+        background: #0f172a;
+        border-radius: 14px;
+        padding: 18px;
+        overflow-x: auto;
+    }
+
+        .lms-meta-json pre {
+            margin: 0;
+            color: #e2e8f0;
+            font-size: 12px;
+        }
+
+    .lms-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+        .lms-badge.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .lms-badge.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .lms-badge.danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+    .lms-empty-state {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+    }
+
+    .lms-empty-icon {
+        font-size: 80px;
+    }
+
+    .lms-empty-title {
+        font-size: 32px;
+        font-weight: 700;
+    }
+
+    @@media (max-width: 900px) {
+
+        .lms-doc-layout {
+            flex-direction: column;
+            overflow: auto;
+        }
+
+        .lms-sidebar,
+        .lms-sidebar.collapsed {
+            width: 100%;
+            min-width: 100%;
+        }
+
+        .lms-preview-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+</style>

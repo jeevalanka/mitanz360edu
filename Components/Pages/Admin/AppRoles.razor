@@ -1,0 +1,333 @@
+﻿@page "/admin/roles"
+@layout MainLayout
+
+@using MITANZ360Edu.Web.Models
+@using MITANZ360Edu.Web.Services
+@using MITANZ360Edu.Web.Components.Pages.Admin
+
+@using Radzen
+@using Radzen.Blazor
+
+@inject SharePointService SharePointService
+@inject NotificationService NotificationService
+@inject DialogService DialogService
+
+<PageTitle>App Roles</PageTitle>
+
+<div class="page-header">
+
+    <div>
+
+        <h3 class="page-title">
+
+            Application Roles Management
+
+        </h3>
+
+        <div class="page-subtitle">
+
+            Manage application roles and access permissions.(RBAC)
+        </div>
+
+    </div>
+
+    <div>
+
+        <RadzenButton Text="New Role"
+                      Icon="add_circle"
+                      ButtonStyle="ButtonStyle.Primary"
+                      Click="@CreateNewRole" />
+
+    </div>
+
+</div>
+
+<RadzenCard class="main-card">
+
+    <RadzenDataGrid TItem="AppRoleModel"
+                    Data="@Roles"
+                    AllowPaging="true"
+                    PageSize="10"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    Responsive="true">
+
+        <Columns>
+
+            <!-- ROLE -->
+
+            <RadzenDataGridColumn TItem="AppRoleModel"
+                                  Property="Title"
+                                  Title="Role">
+
+                <Template Context="role">
+
+                    <div class="role-badge">
+
+                        @role.Title
+
+                    </div>
+
+                </Template>
+
+            </RadzenDataGridColumn>
+
+            <!-- DESCRIPTION -->
+
+            <RadzenDataGridColumn TItem="AppRoleModel"
+                                  Property="Description"
+                                  Title="Description" />
+
+            <!-- ACTIVE -->
+
+            <RadzenDataGridColumn TItem="AppRoleModel"
+                                  Title="Active"
+                                  Width="90px">
+
+                <Template Context="role">
+
+                    @if (role.IsActive)
+                    {
+                        <RadzenIcon Icon="check_circle"
+                                    Style="color:green;" />
+                    }
+                    else
+                    {
+                        <RadzenIcon Icon="cancel"
+                                    Style="color:red;" />
+                    }
+
+                </Template>
+
+            </RadzenDataGridColumn>
+
+            <!-- ACTIONS -->
+
+            <RadzenDataGridColumn TItem="AppRoleModel"
+                                  Title="Actions"
+                                  Width="220px"
+                                  TextAlign="TextAlign.Center">
+
+                <Template Context="role">
+
+                    <!-- CLONE -->
+
+                    <RadzenButton Icon="content_copy"
+                                  Size="ButtonSize.Small"
+                                  ButtonStyle="ButtonStyle.Info"
+                                  class="me-2"
+                                  Click="@(() => CloneRole(role))" />
+
+                    <!-- EDIT -->
+
+                    <RadzenButton Icon="edit"
+                                  Size="ButtonSize.Small"
+                                  ButtonStyle="ButtonStyle.Warning"
+                                  class="me-2"
+                                  Click="@(() => EditRole(role))" />
+
+                    <!-- DELETE -->
+
+                    <RadzenButton Icon="delete"
+                                  Size="ButtonSize.Small"
+                                  ButtonStyle="ButtonStyle.Danger"
+                                  Click="@(() => DeleteRole(role))" />
+
+                </Template>
+
+            </RadzenDataGridColumn>
+
+        </Columns>
+
+    </RadzenDataGrid>
+
+</RadzenCard>
+
+@code {
+
+    private List<AppRoleModel>
+        Roles = [];
+
+    protected override async Task
+        OnInitializedAsync()
+    {
+        await LoadRolesAsync();
+    }
+
+    // =====================================================
+    // LOAD
+    // =====================================================
+
+    private async Task
+        LoadRolesAsync()
+    {
+        Roles =
+            await SharePointService
+                .GetRolesAsync();
+    }
+
+    // =====================================================
+    // CREATE
+    // =====================================================
+
+    private async Task
+        CreateNewRole()
+    {
+        var result =
+            await DialogService.OpenAsync<RoleDialog>(
+                "Create Role",
+                null);
+
+        if (result is AppRoleModel role)
+        {
+            await SharePointService
+                .CreateRoleAsync(role);
+
+            NotificationService.Notify(
+                NotificationSeverity.Success,
+                "Created",
+                "Role created");
+
+            await LoadRolesAsync();
+        }
+    }
+
+    // =====================================================
+    // EDIT
+    // =====================================================
+
+    private async Task
+        EditRole(
+            AppRoleModel role)
+    {
+        var parameters =
+            new Dictionary<string, object>
+            {
+                { "Model", role }
+            };
+
+        var result =
+            await DialogService.OpenAsync<RoleDialog>(
+                "Edit Role",
+                parameters);
+
+        if (result is AppRoleModel updatedRole)
+        {
+            await SharePointService
+                .UpdateRoleAsync(updatedRole);
+
+            NotificationService.Notify(
+                NotificationSeverity.Success,
+                "Updated",
+                "Role updated");
+
+            await LoadRolesAsync();
+        }
+    }
+
+    // =====================================================
+    // CLONE
+    // =====================================================
+
+    private async Task
+        CloneRole(
+            AppRoleModel role)
+    {
+        try
+        {
+            var clone =
+                new AppRoleModel
+                {
+                    Title =
+                        $"{role.Title} Copy",
+
+                    Description =
+                        role.Description,
+
+                    IsActive =
+                        role.IsActive
+                };
+
+            await SharePointService
+                .CreateRoleAsync(clone);
+
+            NotificationService.Notify(
+                NotificationSeverity.Success,
+                "Cloned",
+                "Role cloned");
+
+            await LoadRolesAsync();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(
+                NotificationSeverity.Error,
+                "Clone Failed",
+                ex.Message);
+        }
+    }
+
+    // =====================================================
+    // DELETE
+    // =====================================================
+
+    private async Task
+        DeleteRole(
+            AppRoleModel role)
+    {
+        var confirm =
+            await DialogService.Confirm(
+                $"Delete role '{role.Title}' ?",
+                "Confirm Delete");
+
+        if (confirm == true)
+        {
+            await SharePointService
+                .DeleteRoleAsync(role.Id);
+
+            NotificationService.Notify(
+                NotificationSeverity.Success,
+                "Deleted",
+                "Role removed");
+
+            await LoadRolesAsync();
+        }
+    }
+}
+
+<style>
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .page-title {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .page-subtitle {
+        color: #64748b;
+        font-size: 13px;
+    }
+
+    .main-card {
+        border-radius: 16px;
+        padding: 10px;
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        background: #eff6ff;
+        color: #2563eb;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+</style>

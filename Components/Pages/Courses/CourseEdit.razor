@@ -1,0 +1,416 @@
+﻿@page "/courses/edit/{Id:int?}"
+@layout MainLayout
+
+
+@using MITANZ360Edu.Web.Models
+@using MITANZ360Edu.Web.Services
+@using Radzen
+
+@inject SharePointService SharePointService
+@inject NavigationManager NavigationManager
+@inject ILogger<CourseEdit> Logger
+
+<PageTitle>Course Editor</PageTitle>
+
+<RadzenCard class="rz-p-4 rz-shadow-3">
+
+    <!-- ===================================================== -->
+    <!-- HEADER -->
+    <!-- ===================================================== -->
+
+    <RadzenStack Orientation="Orientation.Horizontal"
+                 AlignItems="AlignItems.Center"
+                 JustifyContent="JustifyContent.SpaceBetween"
+                 class="rz-mb-4">
+
+        <RadzenText TextStyle="TextStyle.H4">
+            @(Model.Id > 0
+                ? "Edit Course"
+                : "Create Course")
+        </RadzenText>
+
+        <RadzenStack Orientation="Orientation.Horizontal"
+                     Gap="10px">
+
+            <RadzenButton Text="Save"
+                          Icon="save"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Click="@SaveAsync" />
+
+            <RadzenButton Text="Cancel"
+                          Icon="close"
+                          ButtonStyle="ButtonStyle.Light"
+                          Click="@Cancel" />
+
+        </RadzenStack>
+
+    </RadzenStack>
+
+    <!-- ===================================================== -->
+    <!-- ERROR -->
+    <!-- ===================================================== -->
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Danger">
+            @errorMessage
+        </RadzenAlert>
+    }
+
+    <!-- ===================================================== -->
+    <!-- FORM -->
+    <!-- ===================================================== -->
+
+    <EditForm Model="@Model">
+
+        <DataAnnotationsValidator />
+
+        <RadzenTabs>
+
+            <!-- ===================================================== -->
+            <!-- GENERAL -->
+            <!-- ===================================================== -->
+
+            <Tabs>
+
+                <RadzenTabsItem Text="General"
+                                Icon="info">
+
+                    <RadzenRow class="rz-mt-3">
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="6">
+
+                            <RadzenFormField Text="Course Title"
+                                             Style="width:100%;">
+
+                                <RadzenTextBox @bind-Value="Model.Title"
+                                               Style="width:100%;" />
+
+                            </RadzenFormField>
+
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="6">
+
+                            <RadzenFormField Text="Course Code"
+                                             Style="width:100%;">
+
+                                <RadzenTextBox @bind-Value="Model.CourseCode"
+                                               Style="width:100%;" />
+
+                            </RadzenFormField>
+
+                        </RadzenColumn>
+
+                    </RadzenRow>
+
+                    <RadzenRow>
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="4">
+
+                            <RadzenFormField Text="Category"
+                                             Style="width:100%;">
+
+                                <RadzenTextBox @bind-Value="Model.CourseCategory"
+                                               Style="width:100%;" />
+
+                            </RadzenFormField>
+
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="4">
+
+                            <RadzenFormField Text="Type"
+                                             Style="width:100%;">
+
+                                <RadzenTextBox @bind-Value="Model.CourseType"
+                                               Style="width:100%;" />
+
+                            </RadzenFormField>
+
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="4">
+
+                            <RadzenFormField Text="Level"
+                                             Style="width:100%;">
+
+                                <RadzenTextBox @bind-Value="Model.Level"
+                                               Style="width:100%;" />
+
+                            </RadzenFormField>
+
+                        </RadzenColumn>
+
+                    </RadzenRow>
+
+                    <RadzenRow>
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="6">
+
+                            <RadzenFormField Text="Language"
+                                             Style="width:100%;">
+
+                                <RadzenTextBox @bind-Value="Model.Language"
+                                               Style="width:100%;" />
+
+                            </RadzenFormField>
+
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="6">
+
+                            <RadzenFormField Text="Delivery Mode"
+                                             Style="width:100%;">
+
+                                <RadzenTextBox @bind-Value="Model.DeliveryMode"
+                                               Style="width:100%;" />
+
+                            </RadzenFormField>
+
+                        </RadzenColumn>
+
+                    </RadzenRow>
+
+                </RadzenTabsItem>
+
+                <!-- ===================================================== -->
+                <!-- CONTENT -->
+                <!-- ===================================================== -->
+
+                <RadzenTabsItem Text="Content"
+                                Icon="article">
+
+                    <RadzenRow class="rz-mt-3">
+
+                        <RadzenColumn Size="12">
+
+                            <RadzenFormField Text="Description"
+                                             Style="width:100%;">
+
+                                <RadzenHtmlEditor @bind-Value="Model.Description"
+                                                  Style="height:350px" />
+
+                            </RadzenFormField>
+
+                        </RadzenColumn>
+
+                    </RadzenRow>
+
+                    <RadzenRow class="rz-mt-4">
+
+                        <RadzenColumn Size="12">
+
+                            <RadzenFormField Text="Learning Outcomes"
+                                             Style="width:100%;">
+
+                                <RadzenHtmlEditor @bind-Value="Model.LearningOutcomes"
+                                                  Style="height:350px" />
+
+                            </RadzenFormField>
+
+                        </RadzenColumn>
+
+                    </RadzenRow>
+
+                </RadzenTabsItem>
+
+                <!-- ===================================================== -->
+                <!-- DELIVERY -->
+                <!-- ===================================================== -->
+
+                <RadzenTabsItem Text="Delivery"
+                                Icon="school">
+
+                    <RadzenRow class="rz-mt-3">
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="6">
+
+                            <RadzenFormField Text="Duration Minutes"
+                                             Style="width:100%;">
+
+                                <RadzenNumeric @bind-Value="Model.DurationMinutes"
+                                               TValue="decimal?"
+                                               Min="0"
+                                               Step="1"
+                                               Style="width:100%;" />
+
+                            </RadzenFormField>
+
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="6">
+
+                            <RadzenFormField Text="Credit Value"
+                                             Style="width:100%;">
+
+                                <RadzenNumeric @bind-Value="Model.CreditValue"
+                                               TValue="decimal?"
+                                               Min="0"
+                                               Step="1"
+                                               Style="width:100%;" />
+
+                            </RadzenFormField>
+
+                        </RadzenColumn>
+
+                    </RadzenRow>
+
+                    <RadzenRow>
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="4">
+
+                            <RadzenCheckBox @bind-Value="Model.IsSelfPaced" />
+
+                            <RadzenLabel Text="Self Paced" />
+
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="4">
+
+                            <RadzenCheckBox @bind-Value="Model.EnrollmentOpen" />
+
+                            <RadzenLabel Text="Enrollment Open" />
+
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="4">
+
+                            <RadzenCheckBox @bind-Value="Model.CertificateIssued" />
+
+                            <RadzenLabel Text="Certificate Issued" />
+
+                        </RadzenColumn>
+
+                    </RadzenRow>
+
+                </RadzenTabsItem>
+
+                <!-- ===================================================== -->
+                <!-- MEDIA -->
+                <!-- ===================================================== -->
+
+                <RadzenTabsItem Text="Media"
+                                Icon="image">
+
+                    <RadzenRow class="rz-mt-3">
+
+                        <RadzenColumn Size="12">
+
+                            <RadzenFormField Text="Image URL"
+                                             Style="width:100%;">
+
+                                <RadzenTextBox @bind-Value="Model.ImageUrl"
+                                               Placeholder="https://..."
+                                               Style="width:100%;" />
+
+                            </RadzenFormField>
+
+                        </RadzenColumn>
+
+                    </RadzenRow>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+                    {
+                        <RadzenRow class="rz-mt-4">
+
+                            <RadzenColumn Size="12">
+
+                                <img src="@Model.ImageUrl"
+                                     style="max-width:100%;
+                                border-radius:12px;
+                                box-shadow:0 4px 12px rgba(0,0,0,.15);" />
+
+                            </RadzenColumn>
+
+                        </RadzenRow>
+                    }
+
+                </RadzenTabsItem>
+
+            </Tabs>
+
+        </RadzenTabs>
+
+    </EditForm>
+
+</RadzenCard>
+
+@code {
+
+    [Parameter]
+    public int? Id { get; set; }
+
+    private CourseModel Model = new();
+
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (Id.HasValue && Id.Value > 0)
+            {
+                var course =
+                    await SharePointService
+                        .GetCourseByIdAsync(Id.Value);
+
+                if (course != null)
+                {
+                    Model = course;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(
+                ex,
+                "Error loading course.");
+
+            errorMessage = ex.Message;
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        try
+        {
+            if (Model.Id > 0)
+            {
+                await SharePointService
+                    .UpdateCourseAsync(Model);
+            }
+            else
+            {
+                await SharePointService
+                    .CreateCourseAsync(Model);
+            }
+
+            NavigationManager.NavigateTo("/courses");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(
+                ex,
+                "Error saving course.");
+
+            errorMessage = ex.Message;
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/courses");
+    }
+}

@@ -1,0 +1,335 @@
+﻿@page "/courses/list"
+
+@using Microsoft.AspNetCore.Components
+@using MITANZ360Edu.Web.Models
+@using MITANZ360Edu.Web.Services
+
+@inject SharePointService SharePointService
+@inject NavigationManager NavigationManager
+@inject ILogger<CourseList> Logger
+
+<PageTitle>Courses</PageTitle>
+
+<RadzenStack Gap="1rem">
+
+    <!-- HEADER -->
+
+    <RadzenRow AlignItems="AlignItems.Center"
+               JustifyContent="JustifyContent.SpaceBetween">
+
+        <RadzenColumn Size="12"
+                      SizeMD="6">
+
+            <RadzenText TextStyle="TextStyle.H3">
+                Course Management
+            </RadzenText>
+
+        </RadzenColumn>
+
+        <RadzenColumn Size="12"
+                      SizeMD="6"
+                      class="rz-text-align-end">
+
+            <RadzenButton Text="New Course"
+                          Icon="add_circle"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Click="@CreateCourse" />
+
+        </RadzenColumn>
+
+    </RadzenRow>
+
+    @if (isLoading)
+    {
+        <div class="rz-text-align-center rz-p-5">
+
+            <RadzenProgressBarCircular Mode="ProgressBarMode.Indeterminate"
+                                       Size="ProgressBarCircularSize.Large" />
+
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Danger">
+            @errorMessage
+        </RadzenAlert>
+    }
+    else if (Courses.Count == 0)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Info">
+            No courses available.
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenDataList Data="@Courses"
+                        TItem="CourseModel"
+                        WrapItems="false">
+
+            <Template Context="course">
+
+                <RadzenCard class="rz-mb-4 rz-shadow-2"
+                            Style="border-radius:16px;">
+
+                    <!-- TOP -->
+
+                    <RadzenRow>
+
+                        <!-- IMAGE -->
+                        <RadzenColumn Size="12"
+                                      SizeMD="3">
+
+                            <img src="@GetImageUrl(course.ImageUrl)"
+                                 class="course-image"
+                                 onerror="this.onerror=null;this.src='/Images/Courses/AI-Edu.png';"
+                                 style="
+                            width:100%;
+                            height:220px;
+                            object-fit:cover;
+                            border-radius:12px;" />
+
+                        </RadzenColumn>                        
+                        
+                        <!-- DETAILS -->
+                        <RadzenColumn Size="12"
+                                      SizeMD="9">
+
+                            <RadzenStack Gap="10px">
+
+                                <RadzenText TextStyle="TextStyle.H4">
+                                    @course.Title
+                                </RadzenText>
+
+                                <RadzenRow>
+
+                                    <RadzenColumn Size="12"
+                                                  SizeMD="4">
+
+                                        <b>Course Code:</b>
+                                        @course.CourseCode
+
+                                    </RadzenColumn>
+
+                                    <RadzenColumn Size="12"
+                                                  SizeMD="4">
+
+                                        <b>Category:</b>
+                                        @course.CourseCategory
+
+                                    </RadzenColumn>
+
+                                    <RadzenColumn Size="12"
+                                                  SizeMD="4">
+
+                                        <b>Type:</b>
+                                        @course.CourseType
+
+                                    </RadzenColumn>
+
+                                </RadzenRow>
+
+                                <RadzenRow>
+
+                                    <RadzenColumn Size="12"
+                                                  SizeMD="4">
+
+                                        <b>Level:</b>
+                                        @course.Level
+
+                                    </RadzenColumn>
+
+                                    <RadzenColumn Size="12"
+                                                  SizeMD="4">
+
+                                        <b>Language:</b>
+                                        @course.Language
+
+                                    </RadzenColumn>
+
+                                    <RadzenColumn Size="12"
+                                                  SizeMD="4">
+
+                                        <b>Delivery:</b>
+                                        @course.DeliveryMode
+
+                                    </RadzenColumn>
+
+                                </RadzenRow>
+
+                                <RadzenRow>
+
+                                    <RadzenColumn Size="12"
+                                                  SizeMD="3">
+
+                                        <b>Credits:</b>
+                                        @course.CreditValue
+
+                                    </RadzenColumn>
+
+                                    <RadzenColumn Size="12"
+                                                  SizeMD="3">
+
+                                        <b>Duration:</b>
+                                        @course.DurationMinutes mins
+
+                                    </RadzenColumn>
+
+                                    <RadzenColumn Size="12"
+                                                  SizeMD="3">
+
+                                        <b>Status:</b>
+                                        @course.CourseStatus
+
+                                    </RadzenColumn>
+
+                                    <RadzenColumn Size="12"
+                                                  SizeMD="3">
+
+                                        <b>Approval:</b>
+                                        @course.ApprovalStatus
+
+                                    </RadzenColumn>
+
+                                </RadzenRow>
+
+                            </RadzenStack>
+
+                        </RadzenColumn>
+
+                    </RadzenRow>
+
+                    <!-- DESCRIPTION -->
+
+                    <hr />
+
+                    <RadzenText TextStyle="TextStyle.H6">
+                        Description
+                    </RadzenText>
+
+                    <div style="
+                        line-height:1.8;
+                        font-size:14px;
+                        margin-top:10px;
+                        margin-bottom:20px;">
+
+                        @((MarkupString)(course.Description ?? ""))
+
+                    </div>
+
+                    <!-- LEARNING OUTCOMES -->
+
+                    <hr />
+
+                    <RadzenText TextStyle="TextStyle.H6">
+                        Learning Outcomes
+                    </RadzenText>
+
+                    <div style="
+                        line-height:1.8;
+                        font-size:14px;
+                        margin-top:10px;
+                        margin-bottom:20px;">
+
+                        @((MarkupString)(course.LearningOutcomes ?? ""))
+
+                    </div>
+
+                    <!-- FOOTER -->
+
+                    <hr />
+
+                    <RadzenRow AlignItems="AlignItems.Center"
+                               JustifyContent="JustifyContent.SpaceBetween">
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="6">
+
+                            <small>
+                                Created:
+                                @course.Created?.ToString("dd MMM yyyy")
+                            </small>
+
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12"
+                                      SizeMD="6"
+                                      class="rz-text-align-end">
+
+                            <RadzenStack Orientation="Orientation.Horizontal"
+                                         Gap="10px"
+                                         JustifyContent="JustifyContent.End">
+
+                                <RadzenButton Text="Edit"
+                                              Icon="edit"
+                                              ButtonStyle="ButtonStyle.Warning"
+                                              Click="@(() => EditCourse(course.Id))" />
+
+                            </RadzenStack>
+
+                        </RadzenColumn>
+
+                    </RadzenRow>
+
+                </RadzenCard>
+
+            </Template>
+
+        </RadzenDataList>
+    }
+
+</RadzenStack>
+
+@code {
+
+    private List<CourseModel> Courses = new();
+
+    private bool isLoading;
+
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            Courses =
+                (await SharePointService.GetCoursesAsync())
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(
+                ex,
+                "Error loading courses.");
+
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void CreateCourse()
+    {
+        NavigationManager.NavigateTo(
+            "/courses/edit");
+    }
+
+    private void EditCourse(int id)
+    {
+        NavigationManager.NavigateTo(
+            $"/courses/edit/{id}");
+    }
+
+    private static string GetImageUrl(string? imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl))
+            return "/Images/Courses/AI-Edu.png";
+
+        return imageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+            ? imageUrl
+            : $"/Images/Courses/{imageUrl}";
+    }
+}

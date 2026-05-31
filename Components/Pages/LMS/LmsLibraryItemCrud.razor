@@ -1,0 +1,149 @@
+﻿@page "/lms-documents-v1/{DriveId?}/{ItemId?}"
+@layout MainLayout_NoRightPan
+
+@using MITANZ360Edu.Web.Services
+@using Microsoft.AspNetCore.Components
+@using Microsoft.JSInterop
+@using Radzen
+@using Radzen.Blazor
+
+@inject SharePointService SharePointService
+@inject NotificationService NotificationService
+@inject IJSRuntime JS
+
+@if (IsLoading)
+{
+    <RadzenProgressBarCircular Mode="ProgressBarMode.Indeterminate" />
+}
+else if (Model != null)
+{
+    <div class="fluent-editor">
+
+        <div class="fluent-command-bar">
+            <RadzenButton Text="Save"
+                          Icon="save"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Click="SaveAsync" />
+
+            <RadzenButton Text="Delete"
+                          Icon="delete"
+                          ButtonStyle="ButtonStyle.Danger"
+                          Click="DeleteAsync" />
+        </div>
+
+        <RadzenTabs>
+
+            <RadzenTabsItem Text="General">
+                <label>Title</label>
+                <RadzenTextBox @bind-Value="Model.Title" Style="width:100%" />
+
+                <label>Description</label>
+                <RadzenTextArea @bind-Value="Model.Description" Rows="4" />
+            </RadzenTabsItem>
+
+            <RadzenTabsItem Text="Course Mapping">
+                <label>Content ID</label>
+                <RadzenTextBox @bind-Value="Model.ContentId" />
+
+                <label>Course ID</label>
+                <RadzenTextBox @bind-Value="Model.CourseId" />
+
+                <label>Course Model</label>
+                <RadzenTextBox @bind-Value="Model.CourseModel"
+                               Placeholder="Course Model" />
+
+            </RadzenTabsItem>
+
+            <RadzenTabsItem Text="Governance">
+                <label>Content Type</label>
+                <RadzenTextBox @bind-Value="Model.ContentType" />
+
+                <label>Source</label>
+                <RadzenTextBox @bind-Value="Model.Source" />
+
+                <div class="flags">
+                    <RadzenCheckBox @bind-Value="Model.IsPublished" />
+                    <span>Published</span>
+
+                    <RadzenCheckBox @bind-Value="Model.IsArchived" />
+                    <span>Archived</span>
+                </div>
+            </RadzenTabsItem>
+
+            <RadzenTabsItem Text="AI & Metadata">
+                <label>AI Feed</label>
+                <RadzenTextArea @bind-Value="Model.AiFeed" Rows="4" />
+
+                <label>Metadata (JSON)</label>
+                <RadzenTextArea @bind-Value="Model.MetadataJson"
+                                Rows="8"
+                                Style="font-family:Consolas" />
+            </RadzenTabsItem>
+
+        </RadzenTabs>
+    </div>
+}
+
+@code {
+
+    [Parameter] public string DriveId { get; set; } = string.Empty;
+    [Parameter] public string ItemId { get; set; } = string.Empty;
+
+    private LibraryItem? Model;
+    private bool IsLoading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        IsLoading = true;
+        Model = await SharePointService.GetItemAsync(DriveId, ItemId);
+        IsLoading = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        await SharePointService.UpdateLibraryItemAsync(
+            DriveId, ItemId, Model!);
+
+        NotificationService.Notify(
+            NotificationSeverity.Success,
+            "Saved",
+            "Document updated");
+    }
+
+    private async Task DeleteAsync()
+    {
+        await SharePointService.DeleteItemAsync(DriveId, ItemId);
+        await JS.InvokeVoidAsync("location.reload");
+    }
+}
+
+
+<style>
+    .fluent-editor {
+        background: #ffffff;
+        border: 1px solid #e1e1e1;
+        border-radius: 6px;
+        padding: 16px;
+    }
+
+    .fluent-command-bar {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid #e1e1e1;
+        padding-bottom: 8px;
+    }
+
+    .flags {
+        margin-top: 12px;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+    }
+
+    label {
+        display: block;
+        margin-top: 12px;
+        font-weight: 600;
+    }
+</style>

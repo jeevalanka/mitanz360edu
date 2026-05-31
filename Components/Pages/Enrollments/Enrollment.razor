@@ -1,0 +1,124 @@
+﻿@page "/enrollments/{CourseId:int}"
+
+@using MITANZ360Edu.Web.Models
+@using MITANZ360Edu.Web.Services
+
+@inject SharePointService SharePointService
+
+<h3>Course Enrollments</h3>
+
+@if (_loading)
+{
+    <p>Loading…</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Enrollment Code</th>
+                <th>Status</th>
+                <th>Payment</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var e in Enrollments)
+            {
+                <tr>
+                    <td>@e.EnrollmentCode</td>
+                    <td>@e.Status</td>
+                    <td>@e.PaymentStatus</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary"
+                                @onclick="() => EditEnrollment(e)">
+                            Edit
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (EditingEnrollment != null)
+{
+    <hr />
+    <h4>Edit Enrollment</h4>
+
+    <!-- ✅ ENUM SAFE SELECT -->
+    <label>Status</label>
+    <select class="form-control"
+            @bind="EditingEnrollment.Status">
+        @foreach (var s in Enum.GetValues<EnrollmentStatus>())
+        {
+            <option value="@s">@s</option>
+        }
+    </select>
+
+    <label class="mt-2">Payment Status</label>
+    <select class="form-control"
+            @bind="EditingEnrollment.PaymentStatus">
+        @foreach (var p in Enum.GetValues<PaymentStatus>())
+        {
+            <option value="@p">@p</option>
+        }
+    </select>
+
+    <label class="mt-2">Notes</label>
+    <textarea class="form-control"
+              @bind="NoteComment"></textarea>
+
+    <button class="btn btn-success mt-2"
+            @onclick="Save">
+        Save
+    </button>
+}
+
+@code {
+    [Parameter]
+    public int CourseId { get; set; }
+
+    private bool _loading = true;
+
+    private List<EnrollmentModel> Enrollments = new();
+
+    private EnrollmentModel? EditingEnrollment;
+
+    private string NoteComment = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Enrollments = await SharePointService.GetEnrollmentsByCourseAsync(CourseId);
+        _loading = false;
+    }
+
+    private void EditEnrollment(EnrollmentModel enrollment)
+    {
+        // clone to avoid live editing
+        EditingEnrollment = new EnrollmentModel
+        {
+            Id = enrollment.Id,
+            EnrollmentCode = enrollment.EnrollmentCode,
+            CourseId = enrollment.CourseId,
+            StudentId = enrollment.StudentId,
+            Status = enrollment.Status,                 // ✅ enum
+            PaymentStatus = enrollment.PaymentStatus,   // ✅ enum
+            StartDate = enrollment.StartDate,
+            EndDate = enrollment.EndDate
+        };
+    }
+
+    private async Task Save()
+    {
+        if (EditingEnrollment == null)
+            return;
+
+        await SharePointService.UpdateEnrollmentAsync(EditingEnrollment);
+
+        EditingEnrollment = null;
+        NoteComment = string.Empty;
+
+        Enrollments = await SharePointService.GetEnrollmentsByCourseAsync(CourseId);
+    }
+}

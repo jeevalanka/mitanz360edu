@@ -1,0 +1,94 @@
+@page "/model-content-editor"
+
+@using MITANZ360Edu.Web.Models
+@using MITANZ360Edu.Web.Services
+@using Radzen
+@using Radzen.Blazor
+
+@inject ModelContentService ModelContentService
+@inject NotificationService NotificationService
+@inject DialogService DialogService
+
+<PageTitle>Model Content</PageTitle>
+
+<style>
+.page-shell{
+padding:1.5rem;
+background:linear-gradient(135deg,#020617,#0f172a,#111827);
+min-height:100vh;
+}
+.glass-card{
+background:rgba(255,255,255,.05);
+border-radius:18px;
+padding:1.5rem;
+border:1px solid rgba(255,255,255,.08);
+color:white;
+}
+</style>
+
+<div class="page-shell">
+
+<div class="glass-card">
+
+<RadzenStack Orientation="Orientation.Horizontal"
+Gap="10px"
+AlignItems="AlignItems.Center">
+
+<RadzenHeading Size="H3">
+Model Content Management
+</RadzenHeading>
+
+<RadzenButton Text="Refresh"
+Icon="refresh"
+Click="@LoadAsync" />
+
+</RadzenStack>
+
+<RadzenDataGrid TItem="ModelContentModel"
+Data="@Items"
+AllowPaging="true"
+AllowSorting="true"
+AllowFiltering="true"
+PageSize="10">
+
+<Columns>
+
+<RadzenDataGridColumn TItem="ModelContentModel"
+Property="Title"
+Title="Title" />
+
+<RadzenDataGridColumn TItem="ModelContentModel"
+Property="CourseId"
+Title="Course" />
+
+<RadzenDataGridColumn TItem="ModelContentModel"
+Property="ModuleNo"
+Title="Module" />
+
+<RadzenDataGridColumn TItem="ModelContentModel"
+Property="PublishStatus"
+Title="Status" />
+
+</Columns>
+
+</RadzenDataGrid>
+
+</div>
+
+</div>
+
+@code {
+
+private List<ModelContentModel> Items = [];
+
+protected override async Task OnInitializedAsync()
+{
+    await LoadAsync();
+}
+
+private async Task LoadAsync()
+{
+    Items = await ModelContentService.GetAllAsync();
+}
+
+}

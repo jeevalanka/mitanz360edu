@@ -1,0 +1,472 @@
+﻿@page "/lms-library-introduction"
+@layout Lib_Cont_Layout
+
+<PageTitle>LMS Library Viewer Introduction</PageTitle>
+
+<div class="lms-intro-page">
+
+    <!-- HERO -->
+    <div class="lms-hero-card glass-card">
+
+        <div class="hero-left">
+
+            <div class="hero-badge">
+                Microsoft Enterprise Learning Experience
+            </div>
+
+            <h1 class="hero-title">
+                LMS Library Viewer
+            </h1>
+
+            <div class="hero-subtitle">
+                Modern SharePoint-powered enterprise content navigation,
+                learning resource management, and intelligent academic
+                content exploration platform.
+            </div>
+
+        </div>
+
+        <div class="hero-right">
+            📚
+        </div>
+
+    </div>
+
+    <!-- INTRO GRID -->
+
+    <div class="intro-grid">
+
+        <!-- CARD 1 -->
+
+        <div class="intro-card glass-card">
+
+            <div class="card-icon">
+                📂
+            </div>
+
+            <div class="card-title">
+                Browse Learning Libraries
+            </div>
+
+            <div class="card-description">
+
+                Navigate through enterprise learning folders,
+                training resources, modules, assessments,
+                videos, PowerPoint presentations, lab guides,
+                and Microsoft learning content using the
+                intelligent hierarchical navigation system.
+
+            </div>
+
+        </div>
+
+        <!-- CARD 2 -->
+
+        <div class="intro-card glass-card">
+
+            <div class="card-icon">
+                🔍
+            </div>
+
+            <div class="card-title">
+                Intelligent Navigation
+            </div>
+
+            <div class="card-description">
+
+                Select folders to expand learning structures and
+                access organized educational resources.
+                Selecting documents automatically opens the
+                detailed library viewer experience for content review.
+
+            </div>
+
+        </div>
+
+        <!-- CARD 3 -->
+
+        <div class="intro-card glass-card">
+
+            <div class="card-icon">
+                ☁️
+            </div>
+
+            <div class="card-title">
+                Microsoft SharePoint Integration
+            </div>
+
+            <div class="card-description">
+
+                The LMS Library Viewer integrates directly with
+                Microsoft SharePoint document libraries using
+                Microsoft Graph APIs to provide enterprise-grade
+                secure learning content management.
+
+            </div>
+
+        </div>
+
+        <!-- CARD 4 -->
+
+        <div class="intro-card glass-card">
+
+            <div class="card-icon">
+                🧠
+            </div>
+
+            <div class="card-title">
+                Knowledge-Centric Design
+            </div>
+
+            <div class="card-description">
+
+                Designed for modern institutions, academic delivery,
+                enterprise learning environments, and Microsoft
+                ecosystem-based educational infrastructures.
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- HOW TO USE -->
+
+    <div class="howto-card glass-card">
+
+        <div class="section-title">
+            🚀 How To Use LMS Library Viewer
+        </div>
+
+        <div class="steps-grid">
+
+            <div class="step-card">
+
+                <div class="step-number">
+                    01
+                </div>
+
+                <div class="step-title">
+                    Open Navigation Library
+                </div>
+
+                <div class="step-description">
+                    Use the left-side enterprise navigation panel
+                    to access available learning categories,
+                    course folders, and document structures.
+                </div>
+
+            </div>
+
+            <div class="step-card">
+
+                <div class="step-number">
+                    02
+                </div>
+
+                <div class="step-title">
+                    Expand Folders
+                </div>
+
+                <div class="step-description">
+                    Select folders to expand and explore nested
+                    learning resources, labs, presentations,
+                    and structured learning materials.
+                </div>
+
+            </div>
+
+            <div class="step-card">
+
+                <div class="step-number">
+                    03
+                </div>
+
+                <div class="step-title">
+                    Open Learning Content
+                </div>
+
+                <div class="step-description">
+                    Select a document item to open the advanced
+                    LMS Library Viewer interface with metadata,
+                    previews, and learning information.
+                </div>
+
+            </div>
+
+            <div class="step-card">
+
+                <div class="step-number">
+                    04
+                </div>
+
+                <div class="step-title">
+                    Review & Learn
+                </div>
+
+                <div class="step-description">
+                    Access enterprise learning resources,
+                    SharePoint-hosted content, Microsoft files,
+                    PDFs, and structured academic documentation.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- FEATURES -->
+
+    <div class="features-card glass-card">
+
+        <div class="section-title">
+            ⭐ Enterprise Features
+        </div>
+
+        <div class="feature-list">
+
+            <div class="feature-item">
+                ✅ Microsoft SharePoint Online Integration
+            </div>
+
+            <div class="feature-item">
+                ✅ Microsoft Graph API Architecture
+            </div>
+
+            <div class="feature-item">
+                ✅ Enterprise LMS Navigation System
+            </div>
+
+            <div class="feature-item">
+                ✅ Modern Glassmorphism UI/UX
+            </div>
+
+            <div class="feature-item">
+                ✅ Responsive Microsoft-style Layout
+            </div>
+
+            <div class="feature-item">
+                ✅ Academic Resource Organization
+            </div>
+
+            <div class="feature-item">
+                ✅ Secure Enterprise File Access
+            </div>
+
+            <div class="feature-item">
+                ✅ Structured Knowledge Explorer
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: "Segoe UI", sans-serif;
+        background: #f3f6fb;
+    }
+
+    .lms-intro-page {
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    /* =========================================
+           GLASS CARD
+        ========================================= */
+
+    .glass-card {
+        background: rgba(255,255,255,0.72);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid rgba(255,255,255,0.3);
+        box-shadow: 0 8px 32px rgba(15,23,42,0.08);
+        border-radius: 28px;
+    }
+
+    /* =========================================
+           HERO
+        ========================================= */
+
+    .lms-hero-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 40px;
+    }
+
+    .hero-left {
+        max-width: 760px;
+    }
+
+    .hero-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 999px;
+        background: rgba(0,120,212,0.12);
+        color: #0078d4;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 18px;
+    }
+
+    .hero-title {
+        margin: 0;
+        font-size: 42px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .hero-subtitle {
+        margin-top: 18px;
+        font-size: 17px;
+        line-height: 1.7;
+        color: #475569;
+    }
+
+    .hero-right {
+        font-size: 100px;
+    }
+
+    /* =========================================
+           INTRO GRID
+        ========================================= */
+
+    .intro-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 22px;
+    }
+
+    .intro-card {
+        padding: 28px;
+    }
+
+    .card-icon {
+        font-size: 42px;
+        margin-bottom: 18px;
+    }
+
+    .card-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 14px;
+    }
+
+    .card-description {
+        font-size: 14px;
+        line-height: 1.8;
+        color: #475569;
+    }
+
+    /* =========================================
+           HOW TO
+        ========================================= */
+
+    .howto-card {
+        padding: 30px;
+    }
+
+    .section-title {
+        font-size: 26px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 24px;
+    }
+
+    .steps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 18px;
+    }
+
+    .step-card {
+        background: rgba(255,255,255,0.55);
+        border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 22px;
+        padding: 24px;
+    }
+
+    .step-number {
+        font-size: 34px;
+        font-weight: 800;
+        color: #0078d4;
+        margin-bottom: 14px;
+    }
+
+    .step-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 12px;
+    }
+
+    .step-description {
+        font-size: 14px;
+        line-height: 1.7;
+        color: #475569;
+    }
+
+    /* =========================================
+           FEATURES
+        ========================================= */
+
+    .features-card {
+        padding: 30px;
+    }
+
+    .feature-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 14px;
+    }
+
+    .feature-item {
+        background: rgba(255,255,255,0.55);
+        border: 1px solid rgba(255,255,255,0.35);
+        border-radius: 18px;
+        padding: 18px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    /* =========================================
+           RESPONSIVE
+        ========================================= */
+
+    @@media (max-width: 900px) {
+
+        .lms-intro-page {
+            padding: 18px;
+        }
+
+        .lms-hero-card {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 24px;
+        }
+
+        .hero-title {
+            font-size: 34px;
+        }
+
+        .hero-right {
+            font-size: 72px;
+        }
+    }
+
+</style>

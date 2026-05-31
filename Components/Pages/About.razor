@@ -1,0 +1,271 @@
+﻿@page "/about"
+@layout MainLayout
+<div class="about-container">
+
+    <!-- ================= HERO BANNER ================= -->
+    <div class="text-center mb-5">
+        <h1 class="hero-title">MITANZ360Edu</h1>
+        <p class="hero-sub">
+            Enterprise AI Education Operating System
+        </p>
+
+        <img src="images/AboutSys.png"
+     class="img-fluid hero-banner mt-4" />
+
+    </div>
+
+    <!-- ================= OVERVIEW ================= -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-12">
+            <div class="glass-card card-blue hover-lift">
+                <h3>🚀 Platform Overview</h3>
+                <p>
+                    MITANZ360Edu is a unified, AI-powered education platform built on the Microsoft ecosystem.
+                    It integrates LMS, CRM, Finance, Compliance, and AI into a single scalable system.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= CORE MODULES ================= -->
+    <div class="row g-4">
+
+        <div class="col-md-4">
+            <div class="glass-card card-green hover-lift">
+                <h4>🎓 Learning Management</h4>
+                <p>Courses, lessons, assessments, and certifications with real-time progress tracking.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="glass-card card-purple hover-lift">
+                <h4>👨‍🎓 Student Management</h4>
+                <p>End-to-end lifecycle from lead to enrollment, attendance, and academic tracking.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="glass-card card-orange hover-lift">
+                <h4>💰 Finance & Billing</h4>
+                <p>Invoices, payments, and financial reporting with full transparency.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="glass-card card-blue hover-lift">
+                <h4>📢 CRM & Marketing</h4>
+                <p>Lead generation, campaigns, and admissions pipeline management.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="glass-card card-red hover-lift">
+                <h4>🧪 Assessment & Compliance</h4>
+                <p>NZQA & AQF aligned evaluation, evidence tracking, and audit-ready reporting.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="glass-card card-indigo hover-lift">
+                <h4>🎫 Helpdesk System</h4>
+                <p>Support tickets, issue tracking, and knowledge base management.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="glass-card card-cyan hover-lift">
+                <h4>🏭 Industry Engagement</h4>
+                <p>Internships, employer feedback, and real-world project collaboration.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="glass-card card-teal hover-lift">
+                <h4>📊 Analytics & Reporting</h4>
+                <p>Power BI driven insights with real-time monitoring and dashboards.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="glass-card card-violet hover-lift">
+                <h4>🤖 AI Engine</h4>
+                <p>Predictions, recommendations, automation, and intelligent insights.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= INFRASTRUCTURE ================= -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <div class="glass-card card-blue hover-glow">
+                <h3>☁️ Microsoft 365 & SharePoint Infrastructure</h3>
+                <p>
+                    Built on SharePoint Lists & Libraries, Microsoft Graph API, Entra ID authentication,
+                    and Power BI analytics. Fully secure, scalable, and cloud-native.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= COMPLIANCE ================= -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="glass-card card-green">
+                <h4>✅ Compliance Ready</h4>
+                <ul>
+                    <li>NZQA (New Zealand)</li>
+                    <li>AQF (Australia)</li>
+                    <li>Audit-ready reporting</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="glass-card card-orange">
+                <h4>🔮 Future Ready</h4>
+                <ul>
+                    <li>AI-driven automation</li>
+                    <li>E-commerce integration</li>
+                    <li>Alumni lifecycle management</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= CTA ================= -->
+    <div class="text-center mt-5">
+        <a href="/contact" class="btn btn-gradient">
+            Contact Us
+        </a>
+    </div>
+
+</div>
+
+<style>
+/* ================= GLOBAL ================= */
+.about-container {
+    padding: 20px;
+    background: radial-gradient(circle at top, #0d1117, #02040a);
+    color: white;
+}
+
+/* ================= HERO ================= */
+.hero-title {
+    font-size: 3rem;
+    font-weight: bold;
+    background: linear-gradient(90deg,#0d6efd,#6610f2,#20c997);
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+.hero-sub {
+    color: #ccc;
+}
+
+/* 🔥 NEW: HERO IMAGE ENHANCEMENT */
+.hero-banner {
+    border-radius: 25px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    transition: transform 0.4s ease;
+}
+
+.hero-banner:hover {
+    transform: scale(1.02);
+}
+
+/* ================= GLASS CARD ================= */
+.glass-card {
+    position: relative;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+
+    background: rgba(255,255,255,0.05);
+    border-radius: 22px;
+    padding: 22px;
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    transition: all 0.35s ease;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+
+    overflow: hidden;
+}
+
+/* 🔥 NEW: Gradient Glow Border */
+.glass-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    padding: 1px;
+    background: linear-gradient(120deg, #0d6efd, #6610f2, #20c997);
+    -webkit-mask: 
+        linear-gradient(#000 0 0) content-box, 
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+/* ================= COLOR SYSTEM ================= */
+.card-blue { border-top: 4px solid #0d6efd; }
+.card-purple { border-top: 4px solid #6610f2; }
+.card-green { border-top: 4px solid #20c997; }
+.card-orange { border-top: 4px solid #fd7e14; }
+.card-red { border-top: 4px solid #dc3545; }
+.card-indigo { border-top: 4px solid #6f42c1; }
+.card-cyan { border-top: 4px solid #00e5ff; }
+.card-teal { border-top: 4px solid #00ffcc; }
+.card-violet { border-top: 4px solid #8a2be2; }
+
+/* ================= HOVER ================= */
+.hover-lift {
+    will-change: transform;
+}
+
+.hover-lift:hover {
+    transform: translateY(-10px) scale(1.04);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+}
+
+.hover-glow:hover {
+    box-shadow: 0 0 30px rgba(13,110,253,0.7);
+}
+
+/* ================= COLOR GLOW ================= */
+.card-blue:hover { box-shadow: 0 0 30px rgba(13,110,253,0.5); }
+.card-purple:hover { box-shadow: 0 0 30px rgba(102,16,242,0.5); }
+.card-green:hover { box-shadow: 0 0 30px rgba(32,201,151,0.5); }
+.card-orange:hover { box-shadow: 0 0 30px rgba(253,126,20,0.5); }
+.card-red:hover { box-shadow: 0 0 30px rgba(220,53,69,0.5); }
+.card-indigo:hover { box-shadow: 0 0 30px rgba(111,66,193,0.5); }
+.card-cyan:hover { box-shadow: 0 0 30px rgba(0,229,255,0.5); }
+.card-teal:hover { box-shadow: 0 0 30px rgba(0,255,204,0.5); }
+.card-violet:hover { box-shadow: 0 0 30px rgba(138,43,226,0.5); }
+
+/* ================= BUTTON ================= */
+.btn-gradient {
+    background: linear-gradient(45deg,#0d6efd,#6610f2);
+    color: white !important;
+    border-radius: 25px;
+    padding: 10px 22px;
+    border: none;
+    transition: 0.3s;
+}
+
+.btn-gradient:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(102,16,242,0.6);
+}
+
+/* ================= RESPONSIVE ================= */
+@@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .glass-card {
+        padding: 16px;
+    }
+}
+</style>
