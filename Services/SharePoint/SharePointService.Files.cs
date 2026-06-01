@@ -217,4 +217,43 @@ public partial class SharePointService
             "GetAIResultJsonAsync",
             ct);
     }
+
+
+
+    /// <summary>
+    /// Extract raw text content from SharePoint file
+    /// </summary>
+    public async Task<string> ExtractDocumentContentAsync(
+        string driveId,
+        string itemId)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(driveId) ||
+                string.IsNullOrWhiteSpace(itemId))
+            {
+                return string.Empty;
+            }
+
+            var stream = await _graphClient
+                .Drives[driveId]
+                .Items[itemId]
+                .Content
+                .GetAsync();
+
+            if (stream == null)
+            {
+                return string.Empty;
+            }
+
+            using var reader = new StreamReader(stream, Encoding.UTF8);
+            return await reader.ReadToEndAsync();
+        }
+        catch
+        {
+            // ✅ never break UI
+            return string.Empty;
+        }
+    }
+
 }

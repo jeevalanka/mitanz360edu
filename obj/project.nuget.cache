@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "a0wZBlJ1eJQ=",
+  "dgSpecHash": "WgpZLjGeBjo=",
   "success": true,
-  "projectFilePath": "D:\\MITANZ360EDU-System\\MITANZ360Edu.Web\\MITANZ360Edu.Web\\MITANZ360Edu.Web.csproj",
+  "projectFilePath": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\MITANZ360Edu.Web.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\jeeva\\.nuget\\packages\\azure.ai.formrecognizer\\4.1.0\\azure.ai.formrecognizer.4.1.0.nupkg.sha512",
     "C:\\Users\\jeeva\\.nuget\\packages\\azure.core\\1.53.0\\azure.core.1.53.0.nupkg.sha512",
@@ -95,9 +95,9 @@
       "code": "NU1510",
       "level": "Warning",
       "message": "PackageReference System.Text.Encoding.CodePages will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary.",
-      "projectPath": "D:\\MITANZ360EDU-System\\MITANZ360Edu.Web\\MITANZ360Edu.Web\\MITANZ360Edu.Web.csproj",
+      "projectPath": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\MITANZ360Edu.Web.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\MITANZ360EDU-System\\MITANZ360Edu.Web\\MITANZ360Edu.Web\\MITANZ360Edu.Web.csproj",
+      "filePath": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\MITANZ360Edu.Web.csproj",
       "libraryId": "System.Text.Encoding.CodePages",
       "targetGraphs": [
         "net10.0"

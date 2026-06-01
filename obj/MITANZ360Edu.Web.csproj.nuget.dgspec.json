@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\MITANZ360EDU-System\\MITANZ360Edu.Web\\MITANZ360Edu.Web\\MITANZ360Edu.Web.csproj": {}
+    "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\MITANZ360Edu.Web.csproj": {}
   },
   "projects": {
-    "D:\\MITANZ360EDU-System\\MITANZ360Edu.Web\\MITANZ360Edu.Web\\MITANZ360Edu.Web.csproj": {
+    "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\MITANZ360Edu.Web.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\MITANZ360EDU-System\\MITANZ360Edu.Web\\MITANZ360Edu.Web\\MITANZ360Edu.Web.csproj",
+        "projectUniqueName": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\MITANZ360Edu.Web.csproj",
         "projectName": "MITANZ360Edu.Web",
-        "projectPath": "D:\\MITANZ360EDU-System\\MITANZ360Edu.Web\\MITANZ360Edu.Web\\MITANZ360Edu.Web.csproj",
+        "projectPath": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\MITANZ360Edu.Web.csproj",
         "packagesPath": "C:\\Users\\jeeva\\.nuget\\packages\\",
-        "outputPath": "D:\\MITANZ360EDU-System\\MITANZ360Edu.Web\\MITANZ360Edu.Web\\obj\\",
+        "outputPath": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

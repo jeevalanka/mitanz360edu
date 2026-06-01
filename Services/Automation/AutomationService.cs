@@ -1,171 +1,136 @@
 ﻿using System.Text;
-using System.Text.Json;
 using MITANZ360Edu.Web.Services.AI;
 
-namespace MITANZ360Edu.Web.Services.Automation
+namespace MITANZ360Edu.Web.Services.Automation;
+
+public partial class AutomationService
 {
-    public sealed class AutomationService
+    private readonly AIService _aiService;
+
+    public AutomationService(AIService aiService)
     {
-        private readonly AiWorkflowEngine _workflowEngine;
+        _aiService = aiService;
+    }
 
-        public AutomationService(AiWorkflowEngine workflowEngine)
+    /// <summary>
+    /// Main entry point for AI evaluation
+    /// </summary>
+    public async Task<string> GenerateAIFeedbackAsync(
+        Dictionary<string, string> metadata,
+        string fileContent)
+    {
+        // ✅ STEP 1 — Validate inputs
+        if (string.IsNullOrWhiteSpace(fileContent))
         {
-            _workflowEngine = workflowEngine;
+            return "⚠ No content available for AI evaluation.";
         }
 
-        /// <summary>
-        /// Executes AI Feedback (TEXT ONLY)
-        /// </summary>
-        public async Task<string> GenerateAIFeedbackAsync(
-            Dictionary<string, string> metadata,
-            string fileContent,
-            CancellationToken cancellationToken = default)
+        if (metadata == null || metadata.Count == 0)
         {
-            var promptBuilder = new StringBuilder();
-
-            promptBuilder.AppendLine("You are an Academic Quality Assurance Reviewer.");
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("You will receive:");
-            promptBuilder.AppendLine("1. Course Metadata");
-            promptBuilder.AppendLine("2. Uploaded Document Content");
-            promptBuilder.AppendLine();
-
-            promptBuilder.AppendLine("Your task is to evaluate the document against the metadata.");
-            promptBuilder.AppendLine();
-
-            promptBuilder.AppendLine("COURSE METADATA:");
-            foreach (var item in metadata)
-            {
-                promptBuilder.AppendLine($"{item.Key}: {item.Value}");
-            }
-
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("DOCUMENT CONTENT:");
-            promptBuilder.AppendLine(fileContent);
-
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("Evaluate the following:");
-            promptBuilder.AppendLine("1. Alignment with Course Description");
-            promptBuilder.AppendLine("2. Coverage of Learning Outcomes");
-            promptBuilder.AppendLine("3. Missing topics");
-            promptBuilder.AppendLine("4. Weak content areas");
-            promptBuilder.AppendLine("5. Content quality and academic suitability");
-
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("Return EXACTLY in this format:");
-            promptBuilder.AppendLine();
-
-            promptBuilder.AppendLine("DOCUMENT EVALUATION REPORT");
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("Course: <Course Title>");
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("Alignment Score: <Percentage>");
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("Course Description Assessment: <Assessment>");
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("Learning Outcomes Covered:");
-            promptBuilder.AppendLine("* Item 1");
-            promptBuilder.AppendLine("* Item 2");
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("Learning Outcomes Partially Covered:");
-            promptBuilder.AppendLine("* Item 1");
-            promptBuilder.AppendLine("* Item 2");
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("Learning Outcomes Missing:");
-            promptBuilder.AppendLine("* Item 1");
-            promptBuilder.AppendLine("* Item 2");
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("Content Strengths:");
-            promptBuilder.AppendLine("* Item 1");
-            promptBuilder.AppendLine("* Item 2");
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("Content Weaknesses:");
-            promptBuilder.AppendLine("* Item 1");
-            promptBuilder.AppendLine("* Item 2");
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("Recommendations:");
-            promptBuilder.AppendLine("* Item 1");
-            promptBuilder.AppendLine("* Item 2");
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("Final Assessment:");
-            promptBuilder.AppendLine("<Summary>");
-            promptBuilder.AppendLine();
-            promptBuilder.AppendLine("Important:");
-            promptBuilder.AppendLine("- Do NOT return JSON");
-            promptBuilder.AppendLine("- Do NOT return HTML");
-            promptBuilder.AppendLine("- Only plain text");
-            promptBuilder.AppendLine("- Follow format strictly");
-
-            var request = new AiWorkflowRequest
-            {
-                TaskType = AiTaskType.DocumentAnalysis, // ensure valid enum
-                Prompt = promptBuilder.ToString(),
-                StrictJsonResponse = false, // ✅ IMPORTANT
-                Temperature = 0.2
-            };
-
-            // ✅ 2. Call AI
-            var aiResult = await _workflowEngine.ExecuteAsync(request, cancellationToken);
-
-            if (!aiResult.Success)
-                return "AI processing failed.";
-
-            // ✅ 3. Extract TEXT ONLY
-            return ExtractTextOnly(aiResult);
+            return "⚠ Metadata is missing. Cannot evaluate document.";
         }
 
-        /// <summary>
-        /// Extract final TEXT from AI response
-        /// </summary>
-        private string ExtractTextOnly(AiWorkflowResult result)
+        // ✅ STEP 2 — RELEVANCE VALIDATION (CRITICAL)
+        var relevance = ValidateContentRelevance(metadata, fileContent);
+
+        if (!relevance.IsRelevant)
         {
-            // ✅ 1. Safety checks
-            if (result == null || !result.Success)
-                return "AI processing failed.";
-
-            if (string.IsNullOrWhiteSpace(result.RawResponse))
-                return "AI returned empty response.";
-
-            try
-            {
-                using var doc = JsonDocument.Parse(result.RawResponse);
-
-                // ✅ 2. SAFE NAVIGATION (no crashes)
-                if (!doc.RootElement.TryGetProperty("choices", out var choices) ||
-                    choices.ValueKind != JsonValueKind.Array ||
-                    choices.GetArrayLength() == 0)
-                {
-                    return result.RawResponse; // fallback
-                }
-
-                var firstChoice = choices[0];
-
-                if (!firstChoice.TryGetProperty("message", out var message))
-                {
-                    return result.RawResponse;
-                }
-
-                if (!message.TryGetProperty("content", out var contentElement))
-                {
-                    return result.RawResponse;
-                }
-
-                var content = contentElement.GetString();
-
-                if (string.IsNullOrWhiteSpace(content))
-                    return "AI returned empty content.";
-
-                // ✅ 3. Clean formatting
-                return content
-                    .Replace("\\r", "")
-                    .Replace("\\n", Environment.NewLine)
-                    .Trim();
-            }
-            catch
-            {
-                // ✅ 4. NEVER break UI — always show something
-                return result.RawResponse;
-            }
+            return BuildRelevanceFailureMessage(relevance);
         }
+
+        // ✅ STEP 3 — CLEAN METADATA
+        var courseTitle = GetSafe(metadata, "CourseTitle");
+        var courseDescription = GetSafe(metadata, "CourseDescription");
+        var learningOutcomes = GetSafe(metadata, "CourseLearningOutcomes");
+
+        // ✅ STEP 4 — BUILD PROMPT
+        var prompt = BuildEvaluationPrompt(
+            courseTitle,
+            courseDescription,
+            learningOutcomes,
+            fileContent,
+            relevance.Score);
+
+        // ✅ STEP 5 — CALL AI SERVICE
+        var aiResult = await _aiService.GenerateTextAsync(prompt);
+
+        if (string.IsNullOrWhiteSpace(aiResult))
+        {
+            return "⚠ AI returned empty response.";
+        }
+
+        // ✅ STEP 6 — RETURN OUTPUT
+        return aiResult.Trim();
+    }
+
+    // =========================================================
+    // ✅ PRIVATE HELPERS
+    // =========================================================
+
+    private string BuildEvaluationPrompt(
+        string courseTitle,
+        string courseDescription,
+        string learningOutcomes,
+        string fileContent,
+        double relevanceScore)
+    {
+        var sb = new StringBuilder();
+
+        sb.AppendLine("You are an academic evaluation engine.");
+        sb.AppendLine("Evaluate the document against the provided course.");
+        sb.AppendLine();
+
+        sb.AppendLine("=== COURSE INFORMATION ===");
+        sb.AppendLine($"Course: {courseTitle}");
+        sb.AppendLine($"Description: {courseDescription}");
+        sb.AppendLine("Learning Outcomes:");
+        sb.AppendLine(learningOutcomes);
+        sb.AppendLine();
+
+        sb.AppendLine("=== DOCUMENT CONTENT ===");
+        sb.AppendLine(fileContent);
+        sb.AppendLine();
+
+        sb.AppendLine("=== INSTRUCTIONS ===");
+        sb.AppendLine("- Provide an alignment score (0–100%)");
+        sb.AppendLine("- Evaluate coverage of learning outcomes");
+        sb.AppendLine("- Identify strengths and weaknesses");
+        sb.AppendLine("- Provide actionable recommendations");
+        sb.AppendLine("- Keep academic tone");
+        sb.AppendLine("- Be structured in sections");
+
+        sb.AppendLine();
+        sb.AppendLine($"(Relevance Score Pre-Check: {relevanceScore:0}%)");
+
+        return sb.ToString();
+    }
+
+    private string BuildRelevanceFailureMessage(RelevanceResult relevance)
+    {
+        return $@"
+        ⚠ RELEVANCE VALIDATION FAILED
+
+        Score: {relevance.Score:0}%
+
+        Reason:
+        {relevance.Reason}
+
+        Matched Keywords:
+        - {string.Join("\n- ", relevance.MatchedKeywords.Take(5))}
+
+        Missing Keywords:
+        - {string.Join("\n- ", relevance.MissingKeywords.Take(10))}
+
+        👉 ACTION REQUIRED:
+        - Select the correct course
+        - OR upload a document relevant to the selected course
+        ";
+    }
+
+    private string GetSafe(Dictionary<string, string> metadata, string key)
+    {
+        return metadata.TryGetValue(key, out var value)
+            ? value ?? string.Empty
+            : string.Empty;
     }
 }

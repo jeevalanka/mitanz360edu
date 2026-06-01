@@ -76,6 +76,7 @@ builder.Services.AddScoped<DocumentProcessingService>();
 builder.Services.AddScoped<TemplateEngine>();
 builder.Services.AddScoped<SharePointService>();
 builder.Services.AddScoped<AutomationService>();
+builder.Services.AddHttpClient<AIService>();
 
 #endregion
 

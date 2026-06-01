@@ -1,11 +1,8 @@
-﻿
-@page "/lms-crud-edit/{Id}/{FolderId}"
+﻿@page "/lms-crud-edit/{Id}/{FolderId}"
 @layout Lib_Cont_Layout
 
 @using MITANZ360Edu.Web.Services
 @using MITANZ360Edu.Web.Services.Automation
-@using MITANZ360Edu.Web.Models
-
 @using Radzen
 @using Radzen.Blazor
 @using System.Text.Json
@@ -21,7 +18,6 @@
 @inject Radzen.DialogService DialogService
 @inject JsonLookupDataService JsonLookupDataService
 @inject AutomationService AutomationService
-
 
 <PageTitle>LMS Content Edit</PageTitle>
 
@@ -147,41 +143,31 @@
 
             <!-- AI -->
 
-<RadzenCard Style="@AiCardStyle">
-    <RadzenStack Gap="1rem">
+            <RadzenCard Style="@AiCardStyle">
+                <RadzenStack Gap="1rem">
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem"AlignItems="AlignItems.Center">
+                        <RadzenIcon Icon="psychology" Style=" font-size:28px; color:#0078D4;" />
+                        <RadzenText TextStyle="TextStyle.H5" Style="@SectionHeaderStyle">
+                            AI Intelligence Feed
+                        </RadzenText>
 
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" AlignItems="AlignItems.Center">
-            <RadzenIcon Icon="psychology" Style=" font-size:28px; color:#0078D4;" />
-            <RadzenText TextStyle="TextStyle.H5" Style="@SectionHeaderStyle">
-                AI Intelligence Feed
-            </RadzenText>
+                        <RadzenButton Icon="psychology"
+                                      Text="Generate AI Feedback"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Click="@GenerateAIFeedbackAsync"
+                                      Disabled="@IsLoading"
+                                      Busy="@IsLoading"
+                                      BusyText="AI Processing..." />
 
-            <RadzenButton Icon="psychology"
-              Text="Generate AI Feedback"
-              ButtonStyle="ButtonStyle.Primary"
-              Click="@GenerateAIFeedbackAsync"
-               Disabled="@(DisableAi || IsLoading)"
-               Busy="@IsLoading"
-              BusyText="AI Processing..." />
+                    </RadzenStack>
 
-        </RadzenStack>
+                    <RadzenTextArea @bind-Value="Model.AiFeed"
+                                    Rows="10"
+                                    Style="@InputStyle"
+                                    Title="AI-generated summaries, intelligence insights, or recommendations." />
+                </RadzenStack>
+            </RadzenCard>
 
-        <!-- ✅ ADD HERE -->
-        @if (IsOcrRequired)
-        {
-            <div style="color:red; font-weight:600;">
-                This file requires OCR (image or scanned document). AI evaluation is disabled.
-            </div>
-        }
-
-        <!-- AI OUTPUT -->
-        <RadzenTextArea @bind-Value="Model.AiFeed"
-                        Rows="10"
-                        Style="@InputStyle"
-                        Title="AI-generated summaries, intelligence insights, or recommendations." />
-
-    </RadzenStack>
-</RadzenCard>
         </RadzenColumn>
 
         <!-- ============================================= -->
@@ -233,7 +219,7 @@
                     </RadzenText>
 
                     <!-- CONTENT TYPE -->
-                    <RadzenDropDown Data="@ContentTypeOptions"
+                    <RadzenDropDown Data="@ContentTypes"
                                     TValue="string"
                                     @bind-Value="Model.ContentType"
                                     Placeholder="Content Type"
@@ -241,14 +227,14 @@
                                     Title="Defines the category or type of learning content." />
 
                     <!-- SOURCE -->
-                    <RadzenDropDown Data="@SourceTypeOptions"
+                    <RadzenDropDown Data="@Sources"
                                     TValue="string"
                                     @bind-Value="Model.Source"
                                     Placeholder="Source"
                                     Style="@InputStyle"
                                     Title="Indicates where the content originated from." />
 
-                    <RadzenDropDown Data="@CourseModelTypeOptions"
+                    <RadzenDropDown Data="@CourseModels"
                                     TValue="string"
                                     @bind-Value="Model.CourseModel"
                                     Placeholder="Select Course Model"
@@ -390,42 +376,98 @@
 
 @code {
 
-    [Parameter] public string Id { get; set; } = string.Empty;
-    [Parameter] public string FolderId { get; set; } = "root";
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+    [Parameter]
+    public string FolderId { get; set; } = "root";
 
     private LibraryItem Model = new();
     private IReadOnlyList<CourseModel> Courses = [];
-    private bool HasReadableContent = true;
-
     private List<JsonLookupDataService.CountryModel> Countries = [];
-    private List<ContentType> ContentTypeOptions = Enum.GetValues<ContentType>().ToList();
-    private List<SourceType> SourceTypeOptions = Enum.GetValues<SourceType>().ToList();
-    private List<CourseModelType> CourseModelTypeOptions = Enum.GetValues<CourseModelType>().ToList();
+
+    private IEnumerable<ContentType> ContentTypes => Enum.GetValues<ContentType>();
+    private IEnumerable<SourceType> Sources => Enum.GetValues<SourceType>();
+    private IEnumerable<CourseModelType> CourseModels => Enum.GetValues<CourseModelType>();
 
     private string? SelectedCountry;
+    private string? SelectedCurrency;
+    private string? SelectedTimezone;
     private bool IsLoading;
-    private bool IsOcrRequired => IsImageFile(Model?.Name);
-    private bool DisableAi => IsOcrRequired; // you can extend later
 
-
-    // =========================
+    // =====================================================
     // STYLES
-    // =========================
+    // =====================================================
+    private const string GlassCardStyle = @"
+        margin-bottom:24px;
+        border-radius:24px;
+        padding:28px;
+        background:
+            rgba(255,255,255,0.62);
+        backdrop-filter:blur(18px);
+        border:1px solid rgba(255,255,255,0.22);
+        box-shadow:
+            0 10px 30px rgba(0,0,0,0.08);";
+    private const string AiCardStyle = @"
+        margin-bottom:24px;
+        border-radius:24px;
+        padding:28px;
+        background:
+            linear-gradient(
+                135deg,
+                rgba(0,120,212,0.08),
+                rgba(202,80,16,0.08));
+        backdrop-filter:blur(18px);
+        border:1px solid rgba(255,255,255,0.22);
+        box-shadow:
+            0 10px 30px rgba(0,0,0,0.08);";
+    private const string InputStyle = @"
+        width:100%;
+        border-radius:16px;";
+    private const string SectionHeaderStyle = @"
+        font-weight:700;
+        color:#004578;";
+    private const string ActionButtonStyle = @"
+    min-width:120px;
+    height:42px;
+    border-radius:18px;
+    font-weight:600;
+    font-size:0.92rem;
+    color:black;
+    background: linear-gradient( 135deg, rgba(255,255,255,1), rgba(255,255,255,0.02));
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border:1px solid rgba(255,255,255,0.25);
+    box-shadow:0 8px 24px rgba(0,0,0,0.18);
+    transition: all 0.22s ease;
+    letter-spacing:0.3px; ";
+    private const string PrimaryButtonStyle = @"
+        min-width:220px;
+        height:52px;
+        border-radius:18px;
+        font-weight:700;
+        background:
+            linear-gradient(
+                135deg,
+                #0078D4,
+                #CA5010);";
 
-    private const string GlassCardStyle = "border-radius:20px;padding:20px;margin-bottom:16px;";
-    private const string AiCardStyle = "border-radius:20px;padding:20px;background:#f5faff;margin-bottom:16px;";
-    private const string InputStyle = "width:100%;border-radius:10px;";
-    private const string SectionHeaderStyle = "font-weight:600;";
-    private const string ActionButtonStyle = "margin:5px;";
-
-    // =========================
-    // LOAD
-    // =========================
-
+    // =====================================================
+    // LOAD (RUNS ON EVERY ID CHANGE)
+    // =====================================================
     protected override async Task OnParametersSetAsync()
     {
+        // -----------------------------------------------------
+        // Load Course from SharePoint
+        // -----------------------------------------------------
         Courses = await SharePointService.GetCoursesAsync();
+        // -----------------------------------------------------
+        // Load active countries (Json Country list)
+        // -----------------------------------------------------
         Countries = await JsonLookupDataService.GetCountriesAsync();
+
+        // -----------------------------------------------------
+        // NEW TRANSACTION
+        // -----------------------------------------------------
 
         if (string.IsNullOrWhiteSpace(Id))
         {
@@ -436,106 +478,177 @@
                 Source = "Internal"
             };
 
-            // ✅ NEW ITEM → set location
-            await DetectAndSetCountryAsync();
-
             return;
         }
 
+        // -----------------------------------------------------
+        // Resolve LMS Drive
+        // -----------------------------------------------------
         var driveId = await SharePointService.GetPublicLmsDriveIdAsync();
-        var item = await SharePointService.GetItemAsync(driveId, Id);
 
+        // -----------------------------------------------------
+        // Load SharePoint item + metadata
+        // -----------------------------------------------------
+        var item = await SharePointService.GetItemAsync(driveId, Id);
         if (item == null)
         {
             NotificationService.Notify(NotificationSeverity.Error, "Not Found", "Document not found");
             return;
         }
 
+        // -----------------------------------------------------
+        // Bind model
+        // -----------------------------------------------------
         Model = item;
 
-        // ✅ EXISTING ITEM → apply location AFTER load
-        await DetectAndSetCountryAsync();
-    }
-    // =========================
-    // SAVE
-    // =========================
+        // -----------------------------------------------------
+        // ✅ Restore SelectedCountry from MetadataJson
+        // -----------------------------------------------------
+        if (!string.IsNullOrWhiteSpace(Model.MetadataJson))
+        {
+            try
+            {
+                var country =
+                    JsonSerializer.Deserialize<CountryLookup>(
+                        Model.MetadataJson);
 
+                if (country != null &&
+                    !string.IsNullOrWhiteSpace(country.ISOCode))
+                {
+                    SelectedCountry = country.ISOCode;
+                }
+            }
+            catch (JsonException)
+            {
+                // Ignore invalid / legacy metadata
+                // Do NOT block page rendering
+            }
+        }
+    }
+
+    // =====================================================
+    // SAVE
+    // =====================================================
     private async Task SaveAsync()
     {
-        var driveId = await SharePointService.GetPublicLmsDriveIdAsync();
+        try
+        {
+            var driveId =
+                await SharePointService.GetPublicLmsDriveIdAsync();
 
-        await SharePointService.UpdateLibraryItemAsync(driveId, Id, Model);
+            await SharePointService.UpdateLibraryItemAsync(
+                driveId,
+                Id,
+                Model);
 
-        NotificationService.Notify(NotificationSeverity.Success, "Saved", "Changes saved");
+            NotificationService.Notify(
+                NotificationSeverity.Success,
+                "Success",
+                "Content updated successfully.");
 
-        NavigationManager.NavigateTo("/lms-library-introduction");
+            NavigationManager.NavigateTo("/lms-library-introduction");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(
+                NotificationSeverity.Error,
+                "Error",
+                ex.Message);
+        }
     }
 
-    // =========================
+    // =====================================================
     // BACK
-    // =========================
-
+    // =====================================================
     private void BackToLibrary()
     {
         NavigationManager.NavigateTo("/lms-library-introduction");
     }
 
-    // =========================
-    // DELETE
-    // =========================
-
-    private async Task ConfirmDeleteAsync()
+    // =====================================================
+    // FORMAT
+    // =====================================================
+    private static string FormatBytes(long bytes)
     {
-        var confirmed = await DialogService.Confirm(
-            "Delete item?",
-            "Confirm",
-            new ConfirmOptions { OkButtonText = "Delete" });
+        if (bytes <= 0)
+            return "0 B";
 
-        if (confirmed == true)
-        {
-            await DeleteAsync();
-        }
+        string[] sizes =
+        [
+            "B",
+            "KB",
+            "MB",
+            "GB"
+        ];
+
+        var order =
+            (int)Math.Log(bytes, 1024);
+
+        return string.Format(
+            "{0:0.##} {1}",
+            bytes / Math.Pow(1024, order),
+            sizes[order]);
     }
 
+    // =====================================================
+    // Open Document Online
+    // =====================================================
+    private async Task OpenOnline()
+    {
+        if (Model == null || string.IsNullOrWhiteSpace(Model.WebUrl))
+        {
+            NotificationService.Notify(
+                NotificationSeverity.Warning,
+                "Unavailable",
+                "Online preview is not available for this document.");
+            return;
+        }
+
+        await JS.InvokeVoidAsync(
+            "open",
+            Model.WebUrl,
+            "_blank");
+    }
+
+    // =====================================================
+    // Delete Selected Content
+    // =====================================================
     private async Task DeleteAsync()
     {
-        await SharePointService.DeleteItemAsync(Model.DriveId, Model.Id);
+        if (Model == null)
+            return;
 
-        NotificationService.Notify(NotificationSeverity.Success, "Deleted");
+        await SharePointService.DeleteItemAsync(
+            Model.DriveId,
+            Model.Id);
+
+        NotificationService.Notify(
+            NotificationSeverity.Success,
+            "Deleted",
+            "Content deleted successfully.");
 
         NavigationManager.NavigateTo("/lms-library");
     }
-
-    // =========================
-    // OPEN
-    // =========================
-
-    private async Task OpenOnline()
+    private async Task ConfirmDeleteAsync()
     {
-        if (!string.IsNullOrWhiteSpace(Model.WebUrl))
-        {
-            await JS.InvokeVoidAsync("open", Model.WebUrl, "_blank");
-        }
+        var confirmed = await DialogService.Confirm(
+            "Are you sure you want to delete this item?",
+            "Confirm Delete",
+            new ConfirmOptions
+            {
+                OkButtonText = "Delete",
+                CancelButtonText = "Cancel"
+            });
+
+        if (confirmed != true)
+            return;
+
+        await DeleteAsync();
     }
 
-    // =========================
-    // FORMAT
-    // =========================
-
-    private static string FormatBytes(long bytes)
-    {
-        if (bytes <= 0) return "0 B";
-
-        string[] sizes = ["B", "KB", "MB", "GB"];
-        var order = (int)Math.Log(bytes, 1024);
-
-        return $"{bytes / Math.Pow(1024, order):0.##} {sizes[order]}";
-    }
-
-    // =========================
-    // COUNTRY CHANGE
-    // =========================
-
+    // =====================================================
+    // On Change {Country,Course, }
+    // =====================================================
     private void OnCountryChanged(object value)
     {
         var isoCode = value?.ToString();
@@ -543,133 +656,204 @@
 
         if (selected == null) return;
 
-        SelectedCountry = isoCode;
+        SelectedCountry = isoCode ?? string.Empty;
+
+        // =====================================================
+        // Parse Existing Metadata
+        // =====================================================
 
         Dictionary<string, object> metadata;
 
         try
         {
-            metadata = string.IsNullOrWhiteSpace(Model.MetadataJson)
-                ? []
-                : JsonSerializer.Deserialize<Dictionary<string, object>>(Model.MetadataJson) ?? [];
+            metadata =
+                string.IsNullOrWhiteSpace(
+                    Model.MetadataJson)
+                    ? []
+                    : JsonSerializer.Deserialize<
+                        Dictionary<string, object>>(
+                        Model.MetadataJson) ?? [];
         }
         catch
         {
             metadata = [];
         }
 
-        metadata["CountryCode"] = selected.Code;
-        metadata["CountryName"] = selected.Name;
+        // =====================================================
+        // UPDATE EXISTING VALUES
+        // =====================================================
 
-        Model.MetadataJson = JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true });
+        metadata["CountryCode"] =
+            selected.Code;
+
+        metadata["CountryName"] =
+            selected.Name;
+
+        // =====================================================
+        // SAVE UPDATED METADATA
+        // =====================================================
+
+        Model.MetadataJson = JsonSerializer.Serialize( metadata, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
     }
-
-    // =========================
-    // COURSE CHANGE
-    // =========================
-
     private void OnCourseChanged(object value)
     {
-        var code = value?.ToString();
-        var selected = Courses.FirstOrDefault(x => x.CourseCode == code);
+        var courseCode = value?.ToString();
+        var selected = Courses.FirstOrDefault(x => x.CourseCode == courseCode);
 
         if (selected == null) return;
 
+        // =====================================================
+        // UPDATE MODEL
+        // =====================================================
+
         Model.CourseId = selected.CourseCode;
+
+        // =====================================================
+        // PARSE EXISTING METADATA
+        // =====================================================
 
         Dictionary<string, object> metadata;
 
         try
         {
-            metadata = string.IsNullOrWhiteSpace(Model.MetadataJson)
-                ? []
-                : JsonSerializer.Deserialize<Dictionary<string, object>>(Model.MetadataJson) ?? [];
+            metadata =
+                string.IsNullOrWhiteSpace(
+                    Model.MetadataJson)
+                    ? []
+                    : JsonSerializer.Deserialize<
+                        Dictionary<string, object>>(
+                        Model.MetadataJson) ?? [];
         }
         catch
         {
             metadata = [];
         }
 
+        // =====================================================
+        // UPDATE COURSE METADATA
+        // =====================================================
+
         metadata["CourseId"] = selected.CourseCode;
         metadata["CourseTitle"] = selected.Title;
-        metadata["CourseDescription"] = HtmlToText(selected.Description);
-        metadata["CourseLearningOutcomes"] = HtmlToText(selected.LearningOutcomes);
+        metadata["CourseLearningOutcomes"] = selected.LearningOutcomes;
+        metadata["CourseDescription"] = selected.Description;
 
-        Model.MetadataJson = JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true });
+        // =====================================================
+        // SAVE UPDATED METADATA
+        // =====================================================
+
+        Model.MetadataJson =
+            JsonSerializer.Serialize(
+                metadata,
+                new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
     }
 
-    // =========================
-    // AI (FIXED)
-    // =========================
-
+    // =====================================================
+    //AI output to the UI
+    // =====================================================
     private async Task GenerateAIFeedbackAsync()
     {
-        if (IsLoading || (DisableAi || IsOcrRequired))
+        if (IsLoading || Model == null || string.IsNullOrWhiteSpace(Model.Id))
+        {
+            NotificationService.Notify(
+                NotificationSeverity.Warning,
+                "Unavailable",
+                "No content item is loaded.");
             return;
+        }
 
         try
         {
             IsLoading = true;
 
-            // ✅ STEP 1: Parse metadata JSON
-            Dictionary<string, string> metadata;
+            NotificationService.Notify(
+                NotificationSeverity.Info,
+                "AI Processing",
+                "AI intelligence generation started.");
 
-            try
+            // =====================================================
+            // 1️⃣ Build AI-friendly metadata payload (CLEAN HTML)
+            // =====================================================
+            var json =
+                JsonNode.Parse(Model.MetadataJson ?? "{}")?.AsObject();
+
+            if (json != null)
             {
-                metadata = string.IsNullOrWhiteSpace(Model.MetadataJson)
-                    ? new Dictionary<string, string>()
-                    : JsonSerializer.Deserialize<Dictionary<string, string>>(Model.MetadataJson)
-                      ?? new Dictionary<string, string>();
-            }
-            catch
-            {
-                metadata = new Dictionary<string, string>();
-            }
-
-            // ✅ STEP 2: Clean HTML in metadata
-            if (metadata.ContainsKey("CourseDescription"))
-                metadata["CourseDescription"] = HtmlToText(metadata["CourseDescription"]);
-
-            if (metadata.ContainsKey("CourseLearningOutcomes"))
-                metadata["CourseLearningOutcomes"] = HtmlToText(metadata["CourseLearningOutcomes"]);
-
-            // ✅ STEP 3: DOWNLOAD FILE STREAM FROM SHAREPOINT
-            using var stream = await SharePointService
-                .DownloadFileAsync(Model.DriveId, Model.Id);
-
-            string fileContent = string.Empty;
-
-            // ✅ STEP 4: EXTRACT TEXT USING YOUR ENGINE
-            if (stream != null)
-            {
-                try
+                if (json["CourseDescription"] != null)
                 {
-                    fileContent = await SharePointService
-                        .ExtractTextAsync(Model.Name, stream);
+                    json["CourseDescription"] =
+                        HtmlToText(json["CourseDescription"]!.ToString());
                 }
-                catch
+
+                if (json["CourseLearningOutcomes"] != null)
                 {
-                    fileContent = string.Empty;
+                    json["CourseLearningOutcomes"] =
+                        HtmlToText(json["CourseLearningOutcomes"]!.ToString());
                 }
             }
 
-            // ✅ STEP 5: FALLBACK (IMPORTANT)
-            if (string.IsNullOrWhiteSpace(fileContent))
+            // ✅ ✅ FIX 1: Convert JsonObject → Dictionary<string,string>
+            var metadata = new Dictionary<string, string>();
+
+            if (json != null)
             {
-                fileContent = $"{Model.Title}\n\n{Model.Description}";
+                foreach (var item in json)
+                {
+                    metadata[item.Key] = item.Value?.ToString() ?? string.Empty;
+                }
             }
 
-            // ✅ STEP 6: CALL AI
-            var aiText = await AutomationService.GenerateAIFeedbackAsync(
+            // =====================================================
+            // ✅ FIX 2: DEFINE extractedContent
+            // =====================================================
+            var extractedContent =
+                await SharePointService.ExtractDocumentContentAsync(
+                    Model.DriveId,
+                    Model.Id);
+
+            if (string.IsNullOrWhiteSpace(extractedContent))
+            {
+                NotificationService.Notify(
+                    NotificationSeverity.Warning,
+                    "No Content",
+                    "Unable to extract document content.");
+                return;
+            }
+
+            // =====================================================
+            // 2️⃣ Trigger AI Automation ✅ CORRECT CALL
+            // =====================================================
+            Model.AiFeed = await AutomationService.GenerateAIFeedbackAsync(
                 metadata,
-                fileContent);
+                extractedContent);
 
-            // ✅ STEP 7: SET RESULT
-            Model.AiFeed = aiText;
+            // =====================================================
+            // 3️⃣ OPTIONAL: Load stored AI HTML (if your flow uses it)
+            // =====================================================
+            var aiHtml =
+                await SharePointService.GetAIResultHtmlAsync(
+                    "AssessmentEvaluation",
+                    Model.Id);
+
+            if (!string.IsNullOrWhiteSpace(aiHtml))
+            {
+                Model.AiFeed = HtmlToText(aiHtml);
+            }
+            else if (string.IsNullOrWhiteSpace(Model.AiFeed))
+            {
+                Model.AiFeed = "AI completed, but no report was found.";
+            }
 
             NotificationService.Notify(
                 NotificationSeverity.Success,
-                "AI Feedback generated");
+                "AI Completed",
+                "AI intelligence report generated successfully.");
         }
         catch (Exception ex)
         {
@@ -681,12 +865,19 @@
         finally
         {
             IsLoading = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
-    // =========================
-    // HTML FIX (UPGRADED)
-    // =========================
-
+    private JsonObject BuildCourseMetadataJson()
+    {
+        return new JsonObject
+        {
+            ["CourseId"] = Model.CourseId,
+            ["CourseTitle"] = Model.Title,
+            ["CourseDescription"] = Model.Description,
+            ["CourseLearningOutcomes"] = Model.MetadataJson
+        };
+    }
     private static string HtmlToText(string? html)
     {
         if (string.IsNullOrWhiteSpace(html))
@@ -695,107 +886,15 @@
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
 
-        var brNodes = doc.DocumentNode.SelectNodes("//br");
-
-        if (brNodes != null)
-        {
-            foreach (var node in brNodes)
-            {
-                node.ParentNode?.ReplaceChild(
-                    doc.CreateTextNode(Environment.NewLine),
-                    node);
-            }
-        }
-
-        var textNodes = doc.DocumentNode.SelectNodes("//p|//div|//li|//h1|//h2|//h3|//h4|//h5|//h6");
-
-        if (textNodes != null)
-        {
-            foreach (var node in textNodes)
-            {
-                if (node.Name.Equals("li", StringComparison.OrdinalIgnoreCase))
-                {
-                    node.InnerHtml = "• " + node.InnerHtml + Environment.NewLine;
-                }
-                else
-                {
-                    node.InnerHtml += Environment.NewLine;
-                }
-            }
-        }
-
-        var text = WebUtility.HtmlDecode(doc.DocumentNode.InnerText);
-
-        text = Regex.Replace(text, @"(\r?\n){3,}", Environment.NewLine + Environment.NewLine);
-
-        return text.Trim();
+        return WebUtility.HtmlDecode(doc.DocumentNode.InnerText)
+                         .Trim();
     }
-
-    // =========================
-    // CONSOL Test
-    // =========================
-    private async Task DetectAndSetCountryAsync()
-    {
-        try
-        {
-            var culture = System.Globalization.CultureInfo.CurrentCulture;
-            var region = new System.Globalization.RegionInfo(culture.Name);
-
-            var code = region.TwoLetterISORegionName;
-            var country = Countries.FirstOrDefault(x => x.Code == code);
-
-            if (country == null) return;
-
-            SelectedCountry = country.Code;
-
-            // ✅ UPDATE METADATA
-            Dictionary<string, object> metadata;
-
-            try
-            {
-                metadata = string.IsNullOrWhiteSpace(Model.MetadataJson)
-                    ? new Dictionary<string, object>()
-                    : JsonSerializer.Deserialize<Dictionary<string, object>>(Model.MetadataJson)
-                      ?? new Dictionary<string, object>();
-            }
-            catch
-            {
-                metadata = new Dictionary<string, object>();
-            }
-
-            metadata["CountryCode"] = country.Code;
-            metadata["CountryName"] = country.Name;
-
-            Model.MetadataJson = JsonSerializer.Serialize(metadata, new JsonSerializerOptions
-            {
-                WriteIndented = true
-            });
-        }
-        catch
-        {
-            // silent
-        }
-    }
-
-    // OCR Check
-    private bool IsImageFile(string? fileName)
-    {
-        if (string.IsNullOrWhiteSpace(fileName))
-            return true;
-
-        var ext = Path.GetExtension(fileName).ToLowerInvariant();
-
-        return ext switch
-        {
-            ".jpg" => true,
-            ".jpeg" => true,
-            ".png" => true,
-            ".bmp" => true,
-            ".tiff" => true,
-            ".gif" => true,
-            _ => false
-        };
-    }
-
-
 }
+<style>
+    .lms-inline-fields {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+    }
+
+</style>
