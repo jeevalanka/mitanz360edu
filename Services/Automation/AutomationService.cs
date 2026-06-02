@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.RegularExpressions;
 using MITANZ360Edu.Web.Services.AI;
 
 namespace MITANZ360Edu.Web.Services.Automation;
@@ -64,7 +65,85 @@ public partial class AutomationService
     }
 
     // =========================================================
-    // ✅ PRIVATE HELPERS
+    // ✅ ✅ ✅ NEW: RELEVANCE VALIDATION METHOD (FIX)
+    // =========================================================
+    private RelevanceResult ValidateContentRelevance(
+        Dictionary<string, string> metadata,
+        string content)
+    {
+        var result = new RelevanceResult();
+
+        // ✅ Extract safely
+        metadata.TryGetValue("CourseTitle", out var title);
+        metadata.TryGetValue("CourseDescription", out var description);
+        metadata.TryGetValue("CourseLearningOutcomes", out var outcomes);
+
+        var courseText = $"{title} {description} {outcomes}".ToLower();
+
+        if (string.IsNullOrWhiteSpace(courseText))
+        {
+            result.IsRelevant = false;
+            result.Score = 0;
+            result.Reason = "Course metadata is invalid.";
+            return result;
+        }
+
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            result.IsRelevant = false;
+            result.Score = 0;
+            result.Reason = "Document content is empty.";
+            return result;
+        }
+
+        // ✅ Extract keywords
+        var keywords = ExtractKeywords(courseText);
+
+        int matchCount = 0;
+
+        foreach (var keyword in keywords)
+        {
+            if (content.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+            {
+                result.MatchedKeywords.Add(keyword);
+                matchCount++;
+            }
+            else
+            {
+                result.MissingKeywords.Add(keyword);
+            }
+        }
+
+        // ✅ Score
+        int total = keywords.Count;
+
+        result.Score = total == 0
+            ? 0
+            : (int)((double)matchCount / total * 100);
+
+        result.IsRelevant = result.Score >= 50;
+
+        result.Reason = result.IsRelevant
+            ? "Content is relevant to course metadata."
+            : "Content does not sufficiently match course metadata.";
+
+        return result;
+    }
+
+    // =========================================================
+    // ✅ KEYWORD EXTRACTOR
+    // =========================================================
+    private List<string> ExtractKeywords(string text)
+    {
+        return Regex
+            .Split(text, @"\W+")
+            .Where(w => w.Length > 4)
+            .Distinct()
+            .ToList();
+    }
+
+    // =========================================================
+    // ✅ PRIVATE HELPERS (UNCHANGED)
     // =========================================================
 
     private string BuildEvaluationPrompt(

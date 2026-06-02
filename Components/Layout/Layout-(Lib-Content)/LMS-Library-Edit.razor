@@ -155,7 +155,7 @@
                                       Text="Generate AI Feedback"
                                       ButtonStyle="ButtonStyle.Primary"
                                       Click="@GenerateAIFeedbackAsync"
-                                      Disabled="@IsLoading"
+                                      Disabled="@IsAiButtonDisabled"
                                       Busy="@IsLoading"
                                       BusyText="AI Processing..." />
 
@@ -344,6 +344,12 @@
                      JustifyContent="JustifyContent.End"
                      Gap="0.5rem">
 
+            <RadzenButton Icon="open_in_new"
+                          Text="Open Online"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Click="@OpenOnline"
+                          Style="@ActionButtonStyle" />
+
             <RadzenButton ButtonStyle="ButtonStyle.Primary"
                           Icon="save"
                           Text="Save Changes"
@@ -354,12 +360,6 @@
                           Text="Delete"
                           ButtonStyle="ButtonStyle.Primary"
                           Click="@ConfirmDeleteAsync"
-                          Style="@ActionButtonStyle" />
-
-            <RadzenButton Icon="open_in_new"
-                          Text="Open Online"
-                          ButtonStyle="ButtonStyle.Primary"
-                          Click="@OpenOnline"
                           Style="@ActionButtonStyle" />
 
             <RadzenButton ButtonStyle="ButtonStyle.Warning"
@@ -393,6 +393,17 @@
     private string? SelectedCurrency;
     private string? SelectedTimezone;
     private bool IsLoading;
+
+    private bool IsAiButtonDisabled =>
+    IsLoading ||
+    Model?.Name?.ToLower().EndsWith(".jpg") == true ||
+    Model?.Name?.ToLower().EndsWith(".jpeg") == true ||
+    Model?.Name?.ToLower().EndsWith(".png") == true ||
+    Model?.Name?.ToLower().EndsWith(".gif") == true ||
+    Model?.Name?.ToLower().EndsWith(".bmp") == true ||
+    Model?.Name?.ToLower().EndsWith(".mp4") == true ||
+    Model?.Name?.ToLower().EndsWith(".mp3") == true;
+
 
     // =====================================================
     // STYLES
@@ -778,7 +789,7 @@
                 "AI intelligence generation started.");
 
             // =====================================================
-            // 1️⃣ Build AI-friendly metadata payload (CLEAN HTML)
+            // 1️⃣ Parse metadata (SAFE)
             // =====================================================
             var json =
                 JsonNode.Parse(Model.MetadataJson ?? "{}")?.AsObject();
@@ -787,30 +798,49 @@
             {
                 if (json["CourseDescription"] != null)
                 {
-                    json["CourseDescription"] =
-                        HtmlToText(json["CourseDescription"]!.ToString());
+                    json["CourseDescription"] = HtmlToText(json["CourseDescription"]!.ToString());
                 }
 
                 if (json["CourseLearningOutcomes"] != null)
                 {
-                    json["CourseLearningOutcomes"] =
-                        HtmlToText(json["CourseLearningOutcomes"]!.ToString());
+                    json["CourseLearningOutcomes"] = HtmlToText(json["CourseLearningOutcomes"]!.ToString());
                 }
             }
 
-            // ✅ ✅ FIX 1: Convert JsonObject → Dictionary<string,string>
             var metadata = new Dictionary<string, string>();
 
+            // ✅ STEP 1 — READ JSON AND CLEAN HTML
             if (json != null)
             {
                 foreach (var item in json)
                 {
-                    metadata[item.Key] = item.Value?.ToString() ?? string.Empty;
+                    var value = item.Value?.ToString() ?? "";
+
+                    // ✅ remove HTML
+                    value = HtmlToText(value);
+
+                    metadata[item.Key] = value;
                 }
             }
 
+            // ✅ STEP 2 — FALLBACK ONLY IF MISSING
+            if (!metadata.ContainsKey("CourseTitle") || string.IsNullOrWhiteSpace(metadata["CourseTitle"]))
+            {
+                metadata["CourseTitle"] = Model.Title ?? "";
+            }
+
+            if (!metadata.ContainsKey("CourseDescription") || string.IsNullOrWhiteSpace(metadata["CourseDescription"]))
+            {
+                metadata["CourseDescription"] = Model.Description ?? "";
+            }
+
+            if (!metadata.ContainsKey("CourseLearningOutcomes") || string.IsNullOrWhiteSpace(metadata["CourseLearningOutcomes"]))
+            {
+                metadata["CourseLearningOutcomes"] = "";
+            }
+
             // =====================================================
-            // ✅ FIX 2: DEFINE extractedContent
+            // 2️⃣ Extract content
             // =====================================================
             var extractedContent =
                 await SharePointService.ExtractDocumentContentAsync(
@@ -819,41 +849,54 @@
 
             if (string.IsNullOrWhiteSpace(extractedContent))
             {
+
                 NotificationService.Notify(
                     NotificationSeverity.Warning,
-                    "No Content",
-                    "Unable to extract document content.");
+                    "Unsupported File",
+                    "OCR is not supported. Please upload text-based content.");
+
                 return;
             }
 
             // =====================================================
-            // 2️⃣ Trigger AI Automation ✅ CORRECT CALL
+            // ✅ RUN AI ENGINE
             // =====================================================
-            Model.AiFeed = await AutomationService.GenerateAIFeedbackAsync(
+            var aiResult = await AutomationService.GenerateAIFeedbackAsync(
                 metadata,
                 extractedContent);
 
             // =====================================================
-            // 3️⃣ OPTIONAL: Load stored AI HTML (if your flow uses it)
+            // ✅ HANDLE RESULT
             // =====================================================
-            var aiHtml =
-                await SharePointService.GetAIResultHtmlAsync(
-                    "AssessmentEvaluation",
-                    Model.Id);
-
-            if (!string.IsNullOrWhiteSpace(aiHtml))
+            if (string.IsNullOrWhiteSpace(aiResult))
             {
-                Model.AiFeed = HtmlToText(aiHtml);
-            }
-            else if (string.IsNullOrWhiteSpace(Model.AiFeed))
-            {
-                Model.AiFeed = "AI completed, but no report was found.";
-            }
+                Model.AiFeed = "⚠ AI completed, but returned empty response.";
 
-            NotificationService.Notify(
-                NotificationSeverity.Success,
-                "AI Completed",
-                "AI intelligence report generated successfully.");
+                NotificationService.Notify(
+                    NotificationSeverity.Warning,
+                    "AI Warning",
+                    "AI returned no content.");
+            }
+            else
+            {
+                Model.AiFeed = aiResult;
+
+                // ✅ Detect if AI returned failure message
+                if (aiResult.Contains("⚠"))
+                {
+                    NotificationService.Notify(
+                        NotificationSeverity.Warning,
+                        "AI Warning",
+                        "AI validation detected issues.");
+                }
+                else
+                {
+                    NotificationService.Notify(
+                        NotificationSeverity.Success,
+                        "AI Completed",
+                        "AI intelligence report generated successfully.");
+                }
+            }
         }
         catch (Exception ex)
         {

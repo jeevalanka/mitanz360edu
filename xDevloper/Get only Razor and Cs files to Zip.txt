@@ -1,5 +1,35 @@
-﻿Get-ChildItem -Recurse -Include *.razor, *.cs |
+﻿$source = "D:\MITANZ360EDU-System\GitHub\mitanz360edu"
+$zipFile = "D:\MITANZ360EDU-System\GitHub\MITANZ360EDU_Source.zip"
+
+$tempFolder = Join-Path $env:TEMP ("MITANZ360EDU_" + [guid]::NewGuid())
+
+New-Item -ItemType Directory -Path $tempFolder -Force | Out-Null
+
+Get-ChildItem $source -Recurse -File |
 Where-Object {
-    $_.FullName -notmatch "\\bin\\|\\obj\\"
+    $_.FullName -notmatch '\\bin\\|\\obj\\|\\\.vs\\|\\TestResults\\|\\\.git\\'
 } |
-Compress-Archive -DestinationPath "MITANZ360EDU_Code.zip"
+ForEach-Object {
+    $relativePath = $_.FullName.Substring($source.Length).TrimStart('\')
+    $destination = Join-Path $tempFolder $relativePath
+
+    New-Item -ItemType Directory -Path (Split-Path $destination) -Force | Out-Null
+    Copy-Item $_.FullName $destination -Force
+}
+
+if (Test-Path $zipFile) {
+    Remove-Item $zipFile -Force
+}
+
+Compress-Archive -Path "$tempFolder\*" -DestinationPath $zipFile -CompressionLevel Optimal
+
+Remove-Item $tempFolder -Recurse -Force
+
+Write-Host ""
+Write-Host "========================================"
+Write-Host "ZIP CREATED SUCCESSFULLY"
+Write-Host $zipFile
+Write-Host "========================================"
+Write-Host ""
+
+explorer.exe "/select,$zipFile"
