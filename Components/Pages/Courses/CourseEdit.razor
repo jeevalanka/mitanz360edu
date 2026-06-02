@@ -113,9 +113,10 @@
                             <RadzenFormField Text="Category"
                                              Style="width:100%;">
 
-                                <RadzenTextBox @bind-Value="Model.CourseCategory"
-                                               Style="width:100%;" />
-
+                                <RadzenDropDown Data="@Categories"
+                                                @bind-Value="Model.CourseCategory"
+                                                Placeholder="Select Category"
+                                                Style="width:100%;" />
                             </RadzenFormField>
 
                         </RadzenColumn>
@@ -125,10 +126,10 @@
 
                             <RadzenFormField Text="Type"
                                              Style="width:100%;">
-
-                                <RadzenTextBox @bind-Value="Model.CourseType"
-                                               Style="width:100%;" />
-
+                                <RadzenDropDown Data="@CourseTypes"
+                                                @bind-Value="Model.CourseType"
+                                                Placeholder="Select Type"
+                                                Style="width:100%;" />
                             </RadzenFormField>
 
                         </RadzenColumn>
@@ -139,9 +140,10 @@
                             <RadzenFormField Text="Level"
                                              Style="width:100%;">
 
-                                <RadzenTextBox @bind-Value="Model.Level"
-                                               Style="width:100%;" />
-
+                                <RadzenDropDown Data="@Levels"
+                                                @bind-Value="Model.Level"
+                                                Placeholder="Select Level"
+                                                Style="width:100%;" />
                             </RadzenFormField>
 
                         </RadzenColumn>
@@ -155,10 +157,10 @@
 
                             <RadzenFormField Text="Language"
                                              Style="width:100%;">
-
-                                <RadzenTextBox @bind-Value="Model.Language"
-                                               Style="width:100%;" />
-
+                                <RadzenDropDown Data="@Languages"
+                                                @bind-Value="Model.Language"
+                                                Placeholder="Select Language"
+                                                Style="width:100%;" />
                             </RadzenFormField>
 
                         </RadzenColumn>
@@ -169,9 +171,10 @@
                             <RadzenFormField Text="Delivery Mode"
                                              Style="width:100%;">
 
-                                <RadzenTextBox @bind-Value="Model.DeliveryMode"
-                                               Style="width:100%;" />
-
+                                <RadzenDropDown Data="@DeliveryModes"
+                                                @bind-Value="Model.DeliveryMode"
+                                                Placeholder="Select Delivery Mode"
+                                                Style="width:100%;" />
                             </RadzenFormField>
 
                         </RadzenColumn>
@@ -349,6 +352,12 @@
 
 @code {
 
+    private List<string> Categories = new();
+    private List<string> CourseTypes = new();
+    private List<string> Levels = new();
+    private List<string> Languages = new();
+    private List<string> DeliveryModes = new();
+
     [Parameter]
     public int? Id { get; set; }
 
@@ -380,6 +389,13 @@
 
             errorMessage = ex.Message;
         }
+        // ✅ Load JSON files
+
+        Categories = await LoadJsonList("wwwroot/data/course-categories.json");
+        CourseTypes = await LoadJsonList("wwwroot/data/course-types.json");
+        Levels = await LoadJsonList("wwwroot/data/course-levels.json");
+        Languages = await LoadJsonList("wwwroot/data/course-languages.json");
+        DeliveryModes = await LoadJsonList("wwwroot/data/course-delivery-modes.json");
     }
 
     private async Task SaveAsync()
@@ -412,5 +428,13 @@
     private void Cancel()
     {
         NavigationManager.NavigateTo("/courses");
+    }
+
+    private async Task<List<string>> LoadJsonList(string path)
+    {
+        var json = await File.ReadAllTextAsync(path);
+
+        return System.Text.Json.JsonSerializer
+            .Deserialize<List<string>>(json) ?? new();
     }
 }

@@ -3,16 +3,12 @@
   "WorkspaceRootPath": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|d:\\mitanz360edu-system\\github\\mitanz360edu\\components\\layout\\layout-(lib-content)\\lms-library-edit.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|solutionrelative:components\\layout\\layout-(lib-content)\\lms-library-edit.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+      "AbsoluteMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|d:\\mitanz360edu-system\\github\\mitanz360edu\\components\\pages\\courses\\newcoursecrud.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|solutionrelative:components\\pages\\courses\\newcoursecrud.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|d:\\mitanz360edu-system\\github\\mitanz360edu\\services\\automation\\automationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|solutionrelative:services\\automation\\automationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|d:\\mitanz360edu-system\\github\\mitanz360edu\\services\\automation\\relevanceresult.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|solutionrelative:services\\automation\\relevanceresult.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|d:\\mitanz360edu-system\\github\\mitanz360edu\\wwwroot\\data\\new-course\\template.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|solutionrelative:wwwroot\\data\\new-course\\template.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,45 +18,32 @@
       "DocumentGroups": [
         {
           "DockedHeight": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "RelevanceResult.cs",
-              "DocumentMoniker": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Services\\Automation\\RelevanceResult.cs",
-              "RelativeDocumentMoniker": "Services\\Automation\\RelevanceResult.cs",
-              "ToolTip": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Services\\Automation\\RelevanceResult.cs",
-              "RelativeToolTip": "Services\\Automation\\RelevanceResult.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-02T05:12:03.419Z",
+              "DocumentIndex": 0,
+              "Title": "NewCourseCRUD.razor",
+              "DocumentMoniker": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Components\\Pages\\Courses\\NewCourseCRUD.razor",
+              "RelativeDocumentMoniker": "Components\\Pages\\Courses\\NewCourseCRUD.razor",
+              "ToolTip": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Components\\Pages\\Courses\\NewCourseCRUD.razor",
+              "RelativeToolTip": "Components\\Pages\\Courses\\NewCourseCRUD.razor",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAPoAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-06-02T12:54:22.293Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "AutomationService.cs",
-              "DocumentMoniker": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Services\\Automation\\AutomationService.cs",
-              "RelativeDocumentMoniker": "Services\\Automation\\AutomationService.cs",
-              "ToolTip": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Services\\Automation\\AutomationService.cs",
-              "RelativeToolTip": "Services\\Automation\\AutomationService.cs",
-              "ViewState": "AgIAAMQAAAAAAAAAAAAAwL4AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-02T05:10:26.217Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "LMS-Library-Edit.razor",
-              "DocumentMoniker": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Components\\Layout\\Layout-(Lib-Content)\\LMS-Library-Edit.razor",
-              "RelativeDocumentMoniker": "Components\\Layout\\Layout-(Lib-Content)\\LMS-Library-Edit.razor",
-              "ToolTip": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Components\\Layout\\Layout-(Lib-Content)\\LMS-Library-Edit.razor*",
-              "RelativeToolTip": "Components\\Layout\\Layout-(Lib-Content)\\LMS-Library-Edit.razor*",
-              "ViewState": "AgIAADUDAAAAAAAAAAAwwEcDAAANAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-06-02T04:39:14.176Z",
+              "Title": "template.json",
+              "DocumentMoniker": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\wwwroot\\Data\\New-Course\\template.json",
+              "RelativeDocumentMoniker": "wwwroot\\Data\\New-Course\\template.json",
+              "ToolTip": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\wwwroot\\Data\\New-Course\\template.json",
+              "RelativeToolTip": "wwwroot\\Data\\New-Course\\template.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAMYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-06-02T12:43:44.336Z",
               "EditorCaption": ""
             },
             {

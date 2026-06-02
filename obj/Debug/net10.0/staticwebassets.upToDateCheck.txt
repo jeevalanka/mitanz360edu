@@ -11,6 +11,11 @@ wwwroot\AI-Eng\MAR-Lead Conversion Analysis.json
 wwwroot\css\app.css
 wwwroot\css\home.css
 wwwroot\Data\countries.json
+wwwroot\Data\course-categories.json
+wwwroot\Data\course-content-types.json
+wwwroot\Data\course-delivery-modes.json
+wwwroot\Data\course-languages.json
+wwwroot\Data\course-types.json
 wwwroot\favicon.png
 wwwroot\Files\A modern New Zealand technology classroom with diverse students learning Cloud Computing and AI, gui.jpeg
 wwwroot\Files\about.html
@@ -112,6 +117,7 @@ wwwroot\Reports\Reconciliation_20260404_025307.xlsx
 wwwroot\Reports\Reconciliation_20260406_164929.xlsx
 wwwroot\Temp-Files\Bank_Statement_April_2026.pdf
 wwwroot\Temp-Files\Ledger_April_2026.pdf
+wwwroot\Data\course-levels.json
 Components\Account\Shared\PasskeySubmit.razor.js
 Components\Layout\ReconnectModal.razor.js
 C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\build\..\_framework\blazor.web.js
@@ -124,10 +130,16 @@ D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\CEO-Exchange-Rate-Anal
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\CEO-News Summary.json
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\EDU-Student-Assessment-v1.json
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\FIN-Finance Invoice Review.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\HNB vs NDB FX Intelligence.json
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\MAR-Lead Conversion Analysis.json
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\css\app.css
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\css\home.css
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\countries.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-categories.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-content-types.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-delivery-modes.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-languages.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-types.json
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\about.html
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\AIPrompt01.txt
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\countries.json
@@ -190,4 +202,4 @@ D:\MITANZ360EDU-System\GitHub\mitanz360edu\Components\Account\Shared\PasskeySubm
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\Components\Layout\ReconnectModal.razor.js
 C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\_framework\blazor.web.js
 C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\_framework\blazor.server.js
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\HNB vs NDB FX Intelligence.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-levels.json

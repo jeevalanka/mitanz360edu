@@ -268,8 +268,23 @@ else
 
         if (confirmed == true)
         {
-            Nav.NavigateTo(
-                $"/courses/delete/{courseId}");
+            try
+            {
+                await SharePointService.DeleteCourseAsync(courseId);
+
+                // ✅ REMOVE FROM UI (IMPORTANT)
+                courses = courses
+                    .Where(c => c.Id != courseId)
+                    .ToList();
+
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                await DialogService.Alert(
+                    ex.Message,
+                    "Delete Failed");
+            }
         }
     }
 

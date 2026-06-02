@@ -1,0 +1,251 @@
+﻿@page "/course-builder"
+
+@using System.Text.Json
+@using System.Reflection
+
+@inject IWebHostEnvironment Env
+@inject ICourseTemplateService TemplateService
+@inject IVersioningService VersioningService
+@inject IAIService AIService
+@inject IDocxService DocxService
+
+<RadzenRow Style="height:100vh">
+
+    <!-- LEFT PANEL -->
+    <RadzenColumn Size="4">
+        <RadzenCard Style="height:100%;overflow:auto">
+
+            <h3>Course Builder</h3>
+
+            @RenderForm(Model)
+
+            <RadzenStack Orientation="Orientation.Vertical" Gap="10px" Style="margin-top:20px">
+
+                <RadzenButton Text="New" Click="@NewTemplate" Style="width:100%" />
+                <RadzenButton Text="Save" Click="@Save" Style="width:100%" />
+                <RadzenButton Text="Generate Course" Click="@GenerateCourse" Style="width:100%" />
+                <RadzenButton Text="Generate DOCX" Click="@GenerateDocx" Style="width:100%" />
+
+            </RadzenStack>
+
+        </RadzenCard>
+    </RadzenColumn>
+
+    <!-- CENTER JSON -->
+    <RadzenColumn Size="4">
+        <RadzenCard Style="height:100%">
+            <h3>JSON Editor</h3>
+
+            <RadzenTextArea Style="width:100%;height:85%"
+                            @bind-Value="JsonView" />
+
+            <RadzenButton Text="Apply JSON"
+                          Style="width:100%"
+                          Click="@ApplyJson" />
+
+        </RadzenCard>
+    </RadzenColumn>
+
+    <!-- PREVIEW -->
+    <RadzenColumn Size="4">
+        <RadzenCard Style="height:100%">
+            <h3>AI Preview</h3>
+
+            @if (Output != null)
+            {
+                <b>Description</b>
+                <p>@Output.Description</p>
+
+                <b>Learning Outcomes</b>
+                <ul>
+                    @foreach (var lo in Output.LearningOutcomes)
+                    {
+                        <li>@lo</li>
+                    }
+                </ul>
+            }
+        </RadzenCard>
+    </RadzenColumn>
+
+</RadzenRow>
+
+@code {
+
+    private object Model = new();
+    private string JsonView = "";
+    private CourseOutput? Output;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTemplate();
+    }
+
+    private async Task LoadTemplate()
+    {
+        Model = await TemplateService.LoadTemplateAsync();
+        SyncJson();
+    }
+
+    private void SyncJson()
+    {
+        JsonView = JsonSerializer.Serialize(Model, new JsonSerializerOptions
+        {
+            WriteIndented = true
+        });
+    }
+
+    private void ApplyJson()
+    {
+        try
+        {
+            Model = JsonSerializer.Deserialize<object>(JsonView)!;
+        }
+        catch
+        {
+            // Handle error (log)
+        }
+    }
+
+    private async Task NewTemplate()
+    {
+        await LoadTemplate();
+    }
+
+    private async Task Save()
+    {
+        var folder = Path.Combine(Env.WebRootPath, "Data/New-Course");
+
+        if (!Directory.Exists(folder))
+            Directory.CreateDirectory(folder);
+
+        var courseName = GetValue("CourseInformation.CourseName") ?? "NewCourse";
+
+        var version = VersioningService.GetNextVersion(folder, courseName, false);
+
+        var filePath = Path.Combine(folder, $"{courseName}-{version}.json");
+
+        await TemplateService.SaveAsync(Model, filePath);
+    }
+
+    private async Task GenerateCourse()
+    {
+        var typed = JsonSerializer.Deserialize<CourseTemplate>(
+            JsonSerializer.Serialize(Model))!;
+
+        Output = await AIService.GenerateCourseAsync(typed);
+    }
+
+    private async Task GenerateDocx()
+    {
+        if (Output == null)
+            return;
+
+        var folder = Path.Combine(Env.WebRootPath, "Data/New-Course");
+
+        var courseName = GetValue("CourseInformation.CourseName") ?? "Course";
+
+        var version = VersioningService.GetNextVersion(folder, courseName, false);
+
+        var path = Path.Combine(folder, $"{courseName}-{version}.docx");
+
+        var typed = JsonSerializer.Deserialize<CourseTemplate>(
+            JsonSerializer.Serialize(Model))!;
+
+        await DocxService.GenerateAsync(path, typed, Output);
+    }
+
+    // ----------------------------
+    // 🔥 DYNAMIC FORM ENGINE
+    // ----------------------------
+    private RenderFragment RenderForm(object obj) => builder =>
+    {
+        if (obj == null) return;
+
+        var props = obj.GetType().GetProperties();
+
+        int seq = 0;
+
+        foreach (var prop in props)
+        {
+            var value = prop.GetValue(obj);
+            var type = prop.PropertyType;
+
+            // Label
+            builder.OpenComponent<RadzenLabel>(seq++);
+            builder.AddAttribute(seq++, "Text", prop.Name);
+            builder.CloseComponent();
+
+            // Dropdown detection
+            if (value != null &&
+                value.GetType().GetProperty("Options") != null)
+            {
+                var options = (IEnumerable<string>)value.GetType()
+                    .GetProperty("Options")!.GetValue(value)!;
+
+                var valProp = value.GetType().GetProperty("Value");
+
+                builder.OpenComponent<RadzenDropDown<string>>(seq++);
+                builder.AddAttribute(seq++, "Data", options);
+                builder.AddAttribute(seq++, "Value", valProp!.GetValue(value));
+                builder.AddAttribute(seq++, "Style", "width:100%");
+
+                builder.AddAttribute(seq++, "Change",
+                    EventCallback.Factory.Create<string>(this, v =>
+                    {
+                        valProp.SetValue(value, v);
+                        SyncJson();
+                    }));
+
+                builder.CloseComponent();
+            }
+
+            // Primitive
+            else if (type == typeof(string) || type.IsPrimitive)
+            {
+                builder.OpenComponent<RadzenTextBox>(seq++);
+                builder.AddAttribute(seq++, "Value", value?.ToString());
+                builder.AddAttribute(seq++, "Style", "width:100%");
+
+                builder.AddAttribute(seq++, "Change",
+                    EventCallback.Factory.Create<string>(this, v =>
+                    {
+                        prop.SetValue(obj, v);
+                        SyncJson();
+                    }));
+
+                builder.CloseComponent();
+            }
+
+            // Complex → recursive
+            else if (value != null)
+            {
+                builder.OpenComponent<RadzenCard>(seq++);
+                builder.AddAttribute(seq++, "Style",
+                    "margin:10px;padding:10px;background:#f5f5f5");
+
+                builder.AddAttribute(seq++, "ChildContent",
+                    (RenderFragment)(childBuilder =>
+                    {
+                        childBuilder.AddContent(0, RenderForm(value));
+                    }));
+
+                builder.CloseComponent();
+            }
+        }
+    };
+
+    private string? GetValue(string path)
+    {
+        var parts = path.Split('.');
+        object current = Model;
+
+        foreach (var part in parts)
+        {
+            var prop = current.GetType().GetProperty(part);
+            if (prop == null) return null;
+            current = prop.GetValue(current)!;
+        }
+
+        return current?.ToString();
+    }
+}

@@ -1,0 +1,198 @@
+{
+  "Meta": {
+    "TemplateVersion": "1.0",
+    "CreatedDate": "",
+    "LastModified": ""
+  },
+
+  "CourseInformation": {
+    "CourseName": "",
+    "CourseCode": "",
+    "Version": "1.0",
+    "Credits": 0,
+    "TotalHours": 0,
+    "DeliveryMode": {
+      "Value": "Blended",
+      "Options": [ "Online", "Onsite", "Blended", "Self-Paced" ]
+    },
+    "CourseLevel": {
+      "Value": "Level 5",
+      "Options": [
+        "Level 1",
+        "Level 2",
+        "Level 3",
+        "Level 4",
+        "Level 5",
+        "Level 6",
+        "Level 7",
+        "Level 8",
+        "Level 9",
+        "Level 10"
+      ]
+    }
+  },
+
+  "Framework": {
+    "Value": "NZQA",
+    "Options": [
+      "NZQA",
+      "AQF",
+      "Microsoft",
+      "AWS",
+      "Cisco",
+      "Corporate",
+      "Custom"
+    ],
+    "FrameworkRequirements": {
+      "NZQA": {
+        "RequiresCredits": true,
+        "RequiresLevel": true
+      },
+      "AQF": {
+        "RequiresVolumeOfLearning": true
+      },
+      "Microsoft": {
+        "RequiresCertificationMapping": true
+      },
+      "AWS": {
+        "RequiresCertificationMapping": true
+      },
+      "Cisco": {
+        "RequiresCertificationMapping": true
+      }
+    }
+  },
+
+  "AudienceProfile": {
+    "TargetAudience": "",
+    "EntryRequirements": "",
+    "PriorKnowledge": "",
+    "LanguageRequirements": "",
+    "LearnerType": {
+      "Value": "Professional",
+      "Options": [
+        "Student",
+        "Professional",
+        "Corporate",
+        "Career Switcher"
+      ]
+    }
+  },
+
+  "IndustryAlignment": {
+    "IndustrySector": {
+      "Value": "IT",
+      "Options": [
+        "IT",
+        "Healthcare",
+        "Engineering",
+        "Business",
+        "Finance",
+        "Education",
+        "Custom"
+      ]
+    },
+    "JobRoles": "",
+    "CareerPathways": "",
+    "ProfessionalStandards": ""
+  },
+
+  "CertificationAlignment": {
+    "Enabled": true,
+    "Certifications": [
+      {
+        "Name": "",
+        "Vendor": {
+          "Value": "Microsoft",
+          "Options": [ "Microsoft", "AWS", "Cisco", "CompTIA", "Other" ]
+        },
+        "Code": "",
+        "Url": ""
+      }
+    ]
+  },
+
+  "CourseRequest": {
+    "BusinessProblem": "",
+    "RequestedBy": "",
+    "OutcomeExpectation": "",
+    "SpecialNotes": ""
+  },
+
+  "CourseDesign": {
+    "LearningModel": {
+      "Value": "70-20-10",
+      "Options": [ "70-20-10", "Competency-Based", "Outcome-Based" ]
+    },
+    "InstructionalApproach": "",
+    "BloomLevelTarget": {
+      "Value": "Apply",
+      "Options": [
+        "Remember",
+        "Understand",
+        "Apply",
+        "Analyze",
+        "Evaluate",
+        "Create"
+      ]
+    }
+  },
+
+  "TeachingStrategy": {
+    "DeliveryStrategy": "",
+    "FacilitationMethod": "",
+    "EngagementTechniques": "",
+    "SupportMechanisms": ""
+  },
+
+  "AssessmentRequirements": {
+    "AssessmentType": {
+      "Value": "Mixed",
+      "Options": [ "Theory", "Practical", "Project", "Mixed" ]
+    },
+    "AssessmentStrategy": "",
+    "GradingMethod": "",
+    "PassCriteria": "",
+    "ReassessmentPolicy": ""
+  },
+
+  "ResourceRequirements": {
+    "Platforms": "",
+    "Tools": "",
+    "LabRequirements": "",
+    "Software": "",
+    "Hardware": ""
+  },
+
+  "Compliance": {
+    "NZQA": {
+      "Enabled": false
+    },
+    "AQF": {
+      "Enabled": false
+    },
+    "Vendor": {
+      "Enabled": true
+    }
+  },
+
+  "Branding": {
+    "ProviderName": "MITANZ360EDU",
+    "LogoPath": "",
+    "PrimaryColor": "#0078D4",
+    "SecondaryColor": "#005A9E",
+    "AccentColor": "#00BCF2"
+  },
+
+  "AIInstructions": {
+    "Tone": {
+      "Value": "Professional",
+      "Options": [ "Professional", "Academic", "Corporate", "Technical" ]
+    },
+    "DepthLevel": {
+      "Value": "Advanced",
+      "Options": [ "Basic", "Intermediate", "Advanced", "Expert" ]
+    },
+    "CustomPrompt": ""
+  }
+}

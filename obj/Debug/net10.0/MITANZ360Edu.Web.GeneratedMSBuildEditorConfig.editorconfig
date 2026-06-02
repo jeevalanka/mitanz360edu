@@ -311,6 +311,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDb3Vyc2VzXENvdXJzZXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/MITANZ360EDU-System/GitHub/mitanz360edu/Components/Pages/Courses/NewCourseCRUD.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDb3Vyc2VzXE5ld0NvdXJzZUNSVUQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/MITANZ360EDU-System/GitHub/mitanz360edu/Components/Pages/Enrollments/Enrollment.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFbnJvbGxtZW50c1xFbnJvbGxtZW50LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
