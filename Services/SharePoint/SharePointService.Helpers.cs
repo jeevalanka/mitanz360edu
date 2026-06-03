@@ -15,7 +15,6 @@ public partial class SharePointService
 
     protected bool IsAuthenticated()
     => !string.IsNullOrWhiteSpace(CurrentUserUpn);
-
     protected string GetUserDisplayName()
         => CurrentUserUpn;
 
@@ -27,7 +26,6 @@ public partial class SharePointService
     {
         return true;
     }
-
     protected bool HasRequiredRole(
         params string[] allowed)
     {
@@ -103,7 +101,6 @@ public partial class SharePointService
 
         return Task.CompletedTask;
     }
-
     protected Task WriteAuditAsync(
         string action,
         string entityId,
@@ -111,7 +108,6 @@ public partial class SharePointService
         => WriteAuditAsync(
             $"{action}\nEntityId={entityId}",
             ct);
-
     protected Task WriteAuditAsync(
         string action,
         string entityType,
@@ -459,4 +455,166 @@ public partial class SharePointService
         return v.ToString()
                ?? string.Empty;
     }
+
+    // =====================================================
+    // 📚 LIST RESOLVER (CRITICAL FIX)
+    // =====================================================
+
+    protected async Task<string> GetListIdByTitleAsync(
+        string listName,
+        CancellationToken ct = default)
+    {
+        // ✅ CONFIG FIRST (O(1))
+        var configValue = _configuration[
+            $"SharePoint:Lists:{listName}"];
+
+        if (!string.IsNullOrWhiteSpace(configValue))
+        {
+            _logger.LogInformation(
+                "ListId resolved from config: {List}",
+                listName);
+
+            return configValue;
+        }
+
+        // ⚠ FALLBACK (Graph lookup)
+        _logger.LogWarning(
+            "ListId not found in config. Resolving via Graph: {List}",
+            listName);
+
+        var lists = await ExecuteWithRetryAsync(
+            async token =>
+            {
+                return await _graphClient
+                    .Sites[SiteId]
+                    .Lists
+                    .GetAsync(
+                        requestConfiguration: null,
+                        cancellationToken: token);
+            },
+            "ResolveListId",
+            ct);
+
+        var match = lists?.Value?
+            .FirstOrDefault(l => l.DisplayName == listName);
+
+        if (match?.Id == null)
+        {
+            throw new InvalidOperationException(
+                $"SharePoint list '{listName}' not found.");
+        }
+
+        return match.Id;
+    }
+
+    // =====================================================
+    // 🚀 PAGINATION ENGINE (MANDATORY)
+    // =====================================================
+
+    protected async Task<List<T>> ExecutePagedAsync<T>(
+        Func<string?, CancellationToken, Task<T>> firstPageCall,
+        Func<T, IEnumerable<object>> getItems,
+        Func<T, string?> getNextLink,
+        string operation,
+        CancellationToken ct)
+    {
+        var results = new List<T>();
+
+        string? nextLink = null;
+
+        do
+        {
+            var response = await ExecuteWithRetryAsync(
+                token => firstPageCall(nextLink, token),
+                operation,
+                ct);
+
+            if (response == null)
+                break;
+
+            results.Add(response);
+
+            nextLink = getNextLink(response);
+
+        } while (!string.IsNullOrWhiteSpace(nextLink));
+
+        return results;
+    }
+
+    // =====================================================
+    // 🔎 AI REPOSITORY FILTER BUILDER
+    // =====================================================
+
+    protected string BuildAIRepositoryFilter(
+        string? status,
+        string? entityType,
+        decimal? minScore,
+        string? search)
+    {
+        var filters = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            filters.Add(
+                $"fields/Status eq '{EscapeODataString(status)}'");
+        }
+
+        if (!string.IsNullOrWhiteSpace(entityType))
+        {
+            filters.Add(
+                $"fields/EntityType eq '{EscapeODataString(entityType)}'");
+        }
+
+        if (minScore.HasValue)
+        {
+            filters.Add(
+                $"fields/Score ge {minScore.Value.ToString(CultureInfo.InvariantCulture)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var safe = EscapeODataString(search);
+
+            filters.Add(
+                $"(contains(fields/Title,'{safe}') or contains(fields/Summary,'{safe}'))");
+        }
+
+        return filters.Count == 0
+            ? string.Empty
+            : string.Join(" and ", filters);
+    }
+
+    // =====================================================
+    // 📦 AI REPOSITORY MAPPER
+    // =====================================================
+
+    protected void MapItems(
+        IEnumerable<ListItem> items,
+        List<AIRepositoryItem> results)
+    {
+        foreach (var item in items)
+        {
+            if (item.Fields == null)
+                continue;
+
+            results.Add(new AIRepositoryItem
+            {
+                Id = int.TryParse(item.Id, out var id) ? id : 0,
+
+                Title = GetString(item.Fields, "Title"),
+                EntityType = GetString(item.Fields, "EntityType"),
+
+                Score = GetDecimalNullable(
+                            item.Fields,
+                            "Score") ?? 0,
+
+                Status = GetString(item.Fields, "Status"),
+                Summary = GetString(item.Fields, "Summary"),
+                Tags = GetString(item.Fields, "Tags"),
+                Metadata = GetString(item.Fields, "Metadata"),
+                HtmlReport = GetString(item.Fields, "HtmlReport")
+            });
+        }
+    }
+
 }

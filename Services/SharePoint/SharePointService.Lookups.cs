@@ -25,8 +25,7 @@ public partial class SharePointService
     public async Task<List<CountryLookup>>
     GetCountriesAsync()
     {
-        var results =
-            new List<CountryLookup>();
+        var results = new List<CountryLookup>();
 
         var response =
             await _graphClient
@@ -46,28 +45,16 @@ public partial class SharePointService
 
         foreach (var item in response.Value)
         {
-            var fields =
-                item.Fields?.AdditionalData;
+            var fields = item.Fields?.AdditionalData;
 
             results.Add(new CountryLookup
             {
-                Id =
-                    item.Id ?? string.Empty,
-
-                Title =
-                    GetField(fields, "Title"),
-
-                ISOCode =
-                    GetField(fields, "ISOCode"),
-
-                Currency =
-                    GetField(fields, "Currency"),
-
-                TimeZone =
-                    GetField(fields, "TimeZone"),
-
-                IsActive =
-                    GetBoolField(fields, "IsActive")
+                Id = item.Id ?? string.Empty,
+                Title = GetField(fields, "Title"),
+                ISOCode = GetField(fields, "ISOCode"),
+                Currency = GetField(fields, "Currency"),
+                TimeZone = GetField(fields, "TimeZone"),
+                IsActive = GetBoolField(fields, "IsActive")
             });
         }
 

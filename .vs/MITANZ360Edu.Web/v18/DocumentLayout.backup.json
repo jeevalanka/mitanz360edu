@@ -3,12 +3,16 @@
   "WorkspaceRootPath": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|d:\\mitanz360edu-system\\github\\mitanz360edu\\components\\pages\\courses\\newcoursecrud.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|solutionrelative:components\\pages\\courses\\newcoursecrud.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+      "AbsoluteMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|d:\\mitanz360edu-system\\github\\mitanz360edu\\test\\airepositorytest.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|solutionrelative:test\\airepositorytest.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|d:\\mitanz360edu-system\\github\\mitanz360edu\\wwwroot\\data\\new-course\\template.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|solutionrelative:wwwroot\\data\\new-course\\template.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|d:\\mitanz360edu-system\\github\\mitanz360edu\\services\\sharepoint\\sharepointservice.helpers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|solutionrelative:services\\sharepoint\\sharepointservice.helpers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|d:\\mitanz360edu-system\\github\\mitanz360edu\\services\\sharepoint\\sharepointservice.airepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|solutionrelative:services\\sharepoint\\sharepointservice.airepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -23,27 +27,40 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "NewCourseCRUD.razor",
-              "DocumentMoniker": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Components\\Pages\\Courses\\NewCourseCRUD.razor",
-              "RelativeDocumentMoniker": "Components\\Pages\\Courses\\NewCourseCRUD.razor",
-              "ToolTip": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Components\\Pages\\Courses\\NewCourseCRUD.razor",
-              "RelativeToolTip": "Components\\Pages\\Courses\\NewCourseCRUD.razor",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAPoAAAABAAAAAAAAAA==",
+              "Title": "AIRepositoryTest.razor",
+              "DocumentMoniker": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Test\\AIRepositoryTest.razor",
+              "RelativeDocumentMoniker": "Test\\AIRepositoryTest.razor",
+              "ToolTip": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Test\\AIRepositoryTest.razor*",
+              "RelativeToolTip": "Test\\AIRepositoryTest.razor*",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-06-02T12:54:22.293Z",
+              "WhenOpened": "2026-06-03T11:19:33.241Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "template.json",
-              "DocumentMoniker": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\wwwroot\\Data\\New-Course\\template.json",
-              "RelativeDocumentMoniker": "wwwroot\\Data\\New-Course\\template.json",
-              "ToolTip": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\wwwroot\\Data\\New-Course\\template.json",
-              "RelativeToolTip": "wwwroot\\Data\\New-Course\\template.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAMYAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-06-02T12:43:44.336Z",
+              "Title": "SharePointService.Helpers.cs",
+              "DocumentMoniker": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Services\\SharePoint\\SharePointService.Helpers.cs",
+              "RelativeDocumentMoniker": "Services\\SharePoint\\SharePointService.Helpers.cs",
+              "ToolTip": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Services\\SharePoint\\SharePointService.Helpers.cs",
+              "RelativeToolTip": "Services\\SharePoint\\SharePointService.Helpers.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAGkCAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-03T10:28:08.851Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "SharePointService.AIRepository.cs",
+              "DocumentMoniker": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Services\\SharePoint\\SharePointService.AIRepository.cs",
+              "RelativeDocumentMoniker": "Services\\SharePoint\\SharePointService.AIRepository.cs",
+              "ToolTip": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Services\\SharePoint\\SharePointService.AIRepository.cs",
+              "RelativeToolTip": "Services\\SharePoint\\SharePointService.AIRepository.cs",
+              "ViewState": "AgIAABwAAAAAAAAAAAAAAHsAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-03T07:39:32.769Z",
               "EditorCaption": ""
             },
             {

@@ -555,6 +555,13 @@ D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\4mxi97eh
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\6w0uxni594-{0}-4inlv0r4y7-4inlv0r4y7.gz
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\l2e7l2aye3-{0}-sbrlll01pt-sbrlll01pt.gz
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\t3rivqgsgd-{0}-cise8x76pp-cise8x76pp.gz
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\wko5ghstuy-{0}-l3xs9d2tx3-l3xs9d2tx3.gz
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\1x44qydij5-{0}-8b458a5plb-8b458a5plb.gz
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\137xrm2eqj-{0}-2cpyk2ezfq-2cpyk2ezfq.gz
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\lavgspal2e-{0}-bn1fqnx2f8-bn1fqnx2f8.gz
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\xzp31697l0-{0}-issysxwhvg-issysxwhvg.gz
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\wh7tsm9hv6-{0}-e28qamg36e-e28qamg36e.gz
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\zcinahrh9t-{0}-s03s6d4nnk-s03s6d4nnk.gz
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\ze1m45gep2-{0}-le2wuljxcu-le2wuljxcu.gz
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\8zphmiuq62-{0}-3963s7jz32-3963s7jz32.gz
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\77ecs5bb2h-{0}-cise8x76pp-cise8x76pp.gz
@@ -631,9 +638,3 @@ D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\refint\MITANZ360Edu
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\MITANZ360Edu.Web.pdb
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\MITANZ360Edu.Web.genruntimeconfig.cache
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\ref\MITANZ360Edu.Web.dll
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\wko5ghstuy-{0}-l3xs9d2tx3-l3xs9d2tx3.gz
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\1x44qydij5-{0}-8b458a5plb-8b458a5plb.gz
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\lavgspal2e-{0}-bn1fqnx2f8-bn1fqnx2f8.gz
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\137xrm2eqj-{0}-2cpyk2ezfq-2cpyk2ezfq.gz
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\wh7tsm9hv6-{0}-e28qamg36e-e28qamg36e.gz
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\xzp31697l0-{0}-o0j5r3rdjq-o0j5r3rdjq.gz
