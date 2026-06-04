@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MITANZ360Edu.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3fb9ff98baeba37586be922d56fc2ce7267f6b45")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+eda91e3010e9ed29ff1d82130874a94bb873ca2c")]
 [assembly: System.Reflection.AssemblyProductAttribute("MITANZ360Edu.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MITANZ360Edu.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

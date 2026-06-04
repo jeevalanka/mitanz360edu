@@ -198,10 +198,7 @@ public partial class AutomationService
         {
             _logger.LogInformation("🚀 Metadata-based AI workflow started: {Id}", itemId);
 
-            // ✅ ONLY convert for list updates
-            var spItemId = int.Parse(itemId);
-
-            // ✅ STEP 1 — READ METADATA (string ✅)
+            // ✅ STEP 1 — READ METADATA
             var metadataJson = await _sharePointService.GetMetadataAsync(itemId);
 
             if (string.IsNullOrWhiteSpace(metadataJson))
@@ -213,9 +210,9 @@ public partial class AutomationService
             if (json == null)
                 throw new Exception("Invalid metadata JSON");
 
-            // ✅ STEP 3 — RUNNING (int ✅)
+            // ✅ STEP 3 — RUNNING (STRING ✅)
             await _sharePointService.UpdateAIResultFieldsAsync(
-                spItemId,
+                itemId,
                 0,
                 "Running",
                 "",
@@ -231,9 +228,9 @@ public partial class AutomationService
 
             var score = (int)Math.Round(result.Score);
 
-            // ✅ STEP 5 — UPDATE LIST (int ✅)
+            // ✅ STEP 5 — UPDATE RESULT
             await _sharePointService.UpdateAIResultFieldsAsync(
-                spItemId,
+                itemId,
                 score,
                 "Completed",
                 result.Html,
@@ -241,34 +238,30 @@ public partial class AutomationService
                 result.Tags
             );
 
-            // ✅ STEP 6 — UPDATE METADATA (string ✅)
+            // ✅ STEP 6 — UPDATE METADATA
             if (!string.IsNullOrWhiteSpace(result.UpdatedJson))
             {
-                await _sharePointService.UpdateMetadataAsync(itemId, result.UpdatedJson);
+                await _sharePointService.UpdateMetadataAsync(
+                    itemId,
+                    result.UpdatedJson
+                );
             }
 
-            // ✅ STEP 7 — UPLOAD DOC (string ✅)
+            // ✅ STEP 7 — DOC
             if (result.DocxBytes?.Length > 0)
             {
                 await _sharePointService.UploadCourseDocAsync(
-                    itemId,
+                    int.Parse(itemId),   // ✅ FIX HERE
                     result.DocxBytes,
                     $"AI-{itemId}.docx"
                 );
             }
 
-            // ✅ ✅ FIX: CREATE VALID WORKFLOW OBJECT
-            var workflowResult = new AiWorkflowResult
-            {
-                // ✅ SAFE: store full AI result as JSON
-                Data = JsonSerializer.Serialize(result)
-            };
-
-            // ✅ STEP 8 — SAVE FILES (string ✅)
+            // ✅ STEP 8 — SAVE FILES
             await _sharePointService.SaveAIResultAsync(
                 "CourseBuilder",
                 itemId,
-                workflowResult,
+                new AiWorkflowResult(),
                 result.Html,
                 result.Summary,
                 ct
@@ -280,31 +273,16 @@ public partial class AutomationService
         {
             _logger.LogError(ex, "❌ Metadata workflow failed: {Id}", itemId);
 
-            if (int.TryParse(itemId, out var spItemId))
-            {
-                await _sharePointService.UpdateAIResultFieldsAsync(
-                    spItemId,
-                    0,
-                    "Failed",
-                    "",
-                    ex.Message,
-                    "Error"
-                );
-            }
+            await _sharePointService.UpdateAIResultFieldsAsync(
+                itemId,
+                0,
+                "Failed",
+                "",
+                ex.Message,
+                "Error"
+            );
 
             throw;
         }
     }
-``    private AiWorkflowResult MapToWorkflowResult(AIResultDto dto)
-    {
-        return new AiWorkflowResult
-        {
-            Summary = dto.Summary,
-            Html = dto.Html,
-            Tags = dto.Tags,
-            Score = dto.Score,
-            // add more fields if your model requires
-        };
-    }
-
 }

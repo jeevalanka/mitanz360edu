@@ -131,10 +131,18 @@ D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\CEO-Exchange-Rate-Anal
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\CEO-News Summary.json
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\EDU-Student-Assessment-v1.json
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\FIN-Finance Invoice Review.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\HNB vs NDB FX Intelligence.json
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\MAR-Lead Conversion Analysis.json
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\css\app.css
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\css\home.css
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\countries.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-categories.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-content-types.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-delivery-modes.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-languages.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-levels.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-types.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\template.json
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\about.html
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\AIPrompt01.txt
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\countries.json
@@ -197,11 +205,3 @@ D:\MITANZ360EDU-System\GitHub\mitanz360edu\Components\Account\Shared\PasskeySubm
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\Components\Layout\ReconnectModal.razor.js
 C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\_framework\blazor.web.js
 C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\_framework\blazor.server.js
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\HNB vs NDB FX Intelligence.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-categories.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-content-types.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-languages.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-levels.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-types.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-delivery-modes.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\template.json
