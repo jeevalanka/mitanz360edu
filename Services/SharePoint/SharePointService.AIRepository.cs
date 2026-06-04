@@ -30,7 +30,7 @@ public partial class SharePointService
         string? entityType = null,
         decimal? minScore = null,
         string? search = null,
-        string? orderBy = "fields/Created desc",
+        string? orderBy = null,
         CancellationToken ct = default)
     {
         var listId =
@@ -80,8 +80,7 @@ public partial class SharePointService
                             // ✅ SORT
                             if (!string.IsNullOrWhiteSpace(orderBy))
                             {
-                                req.QueryParameters.Orderby =
-                                    new[] { orderBy };
+                                req.QueryParameters.Orderby = new[] { orderBy };
                             }
                         },
                         cancellationToken: token),

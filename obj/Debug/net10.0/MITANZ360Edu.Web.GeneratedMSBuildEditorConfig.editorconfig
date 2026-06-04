@@ -295,6 +295,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDb250YWN0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/MITANZ360EDU-System/GitHub/mitanz360edu/Components/Pages/Courses/Course-Builder.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDb3Vyc2VzXENvdXJzZS1CdWlsZGVyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/MITANZ360EDU-System/GitHub/mitanz360edu/Components/Pages/Courses/CourseEdit.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDb3Vyc2VzXENvdXJzZUVkaXQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
@@ -309,10 +313,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/MITANZ360EDU-System/GitHub/mitanz360edu/Components/Pages/Courses/Courses.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDb3Vyc2VzXENvdXJzZXMucmF6b3I=
-build_metadata.AdditionalFiles.CssScope = 
-
-[D:/MITANZ360EDU-System/GitHub/mitanz360edu/Components/Pages/Courses/NewCourseCRUD.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDb3Vyc2VzXE5ld0NvdXJzZUNSVUQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/MITANZ360EDU-System/GitHub/mitanz360edu/Components/Pages/Enrollments/Enrollment.razor]

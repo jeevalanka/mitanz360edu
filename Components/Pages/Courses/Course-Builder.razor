@@ -1,0 +1,352 @@
+﻿@page "/course-builder"
+@layout MainLayout_NoRightPan
+
+@using System.Text.Json
+@using System.Text.Json.Nodes
+@using Radzen
+@using MITANZ360Edu.Web.Services
+@using MITANZ360Edu.Web.Services.Automation
+@using Microsoft.AspNetCore.Components.Rendering
+
+@inject SharePointService SharePointService
+@inject AutomationService AutomationService
+
+<div class="layout">
+
+    <!-- ✅ LEFT SIDEBAR -->
+    <div class="sidebar">
+        <h2>AI Course</h2>
+
+        <RadzenTextBox @bind-Value="searchText"
+                       Change="@((args) => Filter())" />
+
+        <RadzenListBox Data="@filteredItems"
+                       TextProperty="Title"
+                       ValueProperty="Id"
+                       TValue="int"
+                       Change="@((object value) => OnSelectItem(value))"
+                       Style="width:100%;height:75%">
+        </RadzenListBox>
+    </div>
+
+    <!-- ✅ MAIN -->
+    <div class="main">
+
+        <!-- ✅ TOOLBAR -->
+        <div class="toolbar">
+            <RadzenButton Text="New" Click="@LoadTemplate" />
+            <RadzenButton Text="Save" Click="@SaveJson" />
+            <RadzenButton Text="🚀 Generate AI"
+                          Click="@RunAIWorkflow"
+                          Style="background:#0078d4;color:white" />
+        </div>
+
+        <!-- ✅ TABS -->
+        <div class="tabs">
+            @foreach (var section in JsonModel)
+            {
+                <button class="tab-btn @(ActiveTab == section.Key ? "active" : "")"
+                        @onclick="@(() => ActiveTab = section.Key)">
+                    @section.Key
+                </button>
+            }
+        </div>
+
+        <!-- ✅ CONTENT -->
+        <div class="content">
+            @RenderActiveTab()
+        </div>
+
+        <!-- ✅ RESULT PANEL -->
+        @if (ShowResult)
+        {
+            <div class="result-panel">
+                <div class="card">
+                    <h4>Summary</h4>
+                    <p>@ResultSummary</p>
+                </div>
+
+                <div class="card">
+                    <h4>Score</h4>
+                    <p>@ResultScore</p>
+                </div>
+
+                <div class="card">
+                    <h4>Tags</h4>
+                    <p>@ResultTags</p>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+<style>
+
+    .layout {
+        display: flex;
+        height: 100vh;
+        font-family: "Segoe UI";
+    }
+
+    .sidebar {
+        width: 260px;
+        background: #0f172a;
+        color: white;
+        padding: 15px;
+    }
+
+    .main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: #f3f4f6;
+    }
+
+    .toolbar {
+        background: white;
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 8px;
+        padding: 10px;
+        background: white;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .tab-btn {
+        padding: 6px 12px;
+        border: none;
+        background: #e5e7eb;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+        .tab-btn.active {
+            background: #0078D4;
+            color: white;
+        }
+
+    .content {
+        padding: 10px;
+        overflow: auto;
+    }
+
+    .section {
+        background: white;
+        margin-bottom: 15px;
+        padding: 12px;
+        border-radius: 6px;
+    }
+
+    .group {
+        border-left: 3px solid #0078D4;
+        padding-left: 10px;
+        margin-bottom: 15px;
+    }
+
+    .field {
+        margin-bottom: 10px;
+    }
+
+    .result-panel {
+        display: flex;
+        gap: 10px;
+        padding: 10px;
+        background: white;
+        border-top: 1px solid #ddd;
+    }
+
+    .card {
+        flex: 1;
+        padding: 10px;
+        background: #f3f4f6;
+        border-radius: 5px;
+    }
+
+</style>
+
+@code {
+
+    private List<AIRepositoryItem> items = new();
+    private List<AIRepositoryItem> filteredItems = new();
+
+    private string searchText = "";
+    private JsonObject JsonModel = new();
+
+    private string ActiveTab = "";
+
+    private bool ShowResult;
+    private string ResultSummary = "";
+    private string ResultTags = "";
+    private decimal ResultScore;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadItems();
+        LoadTemplate();
+    }
+
+    // ✅ SHAREPOINT
+    private async Task LoadItems()
+    {
+        items = await SharePointService.GetAIRepositoryItemsAsync(orderBy: "id desc");
+        filteredItems = items;
+    }
+
+    private void Filter()
+    {
+        filteredItems = items
+            .Where(x => x.Title.Contains(searchText ?? "", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+
+    private void OnSelectItem(object value)
+    {
+        if (value is int id)
+        {
+            var item = items.FirstOrDefault(x => x.Id == id);
+
+            if (item != null && !string.IsNullOrWhiteSpace(item.Metadata))
+            {
+                JsonModel = JsonNode.Parse(item.Metadata)?.AsObject() ?? new JsonObject();
+                ActiveTab = JsonModel.FirstOrDefault().Key ?? "";
+            }
+        }
+    }
+
+    // ✅ FULL TEMPLATE LOAD (NO REDUCTION)
+    private void LoadTemplate()
+    {
+        var json = File.ReadAllText("Data/template.json");
+        JsonModel = JsonNode.Parse(json)?.AsObject() ?? new JsonObject();
+
+        ActiveTab = JsonModel.Any() ? JsonModel.First().Key : "";
+    }
+
+    private async Task SaveJson()
+    {
+        Console.WriteLine(JsonModel.ToJsonString());
+    }
+
+    private async Task RunAIWorkflow()
+    {
+        var item = new AIRepositoryItem
+        {
+            Title = "Course",
+            EntityType = "Course",
+            Status = "PendingAI",
+            Metadata = JsonModel.ToJsonString()
+        };
+
+        await SharePointService.CreateAIRepositoryItemAsync(item);
+        await AutomationService.RunCourseWorkflowAsync(item, JsonModel);
+
+        ResultSummary = "AI Summary returned";
+        ResultTags = "AI,Course";
+        ResultScore = 85;
+
+        ShowResult = true;
+    }
+
+    // ✅ TAB RENDER
+    private RenderFragment RenderActiveTab() => builder =>
+    {
+        if (!JsonModel.ContainsKey(ActiveTab)) return;
+
+        var section = JsonModel[ActiveTab];
+
+        int seq = 0;
+
+        builder.OpenElement(seq++, "div");
+        builder.AddAttribute(seq++, "class", "section");
+
+        builder.OpenElement(seq++, "h3");
+        builder.AddContent(seq++, ActiveTab);
+        builder.CloseElement();
+
+        RenderNode(builder, ref seq, section, JsonModel, ActiveTab);
+
+        builder.CloseElement();
+    };
+
+    // ✅ FULL RECURSIVE ENGINE
+    private void RenderNode(RenderTreeBuilder b, ref int seq, JsonNode? node, JsonObject parent, string key)
+    {
+        if (node is JsonObject obj)
+        {
+            foreach (var kv in obj)
+            {
+                b.OpenElement(seq++, "div");
+                b.AddAttribute(seq++, "class", "group");
+
+                b.OpenComponent<RadzenLabel>(seq++);
+                b.AddAttribute(seq++, "Text", kv.Key);
+                b.CloseComponent();
+
+                RenderNode(b, ref seq, kv.Value, obj, kv.Key);
+
+                b.CloseElement();
+            }
+        }
+        else if (node is JsonArray arr)
+        {
+            foreach (var item in arr)
+            {
+                RenderNode(b, ref seq, item, parent, key);
+            }
+        }
+        else if (node is JsonValue val)
+        {
+            string strVal = val.ToString();
+
+            // ✅ Dropdown
+            if (parent[key] is JsonObject sub && sub["Options"] is JsonArray options)
+            {
+                var list = options.Select(x => x?.ToString()).ToList();
+
+                b.OpenComponent<RadzenDropDown<string>>(seq++);
+                b.AddAttribute(seq++, "Data", list);
+                b.AddAttribute(seq++, "Value", sub["Value"]?.ToString());
+
+                b.AddAttribute(seq++, "Change",
+                    EventCallback.Factory.Create<object>(this, v => sub["Value"] = v?.ToString()));
+
+                b.CloseComponent();
+                return;
+            }
+
+            // ✅ NUMBER
+            if (val.TryGetValue(out int intVal))
+            {
+                b.OpenComponent<RadzenNumeric<int>>(seq++);
+                b.AddAttribute(seq++, "Value", intVal);
+                b.AddAttribute(seq++, "Change",
+                    EventCallback.Factory.Create<int>(this, v => parent[key] = v));
+                b.CloseComponent();
+                return;
+            }
+
+            // ✅ BOOL
+            if (val.TryGetValue(out bool boolVal))
+            {
+                b.OpenComponent<RadzenCheckBox<bool>>(seq++);
+                b.AddAttribute(seq++, "Value", boolVal);
+                b.AddAttribute(seq++, "Change",
+                    EventCallback.Factory.Create<bool>(this, v => parent[key] = v));
+                b.CloseComponent();
+                return;
+            }
+
+            // ✅ TEXT
+            b.OpenComponent<RadzenTextBox>(seq++);
+            b.AddAttribute(seq++, "Value", strVal);
+            b.AddAttribute(seq++, "Change",
+                EventCallback.Factory.Create<string>(this, v => parent[key] = v));
+            b.CloseComponent();
+        }
+    }
+}

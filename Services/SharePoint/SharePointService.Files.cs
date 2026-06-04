@@ -6,6 +6,27 @@ namespace MITANZ360Edu.Web.Services;
 public partial class SharePointService
 {
     // =====================================================
+    // UPLOAD Course Doc
+    // =====================================================
+            public async Task UploadCourseDocAsync(
+                int itemId,
+                byte[] fileBytes,
+                string fileName)
+            {
+                var driveId = await GetLmsDriveIdAsync();
+
+                using var stream = new MemoryStream(fileBytes);
+
+                await _graphClient
+                    .Drives[driveId]
+                    .Root
+                    .ItemWithPath($"AIRepository/{fileName}")
+                    .Content
+                    .PutAsync(stream);
+            }
+
+
+    // =====================================================
     // DOWNLOAD FILE BY DRIVE ITEM ID
     // =====================================================
     public async Task<Stream> DownloadFileAsync(

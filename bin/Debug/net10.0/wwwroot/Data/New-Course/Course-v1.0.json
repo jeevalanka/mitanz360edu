@@ -1,0 +1,13 @@
+{
+  "CourseInformation": {
+    "CourseName": "",
+    "DeliveryMode": {
+      "Value": "Online",
+      "Options": [
+        "Online",
+        "Onsite",
+        "Blended"
+      ]
+    }
+  }
+}

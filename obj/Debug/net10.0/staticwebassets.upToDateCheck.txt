@@ -17,7 +17,7 @@ wwwroot\Data\course-delivery-modes.json
 wwwroot\Data\course-languages.json
 wwwroot\Data\course-levels.json
 wwwroot\Data\course-types.json
-wwwroot\Data\New-Course\template.json
+wwwroot\Data\template.json
 wwwroot\favicon.png
 wwwroot\Files\A modern New Zealand technology classroom with diverse students learning Cloud Computing and AI, gui.jpeg
 wwwroot\Files\about.html
@@ -123,85 +123,85 @@ Components\Account\Shared\PasskeySubmit.razor.js
 Components\Layout\ReconnectModal.razor.js
 C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\build\..\_framework\blazor.web.js
 C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\build\..\_framework\blazor.server.js
-C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\_framework\blazor.server.js
-C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\_framework\blazor.web.js
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\Components\Layout\ReconnectModal.razor.js
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\Components\Account\Shared\PasskeySubmit.razor.js
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.min.js.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.min.js
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.js.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.js
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.min.js.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.min.js
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.js.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.js
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.min.css.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.min.css
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.css.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.css
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap.min.css.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap.min.css
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap.css.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap.css
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.min.css.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.min.css
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.css.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.css
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.min.css.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.min.css
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.css.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.css
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.min.css.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.min.css
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.css.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.css
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.min.css.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.min.css
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.css
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.min.css.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.min.css
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.css.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\03. Staff Guides\Staff Guide.html
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\02. Student Guides\Student Guide.html
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\01. Getting Started\Login Guide.html
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\01. Getting Started\Help Guide.html
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\01. Getting Started\Application help.html
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\01. Getting Started\About Guide.html
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\01. Getting Started\00.Welcome Guide.html
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\Product-Info.html
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\LMS AI Functions.html
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\countries.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\AIPrompt01.txt
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\about.html
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\New-Course\template.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-types.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-levels.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-languages.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-delivery-modes.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-content-types.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-categories.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\countries.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\css\home.css
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\css\app.css
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\MAR-Lead Conversion Analysis.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\HNB vs NDB FX Intelligence.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\FIN-Finance Invoice Review.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\EDU-Student-Assessment-v1.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\CEO-News Summary.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\CEO-Exchange-Rate-Analysis.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\CEO-Daily Intelligence.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\CEO-Bank-Reconciliation.v1.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\AI-master-template.full.json
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\AI-Academic-Instruction-Hub.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.css.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.css
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\04. Administration\Create your about page.html
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\AI-master-template.full.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\CEO-Bank-Reconciliation.v1.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\CEO-Daily Intelligence.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\CEO-Exchange-Rate-Analysis.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\CEO-News Summary.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\EDU-Student-Assessment-v1.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\FIN-Finance Invoice Review.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\MAR-Lead Conversion Analysis.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\css\app.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\css\home.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\countries.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\about.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\AIPrompt01.txt
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\countries.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\LMS AI Functions.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\Product-Info.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\01. Getting Started\00.Welcome Guide.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\01. Getting Started\About Guide.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\01. Getting Started\Application help.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\01. Getting Started\Help Guide.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\01. Getting Started\Login Guide.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\02. Student Guides\Student Guide.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\03. Staff Guides\Staff Guide.html
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\04. Administration\Admin Guide.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\04. Administration\Create your about page.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.css.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.min.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.min.css.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.css.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.min.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.min.css.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.css.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.min.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.min.css.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.css.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.min.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.min.css.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.css.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.min.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.min.css.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap.css.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap.min.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap.min.css.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.css.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.min.css
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.min.css.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.js
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.js.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.min.js
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.min.js.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.js
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.js.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.min.js
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.min.js.map
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\Components\Account\Shared\PasskeySubmit.razor.js
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\Components\Layout\ReconnectModal.razor.js
+C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\_framework\blazor.web.js
+C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\_framework\blazor.server.js
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\HNB vs NDB FX Intelligence.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-categories.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-content-types.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-languages.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-levels.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-types.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-delivery-modes.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\template.json

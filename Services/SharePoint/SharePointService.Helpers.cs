@@ -617,4 +617,13 @@ public partial class SharePointService
         }
     }
 
+    public async Task WriteAuditPublicAsync(
+    string action,
+    string entityType,
+    string entityId,
+    CancellationToken ct = default)
+    {
+        await WriteAuditAsync(action, entityType, entityId, ct);
+    }
+
 }
