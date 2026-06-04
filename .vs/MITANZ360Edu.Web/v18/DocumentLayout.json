@@ -5,14 +5,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|d:\\mitanz360edu-system\\github\\mitanz360edu\\components\\pages\\courses\\course-builder.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|solutionrelative:components\\pages\\courses\\course-builder.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|d:\\mitanz360edu-system\\github\\mitanz360edu\\services\\automation\\automationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|solutionrelative:services\\automation\\automationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|d:\\mitanz360edu-system\\github\\mitanz360edu\\services\\sharepoint\\sharepointservice.airesults.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|solutionrelative:services\\sharepoint\\sharepointservice.airesults.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,7 +14,7 @@
       "DocumentGroups": [
         {
           "DockedHeight": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
@@ -34,39 +26,15 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "AutomationService.cs",
-              "DocumentMoniker": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Services\\Automation\\AutomationService.cs",
-              "RelativeDocumentMoniker": "Services\\Automation\\AutomationService.cs",
-              "ToolTip": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Services\\Automation\\AutomationService.cs",
-              "RelativeToolTip": "Services\\Automation\\AutomationService.cs",
-              "ViewState": "AgIAAPIAAAAAAAAAAAAowAEBAAANAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T04:40:39.549Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "SharePointService.AiResults.cs",
-              "DocumentMoniker": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Services\\SharePoint\\SharePointService.AiResults.cs",
-              "RelativeDocumentMoniker": "Services\\SharePoint\\SharePointService.AiResults.cs",
-              "ToolTip": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Services\\SharePoint\\SharePointService.AiResults.cs",
-              "RelativeToolTip": "Services\\SharePoint\\SharePointService.AiResults.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAsAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T04:22:55.083Z"
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 0,
               "Title": "Course-Builder.razor",
               "DocumentMoniker": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Components\\Pages\\Courses\\Course-Builder.razor",
               "RelativeDocumentMoniker": "Components\\Pages\\Courses\\Course-Builder.razor",
               "ToolTip": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Components\\Pages\\Courses\\Course-Builder.razor",
               "RelativeToolTip": "Components\\Pages\\Courses\\Course-Builder.razor",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAArAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAWAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-06-03T13:17:10.793Z",
+              "WhenOpened": "2026-06-04T13:05:01.86Z",
               "EditorCaption": ""
             }
           ]

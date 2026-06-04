@@ -1,198 +1,145 @@
 {
-  "Meta": {
-    "TemplateVersion": "1.0",
-    "CreatedDate": "",
-    "LastModified": ""
-  },
+  "CourseSetup": {
+    "CourseDetails": {
+      "CourseName": "AI Fundamentals",
+      "CourseCode": "AI-101",
+      "Credits": 3,
+      "TotalHours": 40,
 
-  "CourseInformation": {
-    "CourseName": "",
-    "CourseCode": "",
-    "Version": "1.0",
-    "Credits": 0,
-    "TotalHours": 0,
-    "DeliveryMode": {
-      "Value": "Blended",
-      "Options": [ "Online", "Onsite", "Blended", "Self-Paced" ]
+      "DeliveryMode": {
+        "Value": "Blended",
+        "Options": [ "Online", "Onsite", "Blended" ]
+      },
+
+      "CourseLevel": {
+        "Value": "Level 5",
+        "Options": [ "Level 3", "Level 4", "Level 5", "Level 6" ]
+      }
     },
-    "CourseLevel": {
-      "Value": "Level 5",
-      "Options": [
-        "Level 1",
-        "Level 2",
-        "Level 3",
-        "Level 4",
-        "Level 5",
-        "Level 6",
-        "Level 7",
-        "Level 8",
-        "Level 9",
-        "Level 10"
+
+    "Domain": {
+      "PrimaryField": "Artificial Intelligence",
+      "KeyTopics": [
+        "Machine Learning",
+        "Neural Networks",
+        "Natural Language Processing",
+        "AI Ethics"
       ]
     }
   },
 
-  "Framework": {
-    "Value": "NZQA",
-    "Options": [
-      "NZQA",
-      "AQF",
-      "Microsoft",
-      "AWS",
-      "Cisco",
-      "Corporate",
-      "Custom"
+  "BusinessAndAudience": {
+    "BusinessContext": {
+      "BusinessProblem": "Need AI skills for workforce",
+      "ExpectedOutcome": "Practical AI knowledge"
+    },
+
+    "Audience": {
+      "TargetAudience": "Beginners and professionals",
+      "PriorKnowledge": "Basic computer literacy"
+    }
+  },
+
+  "LearningDesign": {
+    "LearningObjectives": [
+      "Understand core concepts of Artificial Intelligence",
+      "Explain machine learning principles",
+      "Apply AI tools in practical scenarios",
+      "Develop AI solutions"
     ],
-    "FrameworkRequirements": {
-      "NZQA": {
-        "RequiresCredits": true,
-        "RequiresLevel": true
+
+    "CourseStructure": {
+      "ModuleCount": 5,
+      "LessonsPerModule": 4,
+      "HoursPerModule": 8
+    },
+
+    "CourseDesign": {
+      "LearningModel": {
+        "Value": "Outcome-Based",
+        "Options": [ "Outcome-Based", "70-20-10" ]
       },
-      "AQF": {
-        "RequiresVolumeOfLearning": true
-      },
-      "Microsoft": {
-        "RequiresCertificationMapping": true
-      },
-      "AWS": {
-        "RequiresCertificationMapping": true
-      },
-      "Cisco": {
-        "RequiresCertificationMapping": true
+
+      "InstructionalApproach": "Hands-on, scenario-based learning",
+
+      "LearningFocus": {
+        "Value": "Practical",
+        "Options": [ "Conceptual", "Balanced", "Practical" ]
       }
     }
   },
 
-  "AudienceProfile": {
-    "TargetAudience": "",
-    "EntryRequirements": "",
-    "PriorKnowledge": "",
-    "LanguageRequirements": "",
-    "LearnerType": {
-      "Value": "Professional",
-      "Options": [
-        "Student",
-        "Professional",
-        "Corporate",
-        "Career Switcher"
-      ]
+  "AssessmentAndLabs": {
+    "Assessment": {
+      "AssessmentType": {
+        "Value": "Mixed",
+        "Options": [ "Theory", "Practical", "Mixed" ]
+      },
+
+      "PassCriteria": "Minimum 50%"
+    },
+
+    "AssessmentDesign": {
+      "FinalExam": true,
+      "Project": true,
+      "LabAssessments": true,
+      "ContinuousAssessment": true
+    },
+
+    "LabConfiguration": {
+      "LabLevel": {
+        "Value": "Guided",
+        "Options": [ "Guided", "Semi-Guided", "Independent" ]
+      },
+
+      "HandsOnPercentage": 60
     }
   },
 
-  "IndustryAlignment": {
-    "IndustrySector": {
-      "Value": "IT",
-      "Options": [
-        "IT",
-        "Healthcare",
-        "Engineering",
-        "Business",
-        "Finance",
-        "Education",
-        "Custom"
-      ]
-    },
-    "JobRoles": "",
-    "CareerPathways": "",
-    "ProfessionalStandards": ""
-  },
+  "CertificationAndCompliance": {
+    "Certification": {
+      "IsEnabled": true,
 
-  "CertificationAlignment": {
-    "Enabled": true,
-    "Certifications": [
-      {
-        "Name": "",
-        "Vendor": {
-          "Value": "Microsoft",
-          "Options": [ "Microsoft", "AWS", "Cisco", "CompTIA", "Other" ]
-        },
-        "Code": "",
-        "Url": ""
+      "CertificationName": "Azure AI Fundamentals",
+
+      "Vendor": {
+        "Value": "Microsoft",
+        "Options": [ "Microsoft", "AWS", "Cisco", "CompTIA", "Other" ]
       }
-    ]
-  },
-
-  "CourseRequest": {
-    "BusinessProblem": "",
-    "RequestedBy": "",
-    "OutcomeExpectation": "",
-    "SpecialNotes": ""
-  },
-
-  "CourseDesign": {
-    "LearningModel": {
-      "Value": "70-20-10",
-      "Options": [ "70-20-10", "Competency-Based", "Outcome-Based" ]
     },
-    "InstructionalApproach": "",
-    "BloomLevelTarget": {
-      "Value": "Apply",
-      "Options": [
-        "Remember",
-        "Understand",
-        "Apply",
-        "Analyze",
-        "Evaluate",
-        "Create"
-      ]
+
+    "Compliance": {
+      "IsEnabled": false,
+
+      "Standard": {
+        "Value": "None",
+        "Options": [ "None", "NZQA", "AQF", "Corporate" ]
+      }
     }
   },
 
-  "TeachingStrategy": {
-    "DeliveryStrategy": "",
-    "FacilitationMethod": "",
-    "EngagementTechniques": "",
-    "SupportMechanisms": ""
-  },
-
-  "AssessmentRequirements": {
-    "AssessmentType": {
-      "Value": "Mixed",
-      "Options": [ "Theory", "Practical", "Project", "Mixed" ]
-    },
-    "AssessmentStrategy": "",
-    "GradingMethod": "",
-    "PassCriteria": "",
-    "ReassessmentPolicy": ""
-  },
-
-  "ResourceRequirements": {
-    "Platforms": "",
-    "Tools": "",
-    "LabRequirements": "",
-    "Software": "",
-    "Hardware": ""
-  },
-
-  "Compliance": {
-    "NZQA": {
-      "Enabled": false
-    },
-    "AQF": {
-      "Enabled": false
-    },
-    "Vendor": {
-      "Enabled": true
+  "DeliveryAndResources": {
+    "ResourceRequirements": {
+      "Platform": "Microsoft Azure",
+      "Tools": "Azure AI, Visual Studio Code",
+      "RequiresLab": true,
+      "AdditionalNotes": "Cloud-based labs recommended"
     }
   },
 
-  "Branding": {
-    "ProviderName": "MITANZ360EDU",
-    "LogoPath": "",
-    "PrimaryColor": "#0078D4",
-    "SecondaryColor": "#005A9E",
-    "AccentColor": "#00BCF2"
-  },
+  "AISettings": {
+    "AIConfiguration": {
+      "Tone": {
+        "Value": "Professional",
+        "Options": [ "Professional", "Academic", "Technical" ]
+      },
 
-  "AIInstructions": {
-    "Tone": {
-      "Value": "Professional",
-      "Options": [ "Professional", "Academic", "Corporate", "Technical" ]
-    },
-    "DepthLevel": {
-      "Value": "Advanced",
-      "Options": [ "Basic", "Intermediate", "Advanced", "Expert" ]
-    },
-    "CustomPrompt": ""
+      "DepthLevel": {
+        "Value": "Intermediate",
+        "Options": [ "Basic", "Intermediate", "Advanced" ]
+      },
+
+      "CustomPrompt": "Generate full course documentation including modules, labs, and assessments."
+    }
   }
 }

@@ -1,170 +1,208 @@
 ﻿@page "/course-builder"
 @layout MainLayout_NoRightPan
 
-@using System.Text.Json
 @using System.Text.Json.Nodes
-@using Radzen
-@using MITANZ360Edu.Web.Services
-@using MITANZ360Edu.Web.Services.Automation
+@using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Components.Rendering
-
+@using Radzen
 @inject SharePointService SharePointService
-@inject AutomationService AutomationService
+@inject IWebHostEnvironment Env
 
-<div class="layout">
+<div class="app">
 
-    <!-- ✅ LEFT SIDEBAR -->
-    <div class="sidebar">
-        <h2>AI Course</h2>
+    <!-- ✅ DELETE MODAL -->
+    @if (ShowDeleteConfirm)
+    {
+        <div class="overlay">
+            <div class="confirm-box">
+                <h3>Confirm Delete</h3>
+                <p>Delete this course?</p>
 
-        <RadzenTextBox @bind-Value="searchText"
-                       Change="@((args) => Filter())" />
+                <div class="actions">
+                    <RadzenButton Text="Cancel"
+                                  Click="@((MouseEventArgs e) => CloseDeleteDialog())" />
 
-        <RadzenListBox Data="@filteredItems"
-                       TextProperty="Title"
-                       ValueProperty="Id"
-                       TValue="int"
-                       Change="@((object value) => OnSelectItem(value))"
-                       Style="width:100%;height:75%">
-        </RadzenListBox>
-    </div>
-
-    <!-- ✅ MAIN -->
-    <div class="main">
-
-        <!-- ✅ TOOLBAR -->
-        <div class="toolbar">
-            <RadzenButton Text="New" Click="@LoadTemplate" />
-            <RadzenButton Text="Save" Click="@SaveJson" />
-            <RadzenButton Text="🚀 Generate AI"
-                          Click="@RunAIWorkflow"
-                          Style="background:#0078d4;color:white" />
-        </div>
-
-        <!-- ✅ TABS -->
-        <div class="tabs">
-            @foreach (var section in JsonModel)
-            {
-                <button class="tab-btn @(ActiveTab == section.Key ? "active" : "")"
-                        @onclick="@(() => ActiveTab = section.Key)">
-                    @section.Key
-                </button>
-            }
-        </div>
-
-        <!-- ✅ CONTENT -->
-        <div class="content">
-            @RenderActiveTab()
-        </div>
-
-        <!-- ✅ RESULT PANEL -->
-        @if (ShowResult)
-        {
-            <div class="result-panel">
-                <div class="card">
-                    <h4>Summary</h4>
-                    <p>@ResultSummary</p>
-                </div>
-
-                <div class="card">
-                    <h4>Score</h4>
-                    <p>@ResultScore</p>
-                </div>
-
-                <div class="card">
-                    <h4>Tags</h4>
-                    <p>@ResultTags</p>
+                    <RadzenButton Text="Delete"
+                                  ButtonStyle="ButtonStyle.Danger"
+                                  Click="@((MouseEventArgs e) => DeleteCourse())" />
                 </div>
             </div>
-        }
+        </div>
+    }
 
+    <!-- ✅ TOAST -->
+    @if (ShowNotification)
+    {
+        <div class="toast">@SaveMessage</div>
+    }
+
+    <!-- ✅ HEADER -->
+    <div class="header">
+
+        <div class="left-header">
+            <div class="title">AI Course Builder</div>
+
+            <RadzenDropDown Data="@items"
+                            TextProperty="Title"
+                            ValueProperty="Id"
+                            TValue="int?"
+                            Value="@SelectedItemId"
+                            ValueChanged="OnCourseChanged"
+                            Style="width:220px"
+                            Placeholder="Select Course" />
+        </div>
+
+        <div class="actions">
+            <RadzenButton Text="New" Click="@LoadTemplate" />
+            <RadzenButton Text="Save" Click="@SaveJson" />
+
+            <RadzenButton Icon="delete"
+                          Text="Delete"
+                          ButtonStyle="ButtonStyle.Danger"
+                          Click="@((MouseEventArgs e) => ConfirmDelete())"
+                          Disabled="@(SelectedItemId == null)" />
+        </div>
     </div>
+
+    <!-- ✅ TABS -->
+    <div class="tabs">
+        @foreach (var section in JsonModel)
+        {
+            <button class="tab @(ActiveTab == section.Key ? "active" : "")"
+                    @onclick="@(() => ActiveTab = section.Key)">
+                @section.Key
+            </button>
+        }
+    </div>
+
+    <!-- ✅ FORM -->
+    <div class="form-panel">
+        @RenderActiveTab()
+    </div>
+
 </div>
 
 <style>
 
-    .layout {
+    /* ✅ ROOT */
+    .app {
         display: flex;
+        flex-direction: column;
         height: 100vh;
+        background: #f3f2f1;
         font-family: "Segoe UI";
     }
 
-    .sidebar {
-        width: 260px;
-        background: #0f172a;
-        color: white;
-        padding: 15px;
-    }
-
-    .main {
-        flex: 1;
+    /* ✅ HEADER */
+    .header {
         display: flex;
-        flex-direction: column;
-        background: #f3f4f6;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        padding: 12px 16px;
+        background: #fff;
+        border-bottom: 1px solid #e1dfdd;
     }
 
-    .toolbar {
-        background: white;
-        padding: 10px;
-        border-bottom: 1px solid #ddd;
+    .left-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
     }
 
-    .tabs {
+    .actions {
         display: flex;
         gap: 8px;
+    }
+
+    /* ✅ TABS */
+    .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
         padding: 10px;
-        background: white;
-        border-bottom: 1px solid #ddd;
+        background: #fff;
     }
 
-    .tab-btn {
-        padding: 6px 12px;
+    .tab {
+        padding: 6px 14px;
+        border-radius: 16px;
+        background: #e1dfdd;
         border: none;
-        background: #e5e7eb;
-        cursor: pointer;
-        border-radius: 4px;
     }
 
-        .tab-btn.active {
-            background: #0078D4;
+        .tab.active {
+            background: #0078d4;
             color: white;
         }
 
-    .content {
-        padding: 10px;
-        overflow: auto;
+    /* ✅ FORM GRID */
+    .form-panel {
+        padding: 16px;
     }
 
-    .section {
-        background: white;
-        margin-bottom: 15px;
-        padding: 12px;
+    /* ✅ KEY FIX — RESPONSIVE GRID */
+    .group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+        gap: 16px;
+        background: #fff;
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+    }
+
+    /* ✅ FIELD */
+    .field {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .field-label {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    /* ✅ FORCE FULL WIDTH */
+    .rz-textbox,
+    .rz-dropdown {
+        width: 100% !important;
+    }
+
+    /* ✅ MODAL */
+    .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    .confirm-box {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        width: 300px;
+    }
+
+    /* ✅ TOAST */
+    .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #28a745;
+        color: white;
+        padding: 10px;
         border-radius: 6px;
     }
 
-    .group {
-        border-left: 3px solid #0078D4;
-        padding-left: 10px;
-        margin-bottom: 15px;
-    }
-
-    .field {
-        margin-bottom: 10px;
-    }
-
-    .result-panel {
-        display: flex;
-        gap: 10px;
-        padding: 10px;
-        background: white;
-        border-top: 1px solid #ddd;
-    }
-
-    .card {
-        flex: 1;
-        padding: 10px;
-        background: #f3f4f6;
-        border-radius: 5px;
+    /* ✅ MOBILE */
+    @@media(max - width:600px) {
+        .group {
+            grid-template-columns: 1fr;
+        }
     }
 
 </style>
@@ -172,109 +210,104 @@
 @code {
 
     private List<AIRepositoryItem> items = new();
-    private List<AIRepositoryItem> filteredItems = new();
-
-    private string searchText = "";
     private JsonObject JsonModel = new();
-
     private string ActiveTab = "";
 
-    private bool ShowResult;
-    private string ResultSummary = "";
-    private string ResultTags = "";
-    private decimal ResultScore;
+    private int? SelectedItemId;
+
+    private bool ShowDeleteConfirm;
+    private bool ShowNotification;
+    private string SaveMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadItems();
+        items = await SharePointService.GetAIRepositoryItemsAsync(orderBy: "id desc");
         LoadTemplate();
     }
 
-    // ✅ SHAREPOINT
-    private async Task LoadItems()
+    private void OnCourseChanged(int? id)
     {
-        items = await SharePointService.GetAIRepositoryItemsAsync(orderBy: "id desc");
-        filteredItems = items;
-    }
+        SelectedItemId = id;
 
-    private void Filter()
-    {
-        filteredItems = items
-            .Where(x => x.Title.Contains(searchText ?? "", StringComparison.OrdinalIgnoreCase))
-            .ToList();
-    }
-
-    private void OnSelectItem(object value)
-    {
-        if (value is int id)
+        if (id.HasValue)
         {
             var item = items.FirstOrDefault(x => x.Id == id);
 
-            if (item != null && !string.IsNullOrWhiteSpace(item.Metadata))
+            if (item != null)
             {
-                JsonModel = JsonNode.Parse(item.Metadata)?.AsObject() ?? new JsonObject();
+                JsonModel = JsonNode.Parse(item.Metadata)?.AsObject() ?? new();
                 ActiveTab = JsonModel.FirstOrDefault().Key ?? "";
             }
         }
     }
 
-    // ✅ FULL TEMPLATE LOAD (NO REDUCTION)
     private void LoadTemplate()
     {
-        var json = File.ReadAllText("Data/template.json");
-        JsonModel = JsonNode.Parse(json)?.AsObject() ?? new JsonObject();
+        var path = Path.Combine(Env.WebRootPath, "Data", "template.json");
 
-        ActiveTab = JsonModel.Any() ? JsonModel.First().Key : "";
+        JsonModel = JsonNode.Parse(File.ReadAllText(path))?.AsObject() ?? new();
+        ActiveTab = JsonModel.FirstOrDefault().Key ?? "";
+
+        SelectedItemId = null;
     }
 
     private async Task SaveJson()
     {
-        Console.WriteLine(JsonModel.ToJsonString());
-    }
+        var name = JsonModel?["CourseSetup"]?["CourseDetails"]?["CourseName"]?.ToString() ?? "Untitled";
 
-    private async Task RunAIWorkflow()
-    {
-        var item = new AIRepositoryItem
+        await SharePointService.CreateAIRepositoryItemAsync(new AIRepositoryItem
         {
-            Title = "Course",
-            EntityType = "Course",
-            Status = "PendingAI",
+            Title = name,
             Metadata = JsonModel.ToJsonString()
-        };
+        });
 
-        await SharePointService.CreateAIRepositoryItemAsync(item);
-        await AutomationService.RunCourseWorkflowAsync(item, JsonModel);
-
-        ResultSummary = "AI Summary returned";
-        ResultTags = "AI,Course";
-        ResultScore = 85;
-
-        ShowResult = true;
+        SaveMessage = "✅ Saved";
+        ShowNotification = true;
+        await Task.Delay(2000);
+        ShowNotification = false;
     }
 
-    // ✅ TAB RENDER
+    private void ConfirmDelete()
+    {
+        Console.WriteLine("✅ Confirm clicked");
+        ShowDeleteConfirm = true;
+    }
+
+    private void CloseDeleteDialog()
+    {
+        ShowDeleteConfirm = false;
+    }
+
+    private async Task DeleteCourse()
+    {
+        if (!SelectedItemId.HasValue) return;
+
+        Console.WriteLine($"Deleting {SelectedItemId}");
+
+        await SharePointService.DeleteAIRepositoryItemAsync(SelectedItemId.Value);
+
+        items = await SharePointService.GetAIRepositoryItemsAsync(orderBy: "id desc");
+
+        LoadTemplate();
+
+        SaveMessage = "🗑 Deleted";
+        ShowNotification = true;
+
+        ShowDeleteConfirm = false;
+
+        await Task.Delay(2000);
+        ShowNotification = false;
+    }
+
     private RenderFragment RenderActiveTab() => builder =>
     {
         if (!JsonModel.ContainsKey(ActiveTab)) return;
 
-        var section = JsonModel[ActiveTab];
-
         int seq = 0;
-
-        builder.OpenElement(seq++, "div");
-        builder.AddAttribute(seq++, "class", "section");
-
-        builder.OpenElement(seq++, "h3");
-        builder.AddContent(seq++, ActiveTab);
-        builder.CloseElement();
-
-        RenderNode(builder, ref seq, section, JsonModel, ActiveTab);
-
-        builder.CloseElement();
+        RenderNode(builder, ref seq, JsonModel[ActiveTab], JsonModel, ActiveTab);
     };
 
-    // ✅ FULL RECURSIVE ENGINE
-    private void RenderNode(RenderTreeBuilder b, ref int seq, JsonNode? node, JsonObject parent, string key)
+    private void RenderNode(RenderTreeBuilder b, ref int seq, JsonNode node, JsonObject parent, string key)
     {
         if (node is JsonObject obj)
         {
@@ -283,70 +316,28 @@
                 b.OpenElement(seq++, "div");
                 b.AddAttribute(seq++, "class", "group");
 
-                b.OpenComponent<RadzenLabel>(seq++);
-                b.AddAttribute(seq++, "Text", kv.Key);
-                b.CloseComponent();
-
                 RenderNode(b, ref seq, kv.Value, obj, kv.Key);
 
                 b.CloseElement();
             }
         }
-        else if (node is JsonArray arr)
-        {
-            foreach (var item in arr)
-            {
-                RenderNode(b, ref seq, item, parent, key);
-            }
-        }
         else if (node is JsonValue val)
         {
-            string strVal = val.ToString();
+            b.OpenElement(seq++, "div");
+            b.AddAttribute(seq++, "class", "field");
 
-            // ✅ Dropdown
-            if (parent[key] is JsonObject sub && sub["Options"] is JsonArray options)
-            {
-                var list = options.Select(x => x?.ToString()).ToList();
+            b.OpenElement(seq++, "div");
+            b.AddAttribute(seq++, "class", "field-label");
+            b.AddContent(seq++, key);
+            b.CloseElement();
 
-                b.OpenComponent<RadzenDropDown<string>>(seq++);
-                b.AddAttribute(seq++, "Data", list);
-                b.AddAttribute(seq++, "Value", sub["Value"]?.ToString());
-
-                b.AddAttribute(seq++, "Change",
-                    EventCallback.Factory.Create<object>(this, v => sub["Value"] = v?.ToString()));
-
-                b.CloseComponent();
-                return;
-            }
-
-            // ✅ NUMBER
-            if (val.TryGetValue(out int intVal))
-            {
-                b.OpenComponent<RadzenNumeric<int>>(seq++);
-                b.AddAttribute(seq++, "Value", intVal);
-                b.AddAttribute(seq++, "Change",
-                    EventCallback.Factory.Create<int>(this, v => parent[key] = v));
-                b.CloseComponent();
-                return;
-            }
-
-            // ✅ BOOL
-            if (val.TryGetValue(out bool boolVal))
-            {
-                b.OpenComponent<RadzenCheckBox<bool>>(seq++);
-                b.AddAttribute(seq++, "Value", boolVal);
-                b.AddAttribute(seq++, "Change",
-                    EventCallback.Factory.Create<bool>(this, v => parent[key] = v));
-                b.CloseComponent();
-                return;
-            }
-
-            // ✅ TEXT
             b.OpenComponent<RadzenTextBox>(seq++);
-            b.AddAttribute(seq++, "Value", strVal);
+            b.AddAttribute(seq++, "Value", val.ToString());
             b.AddAttribute(seq++, "Change",
                 EventCallback.Factory.Create<string>(this, v => parent[key] = v));
             b.CloseComponent();
+
+            b.CloseElement();
         }
     }
 }
