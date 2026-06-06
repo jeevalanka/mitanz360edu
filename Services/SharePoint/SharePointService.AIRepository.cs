@@ -6,6 +6,9 @@ using System.Threading;
 
 namespace MITANZ360Edu.Web.Services
 {
+    // =====================================================
+    // ✅ MODEL
+    // =====================================================
     public class AIRepositoryItem
     {
         public int Id { get; set; }
@@ -22,7 +25,7 @@ namespace MITANZ360Edu.Web.Services
     public partial class SharePointService
     {
         // =====================================================
-        // ✅ SIMPLE GET (FOR UI)
+        // ✅ SIMPLE GET (FOR UI DROPDOWN)
         // =====================================================
         public async Task<List<AIRepositoryItem>> GetAIRepositoryItemsAsync(string? orderBy)
         {
@@ -30,26 +33,7 @@ namespace MITANZ360Edu.Web.Services
         }
 
         // =====================================================
-        // ✅ OVERLOAD FOR TEST
-        // =====================================================
-        public async Task<List<AIRepositoryItem>> GetAIRepositoryItemsAsync(
-            string? filter,
-            string? orderBy,
-            decimal? top,
-            string? select,
-            string? expand)
-        {
-            return await GetAIRepositoryItemsAsync(
-                filter,
-                orderBy,
-                top,
-                select,
-                CancellationToken.None
-            );
-        }
-
-        // =====================================================
-        // ✅ MAIN GET
+        // ✅ MAIN GET (THIS ONE FIXES EMPTY DROPDOWN)
         // =====================================================
         public async Task<List<AIRepositoryItem>> GetAIRepositoryItemsAsync(
             string? filter,
@@ -65,17 +49,19 @@ namespace MITANZ360Edu.Web.Services
 
             var topInt = top.HasValue ? (int)top.Value : 50;
 
+            // ✅ CRITICAL FIX → LOAD FIELDS FROM SHAREPOINT
             var response = await _graphClient
                 .Sites[SiteId]
                 .Lists[listId]
                 .Items
-                .GetAsync(
-                    requestConfiguration =>
-                    {
-                        requestConfiguration.QueryParameters.Top = topInt;
-                    },
-                    cancellationToken
-                );
+                .GetAsync(requestConfiguration =>
+                {
+                    requestConfiguration.QueryParameters.Top = topInt;
+
+                    // 🔥 THIS FIX MAKES FIELDS AVAILABLE
+                    requestConfiguration.QueryParameters.Expand =
+                        new[] { "fields" };
+                });
 
             var items = new List<AIRepositoryItem>();
 
@@ -83,15 +69,24 @@ namespace MITANZ360Edu.Web.Services
             {
                 var fields = item.Fields?.AdditionalData;
 
+                // ✅ DEBUG LOG (you already saw NULL before — now will be populated)
+                _logger.LogInformation("FIELDS RAW: {Fields}",
+                    fields == null ? "NULL" : JsonSerializer.Serialize(fields));
+
                 items.Add(new AIRepositoryItem
                 {
-                    Id = int.Parse(item.Id),
+                    Id = int.TryParse(item.Id, out var id) ? id : 0,
+
                     Title = GetField(fields, "Title"),
                     Metadata = GetField(fields, "Metadata"),
                     Summary = GetField(fields, "Summary"),
+
+                    // ⚠ IF EMPTY → CHECK INTERNAL NAME IN SHAREPOINT
                     HtmlReport = GetField(fields, "HtmlReport"),
+
                     Status = GetField(fields, "Status"),
                     Tags = GetField(fields, "Tags"),
+
                     Score = decimal.TryParse(GetField(fields, "Score"), out var s) ? s : 0,
                     EntityType = GetField(fields, "EntityType")
                 });
@@ -125,19 +120,21 @@ namespace MITANZ360Edu.Web.Services
                 .Items
                 .PostAsync(new ListItem
                 {
-                    Fields = new FieldValueSet { AdditionalData = fields }
+                    Fields = new FieldValueSet
+                    {
+                        AdditionalData = fields
+                    }
                 });
         }
 
         // =====================================================
-        // ✅ UPDATE (MAIN)
+        // ✅ UPDATE
         // =====================================================
         public async Task UpdateAIRepositoryItemAsync(AIRepositoryItem item)
         {
             await UpdateAIRepositoryItemAsync(item, CancellationToken.None);
         }
 
-        // ✅ OVERLOAD (automation uses this)
         public async Task UpdateAIRepositoryItemAsync(
             AIRepositoryItem item,
             CancellationToken cancellationToken)
@@ -162,10 +159,13 @@ namespace MITANZ360Edu.Web.Services
                 .Items[item.Id.ToString()]
                 .Fields
                 .PatchAsync(
-                new FieldValueSet { AdditionalData = fields },
-                null,                      // ✅ REQUIRED placeholder
-                cancellationToken          // ✅ NOW correct position
-            );
+                    new FieldValueSet
+                    {
+                        AdditionalData = fields
+                    },
+                    null,
+                    cancellationToken
+                );
         }
 
         // =====================================================
