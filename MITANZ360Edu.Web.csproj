@@ -4,45 +4,40 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-
-		<!-- Explicitly allow restore to proceed cleanly -->
 		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-
 		<UserSecretsId>aspnet-MITANZ360Edu.Web-78388415-6545-4c4b-b4e4-29ecf26540a8</UserSecretsId>
 		<BlazorDisableHotReloadNavigationException>true</BlazorDisableHotReloadNavigationException>
 	</PropertyGroup>
 
-	<!-- =========================
-       PACKAGE REFERENCES
-       ========================= -->
 	<ItemGroup>
-		<!-- Azure OpenAI -->
 
-		<!-- Azure Identity (Client Credentials) -->
+		<!-- ✅ KEEP ONLY THIS FOR AI -->
+		<PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
 		<PackageReference Include="Azure.Identity" Version="1.21.0" />
+
+		<!-- ❌ REMOVE THIS (CRITICAL FIX) -->
+		<!-- <PackageReference Include="OpenAI" Version="2.10.0" /> -->
 
 		<!-- OCR -->
 		<PackageReference Include="Azure.AI.FormRecognizer" Version="4.1.0" />
 		<PackageReference Include="ClosedXML" Version="0.105.0" />
 		<PackageReference Include="DocumentFormat.OpenXml" Version="3.5.1" />
-		<PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
 
-		<!-- Microsoft Graph (SDK v5 / Kiota) -->
+		<!-- Graph -->
 		<PackageReference Include="Microsoft.Graph" Version="6.1.0" />
 		<PackageReference Include="Microsoft.Kiota.Abstractions" Version="2.0.0" />
-		<PackageReference Include="OpenAI" Version="2.10.0" />
-		<PackageReference Include="PdfPig" Version="0.1.14" />
-		<PackageReference Include="System.ClientModel" Version="1.13.0" />
 
-		<!-- SECURITY: override vulnerable transitive -->
+		<!-- System -->
+		<PackageReference Include="System.ClientModel" Version="1.13.0" />
 
 		<!-- Excel -->
 		<PackageReference Include="EPPlus" Version="8.5.4" />
 
-		<!-- ASP.NET / EF Core -->
+		<!-- ASP.NET / EF -->
 		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.8" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.8" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.8" />
+
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.8">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -51,28 +46,14 @@
 		<!-- UI -->
 		<PackageReference Include="Radzen.Blazor" Version="10.4.5" />
 		<PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.8" />
+
+		<!-- OCR -->
 		<PackageReference Include="Tesseract" Version="5.2.0" />
 		<PackageReference Include="UglyToad.PdfPig" Version="1.7.0-custom-5" />
 
-		<!-- Html->Text -->
+		<!-- HTML -->
 		<PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
-	</ItemGroup>
 
-	<!-- =========================
-       FOLDERS
-       ========================= -->
-	<ItemGroup>
-		<Folder Include="Components\Pages\Automation\" />
-		<Folder Include="Components\Shared\" />
-		<Folder Include="Components\Pages\Marketing\AcadamicInfo\" />
-		<Folder Include="wwwroot\AI-Eng\Templates\" />
-		<Folder Include="wwwroot\HelpDoc\05. Course Management\" />
-		<Folder Include="wwwroot\HelpDoc\07. AI &amp; Automation\" />
-		<Folder Include="wwwroot\HelpDoc\08. Media &amp; Resources\" />
-		<Folder Include="wwwroot\HelpDoc\10. Company Information\" />
-		<Folder Include="wwwroot\HelpDoc\06. Support Center\" />
-		<Folder Include="wwwroot\HelpDoc\09. Reports &amp; Analytics\" />
-		<Folder Include="wwwroot\Temp-Files\" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -80,7 +61,7 @@
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 	</ItemGroup>
-	
+
 	<ItemGroup>
 		<Content Include="tessdata\**\*.*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

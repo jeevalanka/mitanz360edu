@@ -14,7 +14,7 @@ public class AIResultDto
     public byte[] DocxBytes { get; set; } = Array.Empty<byte>();
 }
 
-public class AIService
+public partial class AIService
 {
     private readonly HttpClient _http;
     private readonly IConfiguration _config;

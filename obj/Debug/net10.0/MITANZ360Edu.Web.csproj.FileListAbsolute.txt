@@ -15,6 +15,7 @@ D:\MITANZ360EDU-System\GitHub\mitanz360edu\bin\Debug\net10.0\MITANZ360Edu.Web.ru
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\bin\Debug\net10.0\MITANZ360Edu.Web.dll
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\bin\Debug\net10.0\MITANZ360Edu.Web.pdb
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\bin\Debug\net10.0\Azure.AI.FormRecognizer.dll
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\bin\Debug\net10.0\Azure.AI.OpenAI.dll
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\bin\Debug\net10.0\Azure.Core.dll
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\bin\Debug\net10.0\Azure.Identity.dll
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\bin\Debug\net10.0\ClosedXML.dll
@@ -69,9 +70,7 @@ D:\MITANZ360EDU-System\GitHub\mitanz360edu\bin\Debug\net10.0\Mono.TextTemplating
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\bin\Debug\net10.0\Newtonsoft.Json.dll
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\bin\Debug\net10.0\OpenAI.dll
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\bin\Debug\net10.0\UglyToad.PdfPig.Core.dll
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\bin\Debug\net10.0\UglyToad.PdfPig.DocumentLayoutAnalysis.dll
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\bin\Debug\net10.0\UglyToad.PdfPig.Fonts.dll
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\bin\Debug\net10.0\UglyToad.PdfPig.Package.dll
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\bin\Debug\net10.0\UglyToad.PdfPig.Tokenization.dll
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\bin\Debug\net10.0\UglyToad.PdfPig.Tokens.dll
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\bin\Debug\net10.0\UglyToad.PdfPig.dll
@@ -245,7 +244,7 @@ D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\137xrm2e
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\lavgspal2e-{0}-bn1fqnx2f8-bn1fqnx2f8.gz
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\xzp31697l0-{0}-issysxwhvg-issysxwhvg.gz
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\wh7tsm9hv6-{0}-e28qamg36e-e28qamg36e.gz
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\9gkych7k02-{0}-uqxulpfxlb-uqxulpfxlb.gz
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\9gkych7k02-{0}-4wig9d3akw-4wig9d3akw.gz
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\ze1m45gep2-{0}-le2wuljxcu-le2wuljxcu.gz
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\8zphmiuq62-{0}-3963s7jz32-3963s7jz32.gz
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\compressed\77ecs5bb2h-{0}-cise8x76pp-cise8x76pp.gz
@@ -315,10 +314,10 @@ D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\staticwebassets.bui
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\staticwebassets.development.json
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\staticwebassets.build.endpoints.json
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\swae.build.ex.cache
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\MITANZ36.13BD55AC.Up2Date
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\MITANZ360Edu.Web.dll
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\refint\MITANZ360Edu.Web.dll
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\MITANZ360Edu.Web.pdb
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\MITANZ360Edu.Web.genruntimeconfig.cache
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\ref\MITANZ360Edu.Web.dll
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt

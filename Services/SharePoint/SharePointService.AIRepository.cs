@@ -1,303 +1,212 @@
-﻿using Microsoft.Graph.Models;
+﻿using Microsoft.Graph;
+using Microsoft.Graph.Models;
+using MITANZ360Edu.Web.Services.AI;
+using System.Text.Json;
+using System.Threading;
 
-namespace MITANZ360Edu.Web.Services;
-
-public class AIRepositoryItem
+namespace MITANZ360Edu.Web.Services
 {
-    public int Id { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public string EntityType { get; set; } = string.Empty;
-    public decimal Score { get; set; }
-    public string Status { get; set; } = "Complete";
-    public string HtmlReport { get; set; } = string.Empty;
-    public string Summary { get; set; } = string.Empty;
-    public string Tags { get; set; } = string.Empty;
-    public string Metadata { get; set; } = string.Empty;
-    public DateTime Created { get; set; }
-}
-
-public partial class SharePointService
-{
-    private const string AIRepositoryListName = "AIRepository";
-
-    // =====================================================
-    // 📄 GET ITEMS
-    // =====================================================
-
-    public async Task<List<AIRepositoryItem>>
-        GetAIRepositoryItemsAsync(
-        string? status = null,
-        string? entityType = null,
-        decimal? minScore = null,
-        string? search = null,
-        string? orderBy = null,
-        CancellationToken ct = default)
+    public class AIRepositoryItem
     {
-        var listId =
-            await GetListIdByTitleAsync(
-                AIRepositoryListName,
-                ct);
-
-        var results = new List<AIRepositoryItem>();
-
-        // ✅ BUILD FILTER
-        var filter = BuildAIRepositoryFilter(
-            status,
-            entityType,
-            minScore,
-            search);
-
-        // =============================================
-        // ✅ FIRST PAGE
-        // =============================================
-        var response =
-            await ExecuteWithRetryAsync(
-                token => _graphClient
-                    .Sites[SiteId]
-                    .Lists[listId]
-                    .Items
-                    .GetAsync(
-                        requestConfiguration: req =>
-                        {
-                            req.QueryParameters.Expand =
-                                new[] { "fields" };
-
-                            req.QueryParameters.Top = 100;
-
-                            // ✅ FILTER
-                            if (!string.IsNullOrWhiteSpace(filter))
-                            {
-                                req.QueryParameters.Filter = filter;
-                            }
-
-                            // ✅ SELECT (reduce payload)
-                            req.QueryParameters.Select = new[]
-                            {
-                            "id",
-                            "fields"
-                            };
-
-                            // ✅ SORT
-                            if (!string.IsNullOrWhiteSpace(orderBy))
-                            {
-                                req.QueryParameters.Orderby = new[] { orderBy };
-                            }
-                        },
-                        cancellationToken: token),
-                "GetAIRepositoryItems",
-                ct);
-
-        // ✅ MAP FIRST PAGE
-        if (response?.Value != null)
-        {
-            MapItems(response.Value, results);
-        }
-
-        var nextLink = response?.OdataNextLink;
-
-        // =============================================
-        // ✅ PAGINATION LOOP
-        // =============================================
-        while (!string.IsNullOrWhiteSpace(nextLink))
-        {
-            var nextPage =
-                await ExecuteWithRetryAsync(
-                    token => new Microsoft.Graph.Sites
-                        .Item.Lists.Item.Items.ItemsRequestBuilder(
-                            nextLink,
-                            _graphClient.RequestAdapter)
-                        .GetAsync(
-                            cancellationToken: token),
-                    "GetAIRepositoryItems_NextPage",
-                    ct);
-
-            if (nextPage?.Value != null)
-            {
-                MapItems(nextPage.Value, results);
-            }
-
-            nextLink = nextPage?.OdataNextLink;
-        }
-
-        return results;
+        public int Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Metadata { get; set; } = "";
+        public string Summary { get; set; } = "";
+        public string HtmlReport { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string Tags { get; set; } = "";
+        public decimal Score { get; set; }
+        public string EntityType { get; set; } = "";
     }
 
-    // =====================================================
-    // ➕ CREATE
-    // =====================================================
-
-    public async Task CreateAIRepositoryItemAsync(
-        AIRepositoryItem model,
-        CancellationToken ct = default)
+    public partial class SharePointService
     {
-        EnforceAdminOrTrainer();
+        // =====================================================
+        // ✅ SIMPLE GET (FOR UI)
+        // =====================================================
+        public async Task<List<AIRepositoryItem>> GetAIRepositoryItemsAsync(string? orderBy)
+        {
+            return await GetAIRepositoryItemsAsync(null, orderBy, null, null, CancellationToken.None);
+        }
 
-        var listId =
-            await GetListIdByTitleAsync(
-                AIRepositoryListName,
-                ct);
+        // =====================================================
+        // ✅ OVERLOAD FOR TEST
+        // =====================================================
+        public async Task<List<AIRepositoryItem>> GetAIRepositoryItemsAsync(
+            string? filter,
+            string? orderBy,
+            decimal? top,
+            string? select,
+            string? expand)
+        {
+            return await GetAIRepositoryItemsAsync(
+                filter,
+                orderBy,
+                top,
+                select,
+                CancellationToken.None
+            );
+        }
 
-        await ExecuteWithRetryAsync(
-            token => _graphClient
+        // =====================================================
+        // ✅ MAIN GET
+        // =====================================================
+        public async Task<List<AIRepositoryItem>> GetAIRepositoryItemsAsync(
+            string? filter,
+            string? orderBy,
+            decimal? top,
+            string? select,
+            CancellationToken cancellationToken)
+        {
+            var listId = _configuration["SharePoint:Lists:AIRepository"];
+
+            if (string.IsNullOrWhiteSpace(listId))
+                throw new InvalidOperationException("AIRepository ListId missing.");
+
+            var topInt = top.HasValue ? (int)top.Value : 50;
+
+            var response = await _graphClient
                 .Sites[SiteId]
                 .Lists[listId]
                 .Items
-                .PostAsync(
-                    new ListItem
+                .GetAsync(
+                    requestConfiguration =>
                     {
-                        Fields = new FieldValueSet
-                        {
-                            AdditionalData = new Dictionary<string, object>
-                            {
-                                ["Title"] = model.Title,
-                                ["EntityType"] = model.EntityType,
-                                ["Score"] = model.Score,
-                                ["Status"] = model.Status,
-                                ["Summary"] = model.Summary,
-                                ["Tags"] = model.Tags,
-                                ["Metadata"] = model.Metadata,
-                                ["HtmlReport"] = model.HtmlReport
-                            }
-                        }
+                        requestConfiguration.QueryParameters.Top = topInt;
                     },
-                    cancellationToken: token),
-            "CreateAIRepositoryItem",   // ✅ REQUIRED
-            ct);
+                    cancellationToken
+                );
 
-        await WriteAuditAsync(
-            "CREATE",
-            "AIRepository",
-            model.Title,
-            ct);
-    }
+            var items = new List<AIRepositoryItem>();
 
-    // =====================================================
-    // ✏ UPDATE
-    // =====================================================
+            foreach (var item in response?.Value ?? Enumerable.Empty<ListItem>())
+            {
+                var fields = item.Fields?.AdditionalData;
 
-    public async Task UpdateAIRepositoryItemAsync(
-        AIRepositoryItem model,
-        CancellationToken ct = default)
-    {
-        EnforceAdminOrTrainer();
+                items.Add(new AIRepositoryItem
+                {
+                    Id = int.Parse(item.Id),
+                    Title = GetField(fields, "Title"),
+                    Metadata = GetField(fields, "Metadata"),
+                    Summary = GetField(fields, "Summary"),
+                    HtmlReport = GetField(fields, "HtmlReport"),
+                    Status = GetField(fields, "Status"),
+                    Tags = GetField(fields, "Tags"),
+                    Score = decimal.TryParse(GetField(fields, "Score"), out var s) ? s : 0,
+                    EntityType = GetField(fields, "EntityType")
+                });
+            }
 
-        var listId =
-            await GetListIdByTitleAsync(
-                AIRepositoryListName,
-                ct);
-
-        await ExecuteWithRetryAsync(
-            token => _graphClient
-                .Sites[SiteId]
-                .Lists[listId]
-                .Items[model.Id.ToString()]
-                .Fields
-                .PatchAsync(
-                    new FieldValueSet
-                    {
-                        AdditionalData = new Dictionary<string, object>
-                        {
-                            ["Title"] = model.Title,
-                            ["EntityType"] = model.EntityType,
-                            ["Score"] = model.Score,
-                            ["Status"] = model.Status,
-                            ["Summary"] = model.Summary,
-                            ["Tags"] = model.Tags,
-                            ["Metadata"] = model.Metadata,
-                            ["HtmlReport"] = model.HtmlReport
-                        }
-                    },
-                    cancellationToken: token),
-            "UpdateAIRepositoryItem",
-            ct);
-        await WriteAuditAsync(
-            "UPDATE",
-            "AIRepository",
-            model.Id.ToString(),
-            ct);
-    }
-
-    // =====================================================
-    // ❌ DELETE
-    // =====================================================
-
-    public async Task DeleteAIRepositoryItemAsync(
-        int id,
-        CancellationToken ct = default)
-    {
-        EnforceAdmin();
-
-        var listId =
-            await GetListIdByTitleAsync(
-                AIRepositoryListName,
-                ct);
-
-        await ExecuteWithRetryAsync(
-            async token =>
-                await _graphClient
-                    .Sites[SiteId]
-                    .Lists[listId]
-                    .Items[id.ToString()]
-                    .DeleteAsync( cancellationToken: token),
-            "DeleteAIRepositoryItem",
-            ct);
-
-        await WriteAuditAsync(
-            "DELETE",
-            "AIRepository",
-            id.ToString(),
-            ct);
-    }
-
-    // =====================================================
-    // 📄 LIST ITEM PAGINATION (GRAPH SAFE)
-    // =====================================================
-
-    protected async Task<List<ListItem>> GetPagedListItemsAsync(
-        string listId,
-        Action<
-            Microsoft.Kiota.Abstractions.RequestConfiguration<
-                Microsoft.Graph.Sites.Item.Lists.Item.Items.ItemsRequestBuilder
-                    .ItemsRequestBuilderGetQueryParameters>>? config,
-        string operation,
-        CancellationToken ct)
-    {
-        var allItems = new List<ListItem>();
-
-        var requestBuilder = _graphClient
-            .Sites[SiteId]
-            .Lists[listId]
-            .Items;
-
-        // ✅ FIRST PAGE
-        var response = await ExecuteWithRetryAsync(
-            token => requestBuilder.GetAsync(
-                requestConfiguration: config,
-                cancellationToken: token),
-            operation,
-            ct);
-
-        if (response?.Value != null)
-            allItems.AddRange(response.Value);
-
-        var nextLink = response?.OdataNextLink;
-
-        // ✅ LOOP NEXT PAGES
-        while (!string.IsNullOrWhiteSpace(nextLink))
-        {
-            var nextPage = await ExecuteWithRetryAsync(
-                token => new Microsoft.Graph.Sites.Item.Lists.Item.Items
-                    .ItemsRequestBuilder(nextLink, _graphClient.RequestAdapter)
-                    .GetAsync(cancellationToken: token),
-                operation + "_NextPage",
-                ct);
-
-            if (nextPage?.Value != null)
-                allItems.AddRange(nextPage.Value);
-
-            nextLink = nextPage?.OdataNextLink;
+            return items;
         }
 
-        return allItems;
+        // =====================================================
+        // ✅ CREATE
+        // =====================================================
+        public async Task CreateAIRepositoryItemAsync(AIRepositoryItem item)
+        {
+            var listId = _configuration["SharePoint:Lists:AIRepository"];
+
+            var fields = new Dictionary<string, object>
+            {
+                { "Title", item.Title },
+                { "Metadata", item.Metadata },
+                { "Summary", item.Summary },
+                { "HtmlReport", item.HtmlReport },
+                { "Status", item.Status },
+                { "Tags", item.Tags },
+                { "Score", item.Score },
+                { "EntityType", item.EntityType }
+            };
+
+            await _graphClient
+                .Sites[SiteId]
+                .Lists[listId]
+                .Items
+                .PostAsync(new ListItem
+                {
+                    Fields = new FieldValueSet { AdditionalData = fields }
+                });
+        }
+
+        // =====================================================
+        // ✅ UPDATE (MAIN)
+        // =====================================================
+        public async Task UpdateAIRepositoryItemAsync(AIRepositoryItem item)
+        {
+            await UpdateAIRepositoryItemAsync(item, CancellationToken.None);
+        }
+
+        // ✅ OVERLOAD (automation uses this)
+        public async Task UpdateAIRepositoryItemAsync(
+            AIRepositoryItem item,
+            CancellationToken cancellationToken)
+        {
+            var listId = _configuration["SharePoint:Lists:AIRepository"];
+
+            var fields = new Dictionary<string, object>
+            {
+                { "Title", item.Title },
+                { "Metadata", item.Metadata },
+                { "Summary", item.Summary },
+                { "HtmlReport", item.HtmlReport },
+                { "Status", item.Status },
+                { "Tags", item.Tags },
+                { "Score", item.Score },
+                { "EntityType", item.EntityType }
+            };
+
+            await _graphClient
+                .Sites[SiteId]
+                .Lists[listId]
+                .Items[item.Id.ToString()]
+                .Fields
+                .PatchAsync(
+                new FieldValueSet { AdditionalData = fields },
+                null,                      // ✅ REQUIRED placeholder
+                cancellationToken          // ✅ NOW correct position
+            );
+        }
+
+        // =====================================================
+        // ✅ DELETE
+        // =====================================================
+        public async Task DeleteAIRepositoryItemAsync(int itemId)
+        {
+            var listId = _configuration["SharePoint:Lists:AIRepository"];
+
+            await _graphClient
+                .Sites[SiteId]
+                .Lists[listId]
+                .Items[itemId.ToString()]
+                .DeleteAsync();
+        }
+
+        // =====================================================
+        // ✅ AI SAVE
+        // =====================================================
+        public async Task UpdateAIFieldsAndAttachFileAsync(
+            int itemId,
+            AIService.AIResult aiResult)
+        {
+            var listId = _configuration["SharePoint:Lists:AIRepository"];
+
+            var fields = new Dictionary<string, object>
+            {
+                { "Summary", aiResult.SummaryText ?? "" },
+                { "Metadata", aiResult.Json ?? "" },
+                { "HtmlReport", aiResult.HtmlContent ?? "" }
+            };
+
+            await _graphClient
+                .Sites[SiteId]
+                .Lists[listId]
+                .Items[itemId.ToString()]
+                .Fields
+                .PatchAsync(new FieldValueSet
+                {
+                    AdditionalData = fields
+                });
+        }
     }
 }

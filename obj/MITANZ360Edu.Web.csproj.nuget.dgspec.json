@@ -57,6 +57,10 @@
               "target": "Package",
               "version": "[4.1.0, )"
             },
+            "Azure.AI.OpenAI": {
+              "target": "Package",
+              "version": "[2.1.0, )"
+            },
             "Azure.Identity": {
               "target": "Package",
               "version": "[1.21.0, )"
@@ -113,14 +117,6 @@
             "Microsoft.Kiota.Abstractions": {
               "target": "Package",
               "version": "[2.0.0, )"
-            },
-            "OpenAI": {
-              "target": "Package",
-              "version": "[2.10.0, )"
-            },
-            "PdfPig": {
-              "target": "Package",
-              "version": "[0.1.14, )"
             },
             "Radzen.Blazor": {
               "target": "Package",

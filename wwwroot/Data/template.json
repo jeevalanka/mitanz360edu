@@ -1,7 +1,7 @@
 {
   "CourseSetup": {
     "CourseDetails": {
-      "CourseName": "AI Fundamentals",
+      "CourseName": "Template-(Change)",
       "CourseCode": "AI-101",
       "Credits": 3,
       "TotalHours": 40,
@@ -45,7 +45,9 @@
       "Understand core concepts of Artificial Intelligence",
       "Explain machine learning principles",
       "Apply AI tools in practical scenarios",
-      "Develop AI solutions"
+      "Develop AI solutions-1",
+      "Develop AI solutions-2",
+      "Develop AI solutions-3"
     ],
 
     "CourseStructure": {

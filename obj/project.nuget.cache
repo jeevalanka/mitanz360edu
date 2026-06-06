@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "WgpZLjGeBjo=",
+  "dgSpecHash": "pGezPsQDwgg=",
   "success": true,
   "projectFilePath": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\MITANZ360Edu.Web.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\jeeva\\.nuget\\packages\\azure.ai.formrecognizer\\4.1.0\\azure.ai.formrecognizer.4.1.0.nupkg.sha512",
+    "C:\\Users\\jeeva\\.nuget\\packages\\azure.ai.openai\\2.1.0\\azure.ai.openai.2.1.0.nupkg.sha512",
     "C:\\Users\\jeeva\\.nuget\\packages\\azure.core\\1.53.0\\azure.core.1.53.0.nupkg.sha512",
     "C:\\Users\\jeeva\\.nuget\\packages\\azure.identity\\1.21.0\\azure.identity.1.21.0.nupkg.sha512",
     "C:\\Users\\jeeva\\.nuget\\packages\\closedxml\\0.105.0\\closedxml.0.105.0.nupkg.sha512",
@@ -61,8 +62,7 @@
     "C:\\Users\\jeeva\\.nuget\\packages\\microsoft.visualstudio.solutionpersistence\\1.0.52\\microsoft.visualstudio.solutionpersistence.1.0.52.nupkg.sha512",
     "C:\\Users\\jeeva\\.nuget\\packages\\mono.texttemplating\\3.0.0\\mono.texttemplating.3.0.0.nupkg.sha512",
     "C:\\Users\\jeeva\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
-    "C:\\Users\\jeeva\\.nuget\\packages\\openai\\2.10.0\\openai.2.10.0.nupkg.sha512",
-    "C:\\Users\\jeeva\\.nuget\\packages\\pdfpig\\0.1.14\\pdfpig.0.1.14.nupkg.sha512",
+    "C:\\Users\\jeeva\\.nuget\\packages\\openai\\2.1.0\\openai.2.1.0.nupkg.sha512",
     "C:\\Users\\jeeva\\.nuget\\packages\\radzen.blazor\\10.4.5\\radzen.blazor.10.4.5.nupkg.sha512",
     "C:\\Users\\jeeva\\.nuget\\packages\\rbush.signed\\4.0.0\\rbush.signed.4.0.0.nupkg.sha512",
     "C:\\Users\\jeeva\\.nuget\\packages\\sixlabors.fonts\\1.0.0\\sixlabors.fonts.1.0.0.nupkg.sha512",

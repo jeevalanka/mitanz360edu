@@ -2,11 +2,15 @@
 @layout MainLayout_NoRightPan
 
 @using System.Text.Json.Nodes
+@using System.Text
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Components.Rendering
 @using Radzen
+@using MITANZ360Edu.Web.Services.AI;
+
 @inject SharePointService SharePointService
 @inject IWebHostEnvironment Env
+@inject AIService AIService
 
 <div class="app">
 
@@ -48,12 +52,13 @@
                             TValue="int?"
                             Value="@SelectedItemId"
                             ValueChanged="OnCourseChanged"
-                            Style="width:220px"
+                            Style="width:100%"
                             Placeholder="Select Course" />
         </div>
 
         <div class="actions">
             <RadzenButton Text="New" Click="@LoadTemplate" />
+
             <RadzenButton Text="Save" Click="@SaveJson" />
 
             <RadzenButton Icon="delete"
@@ -61,19 +66,39 @@
                           ButtonStyle="ButtonStyle.Danger"
                           Click="@((MouseEventArgs e) => ConfirmDelete())"
                           Disabled="@(SelectedItemId == null)" />
+
+            <RadzenButton Icon="auto_awesome"
+                          Text="AI Generate"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Click="@GenerateContentAsync"
+                          Disabled="@(!SelectedItemId.HasValue || IsGenerating)"
+                          Busy="@IsGenerating"
+                          BusyText="Generating AI..." />
         </div>
     </div>
 
     <!-- ✅ TABS -->
     <div class="tabs">
-        @foreach (var section in JsonModel)
+
+        <!-- ✅ SUMMARY TAB (MANUAL) -->
+        <button class="tab @(ActiveTab == "Summary" ? "active" : "")"
+                @onclick="SetSummaryTab">
+            Summary
+        </button>
+
+        <!-- ✅ JSON TABS -->
+        @foreach (var kv in JsonModel.Where(x => x.Key != "Summary"))
         {
-            <button class="tab @(ActiveTab == section.Key ? "active" : "")"
-                    @onclick="@(() => ActiveTab = section.Key)">
-                @section.Key
+            var key = kv.Key;
+
+            <button class="tab @(ActiveTab == key ? "active" : "")"
+                    @onclick="@(() => ActiveTab = key)">
+                @key
             </button>
         }
+
     </div>
+
 
     <!-- ✅ FORM -->
     <div class="form-panel">
@@ -96,23 +121,39 @@
     /* ✅ HEADER */
     .header {
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         padding: 12px 16px;
-        background: #fff;
+        background: #008000;
         border-bottom: 1px solid #e1dfdd;
+        gap: 16px;
     }
 
     .left-header {
         display: flex;
         align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
+        gap: 12px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .title {
+        font-size: 24px;
+        font-weight: 600;
+        color: white;
+        white-space: nowrap;
+    }
+
+    .left-header .rz-dropdown {
+        width: 450px !important;
+        max-width: 450px;
     }
 
     .actions {
         display: flex;
-        gap: 8px;
+        gap: 10px;
+        flex-shrink: 0;
     }
 
     /* ✅ TABS */
@@ -144,23 +185,22 @@
     /* ✅ KEY FIX — RESPONSIVE GRID */
     .group {
         display: grid;
-        grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
-        gap: 16px;
-        background: #fff;
-        padding: 16px;
-        border-radius: 8px;
-        margin-bottom: 16px;
+        grid-template-columns: repeat(auto-fit,minmax(350px,1fr));
+        gap: 20px;
+        align-items: start;
     }
 
     /* ✅ FIELD */
     .field {
         display: flex;
         flex-direction: column;
+        width: 100%;
     }
 
     .field-label {
+        min-height: 32px; /* force equal label height */
         font-weight: 600;
-        margin-bottom: 5px;
+        margin-bottom: 6px;
     }
 
     /* ✅ FORCE FULL WIDTH */
@@ -218,6 +258,11 @@
     private bool ShowDeleteConfirm;
     private bool ShowNotification;
     private string SaveMessage;
+    private bool IsGenerating;
+
+    private string SummaryText = "";
+    private string HtmlContent = "";
+    private string FileUrl = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -235,8 +280,38 @@
 
             if (item != null)
             {
+                // ✅ Load JSON model
                 JsonModel = JsonNode.Parse(item.Metadata)?.AsObject() ?? new();
+
+                // ✅ Default tab
                 ActiveTab = JsonModel.FirstOrDefault().Key ?? "";
+
+                // ✅ Summary
+                SummaryText = item.Summary ?? "";
+
+                // ✅ HTML REPORT (FINAL CLEAN LOGIC)
+                if (string.IsNullOrWhiteSpace(item.HtmlReport))
+                {
+                    HtmlContent = "<p>No HTML content</p>";
+                }
+                else
+                {
+                    var content = item.HtmlReport.Trim();
+
+                    if (content.StartsWith("{"))
+                    {
+                        // ✅ JSON → convert to rich HTML (one method only)
+                        HtmlContent = ConvertJsonToRichHtml(content);
+                    }
+                    else
+                    {
+                        // ✅ already HTML
+                        HtmlContent = content;
+                    }
+                }
+
+                // ✅ File URL
+                FileUrl = BuildFileUrl(item.Id);
             }
         }
     }
@@ -253,18 +328,109 @@
 
     private async Task SaveJson()
     {
-        var name = JsonModel?["CourseSetup"]?["CourseDetails"]?["CourseName"]?.ToString() ?? "Untitled";
-
-        await SharePointService.CreateAIRepositoryItemAsync(new AIRepositoryItem
+        try
         {
-            Title = name,
-            Metadata = JsonModel.ToJsonString()
-        });
+            var courseName =
+                JsonModel?["CourseSetup"]?["CourseDetails"]?["CourseName"]?.ToString()
+                ?? "Untitled";
 
-        SaveMessage = "✅ Saved";
-        ShowNotification = true;
-        await Task.Delay(2000);
-        ShowNotification = false;
+            // ✅ ✅ --- NEW COURSE ---
+            if (!SelectedItemId.HasValue)
+            {
+                await SharePointService.CreateAIRepositoryItemAsync(
+                    new AIRepositoryItem
+                    {
+                        Title = courseName,
+                        Metadata = JsonModel.ToJsonString(),
+                        Summary = SummaryText,
+                        HtmlReport = HtmlContent
+                    });
+
+                // ✅ IMPORTANT: Reload and grab latest item
+                items = await SharePointService.GetAIRepositoryItemsAsync(orderBy: "id desc");
+
+                var latestItem = items.FirstOrDefault();
+
+                if (latestItem != null)
+                {
+                    SelectedItemId = latestItem.Id;
+                    SaveMessage = "✅ New course created";
+                }
+                else
+                {
+                    SaveMessage = "❌ Create might have failed";
+                }
+
+                ShowNotification = true;
+                await Task.Delay(2000);
+                ShowNotification = false;
+
+                return;
+            }
+
+            // ✅ ✅ --- EXISTING COURSE UPDATE ---
+            var existingItem = items.FirstOrDefault(x => x.Id == SelectedItemId.Value);
+
+            if (existingItem == null)
+            {
+                SaveMessage = "❌ Item not found";
+                ShowNotification = true;
+                return;
+            }
+
+            var oldName = existingItem.Title ?? "";
+
+            // ✅ NAME CHANGE = CREATE NEW
+            if (!string.Equals(oldName, courseName, StringComparison.OrdinalIgnoreCase))
+            {
+                await SharePointService.CreateAIRepositoryItemAsync(
+                    new AIRepositoryItem
+                    {
+                        Title = courseName,
+                        Metadata = JsonModel.ToJsonString(),
+                        Summary = SummaryText,
+                        HtmlReport = HtmlContent
+                    });
+
+                // ✅ Reload + select new item
+                items = await SharePointService.GetAIRepositoryItemsAsync(orderBy: "id desc");
+
+                var latestItem = items.FirstOrDefault();
+                if (latestItem != null)
+                {
+                    SelectedItemId = latestItem.Id;
+                }
+
+                SaveMessage = "✅ New course created (renamed)";
+            }
+            else
+            {
+                await SharePointService.UpdateAIRepositoryItemAsync(
+                    new AIRepositoryItem
+                    {
+                        Id = SelectedItemId.Value,
+                        Title = courseName,
+                        Metadata = JsonModel.ToJsonString(),
+                        Summary = SummaryText,
+                        HtmlReport = HtmlContent
+                    });
+
+                SaveMessage = "✅ Course updated";
+            }
+
+            ShowNotification = true;
+            await Task.Delay(2000);
+            ShowNotification = false;
+
+            // ✅ Final refresh
+            items = await SharePointService.GetAIRepositoryItemsAsync(orderBy: "id desc");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            SaveMessage = "❌ Save failed";
+            ShowNotification = true;
+        }
     }
 
     private void ConfirmDelete()
@@ -301,43 +467,325 @@
 
     private RenderFragment RenderActiveTab() => builder =>
     {
+        int seq = 0;
+
+        // ✅ SUMMARY TAB
+        if (ActiveTab == "Summary")
+        {
+            builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "class", "section");
+
+            // ✅ SUMMARY TEXT
+            builder.OpenElement(seq++, "h3");
+            builder.AddContent(seq++, "Summary");
+            builder.CloseElement();
+
+            builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "class", "summary-box");
+            builder.AddContent(seq++, SummaryText ?? "No summary available");
+            builder.CloseElement();
+
+            // ✅ HTML REPORT HEADER
+            builder.OpenElement(seq++, "h3");
+            builder.AddAttribute(seq++, "style", "margin-top:20px;");
+            builder.AddContent(seq++, "HTML Report");
+            builder.CloseElement();
+
+            // ✅ ✅ ✅ FIXED HTML RENDER (THIS IS THE IMPORTANT PART)
+            builder.OpenElement(seq++, "div");
+
+            builder.AddAttribute(seq++, "style",
+                "background:#fff;" +
+                "padding:10px;" +
+                "border:1px solid #ddd;" +
+                "max-height:400px;" +
+                "overflow:auto;"
+            );
+
+            // 🔥 THIS LINE FIXES YOUR ISSUE
+            builder.AddMarkupContent(seq++, HtmlContent ?? "<p>No content</p>");
+
+            builder.CloseElement(); // end HTML container
+
+            // ✅ FILE SECTION
+            builder.OpenElement(seq++, "h3");
+            builder.AddAttribute(seq++, "style", "margin-top:20px;");
+            builder.AddContent(seq++, "AI Result File");
+            builder.CloseElement();
+
+            if (!string.IsNullOrEmpty(FileUrl))
+            {
+                builder.OpenElement(seq++, "a");
+                builder.AddAttribute(seq++, "href", FileUrl);
+                builder.AddAttribute(seq++, "target", "_blank");
+                builder.AddContent(seq++, "📎 Download AI Result");
+                builder.CloseElement();
+            }
+            else
+            {
+                builder.OpenElement(seq++, "p");
+                builder.AddContent(seq++, "No file available");
+                builder.CloseElement();
+            }
+
+            builder.CloseElement(); // end section
+            return;
+        }
+
+        // ✅ JSON TABS (UNCHANGED)
         if (!JsonModel.ContainsKey(ActiveTab)) return;
 
-        int seq = 0;
         RenderNode(builder, ref seq, JsonModel[ActiveTab], JsonModel, ActiveTab);
     };
-
-    private void RenderNode(RenderTreeBuilder b, ref int seq, JsonNode node, JsonObject parent, string key)
+    private void RenderNode(RenderTreeBuilder builder, ref int seq, JsonNode node, JsonObject parent, string key)
     {
-        if (node is JsonObject obj)
+        // ✅ OBJECT
+        if (node is JsonObject jsonObject)
         {
-            foreach (var kv in obj)
+            // ✅ Dropdown FIRST
+            if (jsonObject.ContainsKey("Value") && jsonObject.ContainsKey("Options"))
             {
-                b.OpenElement(seq++, "div");
-                b.AddAttribute(seq++, "class", "group");
+                var currentValue = jsonObject["Value"]?.ToString();
 
-                RenderNode(b, ref seq, kv.Value, obj, kv.Key);
+                var dropdownOptions = jsonObject["Options"]?
+                    .AsArray()
+                    .Select(option => option?.ToString())
+                    .Where(option => option != null)
+                    .ToList() ?? new List<string>();
 
-                b.CloseElement();
+                builder.OpenElement(seq++, "div");
+                builder.AddAttribute(seq++, "class", "field");
+
+                builder.OpenElement(seq++, "div");
+                builder.AddAttribute(seq++, "class", "field-label");
+                builder.AddContent(seq++, key);
+                builder.CloseElement();
+
+                builder.OpenComponent<RadzenDropDown<string>>(seq++);
+                builder.AddAttribute(seq++, "Data", dropdownOptions);
+                builder.AddAttribute(seq++, "Value", currentValue);
+                builder.AddAttribute(seq++, "Style", "width:100%");
+
+                builder.AddAttribute(seq++, "Change",
+                    EventCallback.Factory.Create<object>(this, value =>
+                    {
+                        jsonObject["Value"] = value?.ToString();
+                    }));
+
+                builder.CloseComponent();
+                builder.CloseElement();
+                return;
             }
+
+            // ✅ NORMAL SECTION
+            builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "class", "section");
+
+            builder.OpenElement(seq++, "h3");
+            builder.AddContent(seq++, key);
+            builder.CloseElement();
+
+            builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "class", "group");
+
+            foreach (var property in jsonObject)
+            {
+                RenderNode(builder, ref seq, property.Value, jsonObject, property.Key);
+            }
+
+            builder.CloseElement(); // group
+            builder.CloseElement(); // section
+            return;
         }
-        else if (node is JsonValue val)
+
+        // ✅ ARRAY (FIXED + SAFE NAMING)
+        else if (node is JsonArray jsonArrayNode)
         {
-            b.OpenElement(seq++, "div");
-            b.AddAttribute(seq++, "class", "field");
+            builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "class", "field");
 
-            b.OpenElement(seq++, "div");
-            b.AddAttribute(seq++, "class", "field-label");
-            b.AddContent(seq++, key);
-            b.CloseElement();
+            builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "class", "field-label");
+            builder.AddContent(seq++, key);
+            builder.CloseElement();
 
-            b.OpenComponent<RadzenTextBox>(seq++);
-            b.AddAttribute(seq++, "Value", val.ToString());
-            b.AddAttribute(seq++, "Change",
-                EventCallback.Factory.Create<string>(this, v => parent[key] = v));
-            b.CloseComponent();
+            for (int i = 0; i < jsonArrayNode.Count; i++)
+            {
+                int currentIndex = i;
 
-            b.CloseElement();
+                builder.OpenComponent<RadzenTextBox>(seq++);
+                builder.AddAttribute(seq++, "Value", jsonArrayNode[currentIndex]?.ToString());
+                builder.AddAttribute(seq++, "Style", "margin-bottom:6px;width:100%");
+
+                builder.AddAttribute(seq++, "Change",
+                    EventCallback.Factory.Create<string>(this, newValue =>
+                    {
+                        jsonArrayNode[currentIndex] = newValue;
+                    }));
+
+                builder.CloseComponent();
+            }
+
+            builder.CloseElement();
+            return;
+        }
+
+        // ✅ VALUE
+        else if (node is JsonValue jsonValueNode)
+        {
+            builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "class", "field");
+
+            builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "class", "field-label");
+            builder.AddContent(seq++, key);
+            builder.CloseElement();
+
+            builder.OpenComponent<RadzenTextBox>(seq++);
+            builder.AddAttribute(seq++, "Value", jsonValueNode.ToString());
+            builder.AddAttribute(seq++, "Style", "width:100%");
+
+            builder.AddAttribute(seq++, "Change",
+                EventCallback.Factory.Create<string>(this, newValue =>
+                {
+                    parent[key] = newValue;
+                }));
+
+            builder.CloseComponent();
+            builder.CloseElement();
         }
     }
+
+    private async Task GenerateContentAsync()
+    {
+        try
+        {
+            IsGenerating = true;
+
+            SaveMessage = "🤖 Generating content...";
+            ShowNotification = true;
+
+            var response = await AIService.GenerateCourseContentAsync(
+                JsonModel.ToJsonString());
+
+            if (response != null)
+            {
+                // ✅ Update UI JSON
+                if (!string.IsNullOrWhiteSpace(response.Json))
+                {
+                    var newJson = JsonNode.Parse(response.Json)?.AsObject();
+                    if (newJson != null)
+                    {
+                        JsonModel = newJson;
+                        ActiveTab = JsonModel.FirstOrDefault().Key ?? "";
+                    }
+                }
+
+                // ✅ UPDATE SHAREPOINT ITEM
+                if (SelectedItemId.HasValue)
+                {
+                    await SharePointService.UpdateAIFieldsAndAttachFileAsync(
+                        SelectedItemId.Value,
+                        response);
+                }
+
+                StateHasChanged();
+
+                SaveMessage = "✅ AI content generated & saved!";
+            }
+            else
+            {
+                SaveMessage = "⚠ No AI response";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            SaveMessage = "❌ AI generation failed";
+        }
+        finally
+        {
+            IsGenerating = false;
+
+            await Task.Delay(2500);
+            ShowNotification = false;
+        }
+    }
+
+    private string BuildFileUrl(int itemId)
+    {
+        // ✅ Adjust your tenant URL
+        var baseUrl = "https://mitga.sharepoint.com/sites/MITANZ360Edu";
+        return $"{baseUrl}/AI_Result_{itemId}";
+    }
+
+    private void SetSummaryTab()
+    {
+        ActiveTab = "Summary";
+    }
+
+    private string ConvertJsonToRichHtml(string json)
+    {
+        try
+        {
+            var root = JsonNode.Parse(json)?.AsObject();
+
+            if (root == null)
+                return "<p>No content available</p>";
+
+            var html = new System.Text.StringBuilder();
+
+            html.Append("<div style='font-family:Segoe UI; line-height:1.6;'>");
+
+            foreach (var section in root)
+            {
+                html.Append($"<h2 style='color:#0078d4;border-bottom:1px solid #ddd;padding-bottom:4px;'>{section.Key}</h2>");
+
+                if (section.Value is JsonObject obj)
+                {
+                    foreach (var field in obj)
+                    {
+                        html.Append("<div style='margin-bottom:10px;'>");
+
+                        html.Append($"<strong style='color:#333'>{field.Key}:</strong><br/>");
+
+                        if (field.Value is JsonObject nested)
+                        {
+                            foreach (var sub in nested)
+                            {
+                                html.Append($"<div style='margin-left:15px'>• {sub.Key}: {sub.Value}</div>");
+                            }
+                        }
+                        else
+                        {
+                            html.Append($"<span>{field.Value}</span>");
+                        }
+
+                        html.Append("</div>");
+                    }
+                }
+
+                html.Append("<br/>");
+            }
+
+            html.Append("</div>");
+
+            return html.ToString();
+        }
+        catch
+        {
+            return $"<pre>{System.Net.WebUtility.HtmlEncode(json)}</pre>";
+        }
+    }
+    private void AppendField(StringBuilder sb, string label, JsonNode value)
+    {
+        sb.Append($@"
+        <div style='display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #f2f2f2;'>
+            <span style='font-weight:500'>{label}</span>
+            <span>{value}</span>
+        </div>
+    ");
+    }
+
+
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Graph;
+using Microsoft.Graph.Models;
 using System.Text;
 
 namespace MITANZ360Edu.Web.Services;
@@ -275,6 +276,40 @@ public partial class SharePointService
             // ✅ never break UI
             return string.Empty;
         }
+    }
+
+    public async Task UploadFileToLibraryAsync(
+        string fileName,
+        byte[] content,
+        CancellationToken ct = default)
+    {
+        var drive = await GetDefaultDriveAsync(ct);
+
+        if (drive == null)
+            throw new Exception("SharePoint drive not found");
+
+        using var stream = new MemoryStream(content);
+
+        var path = $"AIResults/{fileName}";
+
+        await ExecuteWithRetryAsync(
+            token => _graphClient
+                .Drives[drive.Id]
+                .Root
+                .ItemWithPath(path)
+                .Content
+                .PutAsync(stream, cancellationToken: token),
+            "UploadFile",
+            ct);
+    }
+    private async Task<Drive?> GetDefaultDriveAsync(CancellationToken ct)
+    {
+        var drives = await _graphClient
+            .Sites[SiteId]
+            .Drives
+            .GetAsync(cancellationToken: ct);
+
+        return drives?.Value?.FirstOrDefault();
     }
 
 }
