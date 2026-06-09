@@ -47,11 +47,11 @@ public class LibraryItem
     // =====================================================
 
     public string? Title { get; set; }
-    public string ContentType { get; set; } = string.Empty;
+    public string ContentTypeCode { get; set; } = string.Empty;
     public string Source { get; set; } = string.Empty;
     public string ContentId { get; set; } = string.Empty;
     public string CourseId { get; set; } = string.Empty;
-    public string CourseModel { get; set; } = string.Empty;
+    public string CourseModelCode { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public bool IsPublished { get; set; }
     public bool IsArchived { get; set; }
@@ -221,10 +221,10 @@ public partial class SharePointService
                     CourseId =
                         GetField(fields, "COR_CourseId"),
 
-                    CourseModel =
+                    CourseModelCode =
                             GetField(fields, "COR_CourseModel"),
 
-                    ContentType =
+                    ContentTypeCode =
                         GetField(fields, "COR_ContentType"),
 
                     IsPublished =
@@ -441,10 +441,10 @@ public partial class SharePointService
                         ["COR_CourseId"] =
                             model.CourseId ?? string.Empty,
 
-                        ["COR_CourseModel"] = model.CourseModel ?? string.Empty,
+                        ["COR_CourseModel"] = model.CourseModelCode ?? string.Empty,
 
                         ["COR_ContentType"] =
-                            model.ContentType ?? string.Empty,
+                            model.ContentTypeCode ?? string.Empty,
 
                         ["COR_ContentTitle"] =
                             model.Title ?? string.Empty,
@@ -591,10 +591,10 @@ public partial class SharePointService
                 CourseId =
                     GetField(fields, "COR_CourseId"),
 
-                CourseModel =
+                CourseModelCode =
                     GetField(fields, "COR_CourseModel"),
 
-                ContentType =
+                ContentTypeCode =
                     GetField(fields, "COR_ContentType"),
 
                 IsPublished =

@@ -1,124 +1,131 @@
-wwwroot\Temp-Files\Ledger_April_2026.pdf
-wwwroot\Temp-Files\Bank_Statement_April_2026.pdf
-wwwroot\Reports\Reconciliation_20260406_164929.xlsx
-wwwroot\Reports\Reconciliation_20260404_025307.xlsx
-wwwroot\Reports\Reconciliation_20260402_123754.xlsx
-wwwroot\Reports\Reconciliation_20260402_123039.xlsx
-wwwroot\Reports\Reconciliation_20260402_121421.xlsx
-wwwroot\Reports\Reconciliation_20260402_112834.xlsx
-wwwroot\Reports\Reconciliation_20260402_111023.xlsx
-wwwroot\Reports\Reconciliation_20260402_103025.xlsx
-wwwroot\Reports\Reconciliation_20260402_102051.xlsx
-wwwroot\Reports\Reconciliation_20260402_100608.xlsx
-wwwroot\Reports\Reconciliation_20260402_100236.xlsx
-wwwroot\Reports\Reconciliation_20260402_095759.xlsx
-wwwroot\lib\bootstrap\dist\js\bootstrap.min.js.map
-wwwroot\lib\bootstrap\dist\js\bootstrap.min.js
-wwwroot\lib\bootstrap\dist\js\bootstrap.js.map
-wwwroot\lib\bootstrap\dist\js\bootstrap.js
-wwwroot\lib\bootstrap\dist\js\bootstrap.esm.min.js.map
-wwwroot\lib\bootstrap\dist\js\bootstrap.esm.min.js
-wwwroot\lib\bootstrap\dist\js\bootstrap.esm.js.map
-wwwroot\lib\bootstrap\dist\js\bootstrap.esm.js
-wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js.map
-wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js
-wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js.map
-wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js
-wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.min.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.min.css
-wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.css
-wwwroot\lib\bootstrap\dist\css\bootstrap.min.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap.min.css
-wwwroot\lib\bootstrap\dist\css\bootstrap.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap.css
-wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.min.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.min.css
-wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.css
-wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.min.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.min.css
-wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.css
-wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.min.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.min.css
-wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.css
-wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.min.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.min.css
-wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.css
-wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.min.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.min.css
-wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.css
-wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css
-wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map
-wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
-wwwroot\Images\OurPresens.png
-wwwroot\Images\MITvsMAKE.png
-wwwroot\Images\Logo.png
-wwwroot\Images\Logo-MITANZ.png
-wwwroot\Images\KB Arch.png
-wwwroot\Images\fin-hero.png
-wwwroot\Images\Edu\Mar-12.png
-wwwroot\Images\Edu\Mar-11.png
-wwwroot\Images\Edu\Mar-10.png
-wwwroot\Images\Edu\Mar-09.png
-wwwroot\Images\Edu\Mar-08.png
-wwwroot\Images\Edu\Mar-07.png
-wwwroot\Images\Edu\Mar-06.png
-wwwroot\Images\Edu\Mar-05.png
-wwwroot\Images\Edu\Mar-04.png
-wwwroot\Images\Edu\Mar-03.png
-wwwroot\Images\Edu\Mar-01.png
-wwwroot\Images\EduERP.png
-wwwroot\Images\Courses\edu3.png
-wwwroot\Images\Courses\edu2.png
-wwwroot\Images\Courses\Edu1.png
-wwwroot\Images\Courses\AI-Edu.png
-wwwroot\Images\Automation\Mar-15.png
-wwwroot\Images\ArchEdu.png
-wwwroot\Images\AI-Edu.png
-wwwroot\Images\AboutSys.png
-wwwroot\HelpDoc\04. Administration\Create your about page.html
-wwwroot\HelpDoc\04. Administration\Admin Guide.html
-wwwroot\HelpDoc\03. Staff Guides\Staff Guide.html
-wwwroot\HelpDoc\02. Student Guides\Student Guide.html
-wwwroot\HelpDoc\01. Getting Started\Login Guide.html
-wwwroot\HelpDoc\01. Getting Started\Help Guide.html
-wwwroot\HelpDoc\01. Getting Started\Application help.html
-wwwroot\HelpDoc\01. Getting Started\About Guide.html
-wwwroot\HelpDoc\01. Getting Started\00.Welcome Guide.html
-wwwroot\Files\videopad_stock_footage.mp4
-wwwroot\Files\Product-Info.html
-wwwroot\Files\LMS AI Functions.html
-wwwroot\Files\countries.json
-wwwroot\Files\AIPrompt01.txt
-wwwroot\Files\about.html
-wwwroot\Files\A modern New Zealand technology classroom with diverse students learning Cloud Computing and AI, gui.jpeg
-wwwroot\favicon.png
-wwwroot\Data\template.json
-wwwroot\Data\course-types.json
-wwwroot\Data\course-levels.json
-wwwroot\Data\course-languages.json
-wwwroot\Data\course-delivery-modes.json
-wwwroot\Data\course-content-types.json
-wwwroot\Data\course-categories.json
-wwwroot\Data\countries.json
-wwwroot\css\home.css
-wwwroot\css\app.css
-wwwroot\AI-Eng\MAR-Lead Conversion Analysis.json
-wwwroot\AI-Eng\HNB vs NDB FX Intelligence.json
-wwwroot\AI-Eng\FIN-Finance Invoice Review.json
-wwwroot\AI-Eng\EDU-Student-Assessment-v1.json
-wwwroot\AI-Eng\CEO-News Summary.json
-wwwroot\AI-Eng\CEO-Exchange-Rate-Analysis.json
-wwwroot\AI-Eng\CEO-Daily Intelligence.json
-wwwroot\AI-Eng\CEO-Bank-Reconciliation.v1.json
-wwwroot\AI-Eng\AI-master-template.full.json
 wwwroot\AI-Eng\AI-Academic-Instruction-Hub.json
+wwwroot\AI-Eng\AI-master-template.full.json
+wwwroot\AI-Eng\CEO-Bank-Reconciliation.v1.json
+wwwroot\AI-Eng\CEO-Daily Intelligence.json
+wwwroot\AI-Eng\CEO-Exchange-Rate-Analysis.json
+wwwroot\AI-Eng\CEO-News Summary.json
+wwwroot\AI-Eng\EDU-Student-Assessment-v1.json
+wwwroot\AI-Eng\FIN-Finance Invoice Review.json
+wwwroot\AI-Eng\HNB vs NDB FX Intelligence.json
+wwwroot\AI-Eng\MAR-Lead Conversion Analysis.json
+wwwroot\css\app.css
+wwwroot\css\home.css
+wwwroot\Data\countries.json
+wwwroot\Data\course-categories.json
+wwwroot\Data\course-content-types.json
+wwwroot\Data\course-delivery-modes.json
+wwwroot\Data\course-languages.json
+wwwroot\Data\course-levels.json
+wwwroot\Data\course-types.json
+wwwroot\Data\Prompts\Assessment-Guide.txt
+wwwroot\Data\Prompts\Course-Description.txt
+wwwroot\Data\Prompts\Marketing-Brochure.txt
+wwwroot\Data\Prompts\Student-Handbook.txt
+wwwroot\Data\Prompts\Tutor-Guide.txt
+wwwroot\Data\Styles\MicrosoftFluent-Style.txt
+wwwroot\Data\template.json
+wwwroot\Data\UniversalSystemPrompt.txt
+wwwroot\favicon.png
+wwwroot\Files\A modern New Zealand technology classroom with diverse students learning Cloud Computing and AI, gui.jpeg
+wwwroot\Files\about.html
+wwwroot\Files\AIPrompt01.txt
+wwwroot\Files\countries.json
+wwwroot\Files\LMS AI Functions.html
+wwwroot\Files\Product-Info.html
+wwwroot\Files\videopad_stock_footage.mp4
+wwwroot\HelpDoc\01. Getting Started\00.Welcome Guide.html
+wwwroot\HelpDoc\01. Getting Started\About Guide.html
+wwwroot\HelpDoc\01. Getting Started\Application help.html
+wwwroot\HelpDoc\01. Getting Started\Help Guide.html
+wwwroot\HelpDoc\01. Getting Started\Login Guide.html
+wwwroot\HelpDoc\02. Student Guides\Student Guide.html
+wwwroot\HelpDoc\03. Staff Guides\Staff Guide.html
+wwwroot\HelpDoc\04. Administration\Admin Guide.html
+wwwroot\HelpDoc\04. Administration\Create your about page.html
+wwwroot\Images\AboutSys.png
+wwwroot\Images\AI-Edu.png
+wwwroot\Images\ArchEdu.png
+wwwroot\Images\Automation\Mar-15.png
+wwwroot\Images\Courses\AI-Edu.png
+wwwroot\Images\Courses\Edu1.png
+wwwroot\Images\Courses\edu2.png
+wwwroot\Images\Courses\edu3.png
+wwwroot\Images\EduERP.png
+wwwroot\Images\Edu\Mar-01.png
+wwwroot\Images\Edu\Mar-03.png
+wwwroot\Images\Edu\Mar-04.png
+wwwroot\Images\Edu\Mar-05.png
+wwwroot\Images\Edu\Mar-06.png
+wwwroot\Images\Edu\Mar-07.png
+wwwroot\Images\Edu\Mar-08.png
+wwwroot\Images\Edu\Mar-09.png
+wwwroot\Images\Edu\Mar-10.png
+wwwroot\Images\Edu\Mar-11.png
+wwwroot\Images\Edu\Mar-12.png
+wwwroot\Images\fin-hero.png
+wwwroot\Images\KB Arch.png
+wwwroot\Images\Logo-MITANZ.png
+wwwroot\Images\Logo.png
+wwwroot\Images\MITvsMAKE.png
+wwwroot\Images\OurPresens.png
+wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
+wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css
+wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.css
+wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.min.css
+wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.min.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.css
+wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.min.css
+wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.min.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.css
+wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.min.css
+wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.min.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.css
+wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.min.css
+wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.min.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.css
+wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.min.css
+wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.min.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap.css
+wwwroot\lib\bootstrap\dist\css\bootstrap.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap.min.css
+wwwroot\lib\bootstrap\dist\css\bootstrap.min.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.css
+wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.css.map
+wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.min.css
+wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.min.css.map
+wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js
+wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js.map
+wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js
+wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js.map
+wwwroot\lib\bootstrap\dist\js\bootstrap.esm.js
+wwwroot\lib\bootstrap\dist\js\bootstrap.esm.js.map
+wwwroot\lib\bootstrap\dist\js\bootstrap.esm.min.js
+wwwroot\lib\bootstrap\dist\js\bootstrap.esm.min.js.map
+wwwroot\lib\bootstrap\dist\js\bootstrap.js
+wwwroot\lib\bootstrap\dist\js\bootstrap.js.map
+wwwroot\lib\bootstrap\dist\js\bootstrap.min.js
+wwwroot\lib\bootstrap\dist\js\bootstrap.min.js.map
+wwwroot\Reports\Reconciliation_20260402_095759.xlsx
+wwwroot\Reports\Reconciliation_20260402_100236.xlsx
+wwwroot\Reports\Reconciliation_20260402_100608.xlsx
+wwwroot\Reports\Reconciliation_20260402_102051.xlsx
+wwwroot\Reports\Reconciliation_20260402_103025.xlsx
+wwwroot\Reports\Reconciliation_20260402_111023.xlsx
+wwwroot\Reports\Reconciliation_20260402_112834.xlsx
+wwwroot\Reports\Reconciliation_20260402_121421.xlsx
+wwwroot\Reports\Reconciliation_20260402_123039.xlsx
+wwwroot\Reports\Reconciliation_20260402_123754.xlsx
+wwwroot\Reports\Reconciliation_20260404_025307.xlsx
+wwwroot\Reports\Reconciliation_20260406_164929.xlsx
+wwwroot\Temp-Files\Bank_Statement_April_2026.pdf
+wwwroot\Temp-Files\Ledger_April_2026.pdf
 Components\Account\Shared\PasskeySubmit.razor.js
 Components\Layout\ReconnectModal.razor.js
 C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\build\..\_framework\blazor.web.js
@@ -142,7 +149,14 @@ D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-delivery-modes.js
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-languages.json
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-levels.json
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\course-types.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\Prompts\Assessment-Guide.txt
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\Prompts\Course-Description.txt
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\Prompts\Marketing-Brochure.txt
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\Prompts\Student-Handbook.txt
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\Prompts\Tutor-Guide.txt
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\Styles\MicrosoftFluent-Style.txt
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\template.json
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\UniversalSystemPrompt.txt
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\about.html
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\AIPrompt01.txt
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\countries.json

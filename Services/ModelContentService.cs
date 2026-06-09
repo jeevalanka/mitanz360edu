@@ -113,14 +113,7 @@ public class ModelContentService
                         // =====================================================
                         // TYPE
                         // =====================================================
-
-                        ContentType =
-                            Enum.TryParse<ContentTypeEnum>(
-                                GetString(f, "ContentType0"),
-                                true,
-                                out var contentType)
-                                    ? contentType
-                                    : ContentTypeEnum.Module,
+                        ContentTypeCode = GetString(f, "ContentType0") ?? "",
 
                         // =====================================================
                         // RESOURCES
@@ -466,23 +459,13 @@ public class ModelContentService
     // CONTENT TYPE SAFE MAPPING
     // =====================================================
 
-    private static string
-        GetContentTypeValue(
-            ModelContentModel model)
+    private static string GetContentTypeValue(ModelContentModel model)
     {
-        return model.ContentType switch
-        {
-            ContentTypeEnum.Module => "Module",
-            ContentTypeEnum.Lesson => "Lesson",
-            ContentTypeEnum.Assessment => "Assessment",
-            ContentTypeEnum.Quiz => "Quiz",
-            ContentTypeEnum.Assignment => "Assignment",
-            ContentTypeEnum.Video => "Video",
-            ContentTypeEnum.Resource => "Resource",
-            ContentTypeEnum.Lab => "Lab",
-            _ => "Module"
-        };
+        return string.IsNullOrWhiteSpace(model.ContentTypeCode)
+            ? "N/A"
+            : model.ContentTypeCode;
     }
+
 
     // =====================================================
     // SAFE HELPERS

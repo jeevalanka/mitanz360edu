@@ -7,6 +7,4 @@ public sealed class AiExecutionContext
     public string? Module { get; set; }
 
     public string? EntityId { get; set; }
-
-    public string? EntityType { get; set; }
 }

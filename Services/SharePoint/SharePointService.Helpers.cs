@@ -559,12 +559,6 @@ public partial class SharePointService
                 $"fields/Status eq '{EscapeODataString(status)}'");
         }
 
-        if (!string.IsNullOrWhiteSpace(entityType))
-        {
-            filters.Add(
-                $"fields/EntityType eq '{EscapeODataString(entityType)}'");
-        }
-
         if (minScore.HasValue)
         {
             filters.Add(
@@ -602,7 +596,6 @@ public partial class SharePointService
                 Id = int.TryParse(item.Id, out var id) ? id : 0,
 
                 Title = GetString(item.Fields, "Title"),
-                EntityType = GetString(item.Fields, "EntityType"),
 
                 Score = GetDecimalNullable(
                             item.Fields,

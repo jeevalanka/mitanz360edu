@@ -4,81 +4,6 @@ namespace MITANZ360Edu.Web.Models
 {
 
     // =====================================================
-    // ENUMS (CANONICAL)
-    // =====================================================
-    public enum ContentType
-    {
-        Learning,
-        Assessment,
-        TutorGuide,
-        Moderation,
-        Reference
-    }
-    public enum LearningSubType
-    {
-        Video,
-        PDF,
-        SCORM,
-        Presentation
-    }
-    public enum AssessmentType
-    {
-        Quiz,
-        Assignment,
-        FinalExam,
-        Practical,
-        Viva
-    }
-    public enum AudienceType
-    {
-        Student,
-        Tutor,
-        Assessor,
-        Admin
-    }
-    public enum CourseModelType
-    {
-        Model01,
-        Model02,
-        Model03,
-        Model04,
-        Model05,
-        Model06,
-        Model07,
-        Model08,
-        Model09,
-        Model10,
-        Model11,
-        Model12,
-        Model13,
-        Model14,
-        Model15,
-        Model16,
-        Model17,
-        Model18,
-        Model19,
-        Model20,
-        Model21,
-        Model22,
-        Model23,
-        Model24,
-        Model25
-    }
-    public enum SourceType
-    {
-        Internal,
-        External,
-        Microsoft,
-        NZQA,
-        AQF,
-        AI,
-        Student,
-        Partner,
-        Research,
-        Other
-    }
-
-    // =====================================================
     // EXT_METADATA BASE (POLYMORPHIC)
     // =====================================================
     public class LmsMetadataBase
@@ -96,6 +21,7 @@ namespace MITANZ360Edu.Web.Models
         public List<string> AllowedAudiences { get; set; } = new();
         public bool StudentVisible { get; set; }
     }
+
     // =====================================================
     // LEARNING METADATA
     // =====================================================

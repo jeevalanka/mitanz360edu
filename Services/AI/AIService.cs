@@ -6,26 +6,37 @@ namespace MITANZ360Edu.Web.Services.AI;
 
 public class AIResultDto
 {
-    public string Summary { get; set; } = "";
     public string Html { get; set; } = "";
+    public string Summary { get; set; } = "";
     public string Tags { get; set; } = "";
-    public decimal Score { get; set; }
+
+    // ✅ Use correct naming (clean)
+    public string Metadata { get; set; } = "";
+
+    // ✅ KEEP these to avoid breaking other services
     public string UpdatedJson { get; set; } = "";
-    public byte[] DocxBytes { get; set; } = Array.Empty<byte>();
+    public decimal Score { get; set; } = 0;
 }
+
 
 public partial class AIService
 {
     private readonly HttpClient _http;
     private readonly IConfiguration _config;
+    private readonly IWebHostEnvironment _env;
 
-    public AIService(HttpClient http, IConfiguration config)
+    public AIService(
+        HttpClient http,
+        IConfiguration config,
+        IWebHostEnvironment env)
     {
         _http = http;
         _config = config;
+        _env = env;
     }
 
-    // ✅ EXISTING METHOD (KEEP)
+
+    // ✅ AI Engine (http request)
     public async Task<string> GenerateTextAsync(string prompt)
     {
         var endpoint = _config["OpenAI:Endpoint"];
@@ -39,8 +50,7 @@ public partial class AIService
             return "⚠ Azure OpenAI configuration missing.";
         }
 
-        var url =
-            $"{endpoint}/openai/deployments/{deployment}/chat/completions?api-version=2024-02-15-preview";
+        var url = $"{endpoint}/openai/deployments/{deployment}/chat/completions?api-version=2024-02-15-preview";
 
         var request = new
         {
@@ -79,16 +89,21 @@ public partial class AIService
     }
 
     // =====================================================
-    // ✅ NEW: COURSE AI ENGINE (THIS FIXES YOUR ERROR)
-    // =====================================================
+    // ✅ 1: COURSE AI ENGINE (json) | COURSE AI ENGINE (json,promptName)
     public async Task<AIResultDto> GenerateCourseAsync(JsonObject json)
     {
         var prompt = BuildCoursePrompt(json);
-
         var raw = await GenerateTextAsync(prompt);
-
         return ParseAIResponse(raw, json);
     }
+    public async Task<AIResultDto> GenerateContentAsync(JsonObject metadataJson, string promptName)
+    {
+        var prompt = await BuildPromptAsync(metadataJson,promptName);
+        var raw = await GenerateTextAsync(prompt);
+        return ParseAIResponse(raw, metadataJson);
+    }
+    // =====================================================
+
 
     // ✅ PROMPT BUILDER
     private string BuildCoursePrompt(JsonObject json)
@@ -109,57 +124,80 @@ INPUT:
 {json.ToJsonString()}
 ";
     }
+    private async Task<string> BuildPromptAsync(JsonObject metadataJson,string promptName)
+    {
+
+        var basePath = _env.WebRootPath;   // ✅ FIXED
+
+        var systemPrompt = await File.ReadAllTextAsync(
+            Path.Combine(basePath, "Data", "UniversalSystemPrompt.txt"));
+
+        var stylePrompt = await File.ReadAllTextAsync(
+            Path.Combine(basePath, "Data", "Styles", "MicrosoftFluent-Style.txt"));
+
+        var businessPrompt = await File.ReadAllTextAsync(
+            Path.Combine(basePath, "Data", "Prompts", $"{promptName}.txt"));
+
+        return $"""
+                    {systemPrompt}
+
+                    ================================================
+
+                    {stylePrompt}
+
+                    ================================================
+
+                    {businessPrompt}
+
+                    ================================================
+
+                    COURSE METADATA JSON
+
+                    {metadataJson.ToJsonString()}
+
+                    ================================================
+                    """;
+    }
 
     // ✅ PARSER
     private AIResultDto ParseAIResponse(string response, JsonObject input)
     {
         try
         {
-            var json = JsonNode.Parse(response);
+            // ✅ Clean AI response (remove markdown blocks if any)
+            var clean = response?.Trim() ?? "";
+
+            if (clean.StartsWith("```"))
+            {
+                clean = clean.Replace("```html", "")
+                             .Replace("```", "")
+                             .Trim();
+            }
+
+            // ✅ Return HTML directly (NO JSON parsing)
+            return new AIResultDto
+            {
+                Summary = "AI-generated content",
+                Html = clean,
+                Tags = "",
+                Score = 0,
+                UpdatedJson = input.ToJsonString(),
+            };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("❌ AI RESPONSE ERROR:");
+            Console.WriteLine(ex.Message);
+            Console.WriteLine(response);
 
             return new AIResultDto
             {
-                Summary = json?["summary"]?.ToString() ?? "",
-                Html = json?["html"]?.ToString() ?? "",
-                Tags = json?["tags"]?.ToString() ?? "",
-                Score = decimal.TryParse(json?["score"]?.ToString(), out var s) ? s : 0,
-                UpdatedJson = input.ToJsonString(),
-                DocxBytes = GenerateDocx(input)
-            };
-        }
-        catch
-        {
-            return new AIResultDto
-            {
-                Summary = "⚠ AI parsing failed",
-                Html = "<p>Error parsing AI output</p>",
+                Summary = "⚠ AI processing failed",
+                Html = "<p>Error processing AI output</p>",
                 Tags = "",
                 Score = 0,
                 UpdatedJson = input.ToJsonString()
             };
         }
-    }
-
-    // ✅ DOCX GENERATOR
-    private byte[] GenerateDocx(JsonObject json)
-    {
-        using var ms = new MemoryStream();
-
-        using var doc =
-            DocumentFormat.OpenXml.Packaging.WordprocessingDocument
-            .Create(ms, DocumentFormat.OpenXml.WordprocessingDocumentType.Document);
-
-        var main = doc.AddMainDocumentPart();
-        main.Document = new DocumentFormat.OpenXml.Wordprocessing.Document(
-            new DocumentFormat.OpenXml.Wordprocessing.Body(
-                new DocumentFormat.OpenXml.Wordprocessing.Paragraph(
-                    new DocumentFormat.OpenXml.Wordprocessing.Run(
-                        new DocumentFormat.OpenXml.Wordprocessing.Text(
-                            json.ToJsonString()))
-                )
-            )
-        );
-
-        return ms.ToArray();
     }
 }

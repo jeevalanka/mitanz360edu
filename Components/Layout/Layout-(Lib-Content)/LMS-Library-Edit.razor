@@ -187,7 +187,7 @@
                     <!-- Select Country -->
                     <RadzenDropDown Data="@Countries"
                                     TValue="string"
-                                    TextProperty="Name"
+                                    TextProperty="Title"
                                     ValueProperty="Code"
                                     @bind-Value="SelectedCountry"
                                     Change="OnCountryChanged"
@@ -220,23 +220,29 @@
 
                     <!-- CONTENT TYPE -->
                     <RadzenDropDown Data="@ContentTypes"
+                                    TextProperty="Title"
+                                    ValueProperty="Code"
                                     TValue="string"
-                                    @bind-Value="Model.ContentType"
+                                    @bind-Value="Model.ContentTypeCode"
                                     Placeholder="Content Type"
                                     Style="@InputStyle"
                                     Title="Defines the category or type of learning content." />
 
                     <!-- SOURCE -->
-                    <RadzenDropDown Data="@Sources"
+                    <RadzenDropDown Data="@SourceTypes"
+                                    TextProperty="Title"
+                                    ValueProperty="Code"
                                     TValue="string"
                                     @bind-Value="Model.Source"
-                                    Placeholder="Source"
-                                    Style="@InputStyle"
-                                    Title="Indicates where the content originated from." />
+                                    Placeholder="Content Source"
+                                    Style="@InputStyle" />
 
+                    <!-- ✅ COURSE MODEL -->
                     <RadzenDropDown Data="@CourseModels"
+                                    TextProperty="Title"
+                                    ValueProperty="Code"
                                     TValue="string"
-                                    @bind-Value="Model.CourseModel"
+                                    @bind-Value="Model.CourseModelCode"
                                     Placeholder="Select Course Model"
                                     Style="@InputStyle"
                                     Title="Associated learning model or curriculum structure." />
@@ -293,6 +299,7 @@
                 </RadzenStack>
 
             </RadzenCard>
+
             <!-- QUICK INFO -->
             <RadzenCard Style="@GlassCardStyle">
 
@@ -383,11 +390,11 @@
 
     private LibraryItem Model = new();
     private IReadOnlyList<CourseModel> Courses = [];
-    private List<JsonLookupDataService.CountryModel> Countries = [];
 
-    private IEnumerable<ContentType> ContentTypes => Enum.GetValues<ContentType>();
-    private IEnumerable<SourceType> Sources => Enum.GetValues<SourceType>();
-    private IEnumerable<CourseModelType> CourseModels => Enum.GetValues<CourseModelType>();
+    private List<ReferenceDataItem> Countries = new();
+    private List<ReferenceDataItem> ContentTypes = new();
+    private List<ReferenceDataItem> SourceTypes = new();
+    private List<ReferenceDataItem> CourseModels = new();
 
     private string? SelectedCountry;
     private string? SelectedCurrency;
@@ -467,18 +474,14 @@
     // =====================================================
     protected override async Task OnParametersSetAsync()
     {
-        // -----------------------------------------------------
         // Load Course from SharePoint
-        // -----------------------------------------------------
         Courses = await SharePointService.GetCoursesAsync();
-        // -----------------------------------------------------
-        // Load active countries (Json Country list)
-        // -----------------------------------------------------
-        Countries = await JsonLookupDataService.GetCountriesAsync();
+        // ✅ ✅ ADD THESE
+        ContentTypes = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "ContentType");
+        SourceTypes = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "SourceType");
+        CourseModels = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "CourseModelType");
+        Countries = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "Country");
 
-        // -----------------------------------------------------
-        // NEW TRANSACTION
-        // -----------------------------------------------------
 
         if (string.IsNullOrWhiteSpace(Id))
         {
@@ -519,20 +522,22 @@
         {
             try
             {
-                var country =
-                    JsonSerializer.Deserialize<CountryLookup>(
-                        Model.MetadataJson);
+                var metadata = JsonSerializer.Deserialize<Dictionary<string, object>>(Model.MetadataJson);
 
-                if (country != null &&
-                    !string.IsNullOrWhiteSpace(country.ISOCode))
+                if (metadata != null)
                 {
-                    SelectedCountry = country.ISOCode;
+                    // ✅ COUNTRY
+                    if (metadata.TryGetValue("CountryCode", out var countryCode))
+                    {
+                        SelectedCountry = countryCode?.ToString();
+                    }
+
+
                 }
             }
-            catch (JsonException)
+            catch
             {
-                // Ignore invalid / legacy metadata
-                // Do NOT block page rendering
+                // ignore invalid JSON
             }
         }
     }
@@ -694,11 +699,8 @@
         // UPDATE EXISTING VALUES
         // =====================================================
 
-        metadata["CountryCode"] =
-            selected.Code;
-
-        metadata["CountryName"] =
-            selected.Name;
+        metadata["CountryCode"] = selected.Code;
+        metadata["CountryName"] = selected.Title;
 
         // =====================================================
         // SAVE UPDATED METADATA
@@ -933,6 +935,7 @@
                          .Trim();
     }
 }
+
 <style>
     .lms-inline-fields {
         display: flex;

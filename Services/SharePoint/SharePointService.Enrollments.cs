@@ -1,6 +1,5 @@
 ﻿using Microsoft.Graph.Models;
 using Microsoft.Kiota.Abstractions;
-using Microsoft.Kiota.Abstractions.Serialization;
 using MITANZ360Edu.Web.Models;
 
 namespace MITANZ360Edu.Web.Services;
@@ -11,7 +10,7 @@ public partial class SharePointService
     private string? _enrollmentsListId;
 
     // ======================================================
-    // INTERNAL : RESOLVE LIST ID (FILTERED, NO FULL LOAD)
+    // INTERNAL: RESOLVE LIST ID
     // ======================================================
     private async Task<string> GetEnrollmentsListIdAsync(CancellationToken ct = default)
     {
@@ -26,7 +25,7 @@ public partial class SharePointService
             .GetAsync(r =>
             {
                 r.QueryParameters.Filter = $"displayName eq '{safe}'";
-                r.QueryParameters.Select = ["id", "displayName"];
+                r.QueryParameters.Select = new[] { "id", "displayName" };
                 r.QueryParameters.Top = 5;
             }, ct);
 
@@ -40,7 +39,7 @@ public partial class SharePointService
     }
 
     // ======================================================
-    // ✅ ENROLLMENTS : COUNT BY COURSE (GRAPH‑SAFE, PAGINATED)
+    // COUNT BY COURSE (PAGINATED)
     // ======================================================
     public async Task<int> GetEnrollmentCountAsync(int courseId)
     {
@@ -49,7 +48,7 @@ public partial class SharePointService
         if (courseId <= 0)
             return 0;
 
-        var listId = await GetEnrollmentsListIdAsync().ConfigureAwait(false);
+        var listId = await GetEnrollmentsListIdAsync();
         var total = 0;
 
         var response = await _graphClient
@@ -59,20 +58,16 @@ public partial class SharePointService
             .GetAsync(r =>
             {
                 r.QueryParameters.Filter = $"fields/CourseLookupId eq {courseId}";
-                r.QueryParameters.Expand = new[] { "fields" };
                 r.QueryParameters.Top = 200;
-                r.Headers.Add("Prefer", "HonorNonIndexedQueriesWarningMayFailRandomly");
             });
 
         while (response != null)
         {
-            if (response.Value != null)
-                total += response.Value.Count;
+            total += response.Value?.Count ?? 0;
 
             if (string.IsNullOrWhiteSpace(response.OdataNextLink))
                 break;
 
-            // ✅ Kiota correct SendAsync overload: (requestInfo, factory, errorMapping, cancellationToken)
             var req = new RequestInformation
             {
                 HttpMethod = Method.GET,
@@ -83,21 +78,20 @@ public partial class SharePointService
                 req,
                 ListItemCollectionResponse.CreateFromDiscriminatorValue,
                 errorMapping: null,
-                cancellationToken: CancellationToken.None
-            ).ConfigureAwait(false);
+                cancellationToken: CancellationToken.None);
         }
 
         return total;
     }
 
     // ======================================================
-    // ENROLLMENTS : GET BY COURSE
+    // GET BY COURSE
     // ======================================================
     public async Task<List<EnrollmentModel>> GetEnrollmentsByCourseAsync(int courseId)
     {
         EnforceAdminOrTrainer();
 
-        var listId = await GetEnrollmentsListIdAsync().ConfigureAwait(false);
+        var listId = await GetEnrollmentsListIdAsync();
         var results = new List<EnrollmentModel>();
 
         var response = await _graphClient
@@ -109,36 +103,30 @@ public partial class SharePointService
                 r.QueryParameters.Filter = $"fields/CourseLookupId eq {courseId}";
                 r.QueryParameters.Expand = new[] { "fields" };
                 r.QueryParameters.Top = 200;
-                r.Headers.Add("Prefer", "HonorNonIndexedQueriesWarningMayFailRandomly");
             });
 
-        if (response?.Value == null)
-            return results;
-
-        foreach (var item in response.Value)
+        foreach (var item in response?.Value ?? Enumerable.Empty<ListItem>())
         {
-            if (item.Fields == null)
-                continue;
-
-            results.Add(MapEnrollment(item));
+            if (item.Fields != null)
+                results.Add(MapEnrollment(item));
         }
 
         return results;
     }
 
     // ======================================================
-    // ENROLLMENTS : CREATE (ADMIN → PENDING)
+    // CREATE
     // ======================================================
     public async Task<string> CreateEnrollmentAsync(EnrollmentModel model)
     {
         EnforceAdmin();
 
-        model.Status = EnrollmentStatus.Pending;
-        model.PaymentStatus = PaymentStatus.Pending;
+        model.Status = "PENDING";
+        model.PaymentStatus = "PENDING";
         model.EnrollmentDate = DateTime.UtcNow;
 
-        var enrollmentCode = await GenerateEnrollmentCodeAsync().ConfigureAwait(false);
-        var listId = await GetEnrollmentsListIdAsync().ConfigureAwait(false);
+        var code = await GenerateEnrollmentCodeAsync();
+        var listId = await GetEnrollmentsListIdAsync();
 
         var created = await _graphClient
             .Sites[SiteId]
@@ -150,16 +138,16 @@ public partial class SharePointService
                 {
                     AdditionalData = new Dictionary<string, object?>
                     {
-                        ["Title"] = enrollmentCode,
-                        ["EnrollmentCode"] = enrollmentCode,
+                        ["Title"] = code,
+                        ["EnrollmentCode"] = code,
                         ["CourseLookupId"] = model.CourseId,
                         ["StudentLookupId"] = model.StudentId,
-                        ["Status"] = model.Status.ToString(),
-                        ["PaymentStatus"] = model.PaymentStatus.ToString(),
+                        ["Status"] = model.Status,
+                        ["PaymentStatus"] = model.PaymentStatus,
                         ["EnrollmentDate"] = model.EnrollmentDate,
                         ["StartDate"] = model.StartDate,
                         ["EndDate"] = model.EndDate,
-                        ["Notes"] = BuildNote("Admin", "Enrollment created and submitted for approval")
+                        ["Notes"] = BuildNote("Admin", "Enrollment created")
                     }
                 }
             });
@@ -168,7 +156,7 @@ public partial class SharePointService
     }
 
     // ======================================================
-    // ENROLLMENTS : UPDATE (ADMIN)
+    // UPDATE
     // ======================================================
     public async Task UpdateEnrollmentAsync(EnrollmentModel model)
     {
@@ -177,7 +165,7 @@ public partial class SharePointService
         if (string.IsNullOrWhiteSpace(model.Id))
             throw new InvalidOperationException("Invalid Enrollment ID.");
 
-        var listId = await GetEnrollmentsListIdAsync().ConfigureAwait(false);
+        var listId = await GetEnrollmentsListIdAsync();
 
         await _graphClient
             .Sites[SiteId]
@@ -190,49 +178,51 @@ public partial class SharePointService
                 {
                     ["StartDate"] = model.StartDate,
                     ["EndDate"] = model.EndDate,
+                    ["Status"] = model.Status,
+                    ["PaymentStatus"] = model.PaymentStatus,
                     ["Notes"] = BuildNote("Admin", "Enrollment updated")
                 }
             });
     }
 
     // ======================================================
-    // ENROLLMENTS : DELETE (ADMIN)
+    // DELETE
     // ======================================================
-    public async Task DeleteEnrollmentAsync(string enrollmentId)
+    public async Task DeleteEnrollmentAsync(string id)
     {
         EnforceAdmin();
 
-        if (string.IsNullOrWhiteSpace(enrollmentId))
+        if (string.IsNullOrWhiteSpace(id))
             throw new InvalidOperationException("Invalid Enrollment ID.");
 
-        var listId = await GetEnrollmentsListIdAsync().ConfigureAwait(false);
+        var listId = await GetEnrollmentsListIdAsync();
 
         await _graphClient
             .Sites[SiteId]
             .Lists[listId]
-            .Items[enrollmentId]
+            .Items[id]
             .DeleteAsync();
     }
 
     // ======================================================
-    // ENROLLMENTS : ACADEMIC APPROVAL
+    // ACADEMIC APPROVAL
     // ======================================================
-    public async Task ApproveEnrollmentAsync(string enrollmentId, string comment)
+    public async Task ApproveEnrollmentAsync(string id, string comment)
     {
         EnforceAcademicAuthority();
 
-        var listId = await GetEnrollmentsListIdAsync().ConfigureAwait(false);
+        var listId = await GetEnrollmentsListIdAsync();
 
         await _graphClient
             .Sites[SiteId]
             .Lists[listId]
-            .Items[enrollmentId]
+            .Items[id]
             .Fields
             .PatchAsync(new FieldValueSet
             {
                 AdditionalData = new Dictionary<string, object?>
                 {
-                    ["Status"] = EnrollmentStatus.Approved.ToString(),
+                    ["Status"] = "APPROVED",
                     ["ApprovedBy"] = CurrentUserUpn,
                     ["Notes"] = BuildNote("Academic", comment)
                 }
@@ -240,25 +230,25 @@ public partial class SharePointService
     }
 
     // ======================================================
-    // ENROLLMENTS : FINANCE APPROVAL → ACTIVE
+    // FINANCE APPROVAL
     // ======================================================
-    public async Task ApproveEnrollmentPaymentAsync(string enrollmentId, string comment)
+    public async Task ApproveEnrollmentPaymentAsync(string id, string comment)
     {
         EnforceFinance();
 
-        var listId = await GetEnrollmentsListIdAsync().ConfigureAwait(false);
+        var listId = await GetEnrollmentsListIdAsync();
 
         await _graphClient
             .Sites[SiteId]
             .Lists[listId]
-            .Items[enrollmentId]
+            .Items[id]
             .Fields
             .PatchAsync(new FieldValueSet
             {
                 AdditionalData = new Dictionary<string, object?>
                 {
-                    ["PaymentStatus"] = PaymentStatus.Paid.ToString(),
-                    ["Status"] = EnrollmentStatus.Active.ToString(),
+                    ["PaymentStatus"] = "PAID",
+                    ["Status"] = "ACTIVE",
                     ["PaymentApprovedBy"] = CurrentUserUpn,
                     ["Notes"] = BuildNote("Finance", comment)
                 }
@@ -266,7 +256,7 @@ public partial class SharePointService
     }
 
     // ======================================================
-    // INTERNAL : ENROLLMENT MAPPER (kept safe)
+    // MAPPER
     // ======================================================
     private EnrollmentModel MapEnrollment(ListItem item)
     {
@@ -279,24 +269,20 @@ public partial class SharePointService
             Title = GetString(f, "Title"),
             CourseId = GetInt(f, "CourseLookupId") ?? 0,
             StudentId = GetInt(f, "StudentLookupId") ?? 0,
-            Status = ParseStatus(GetString(f, "Status")),
-            PaymentStatus = ParsePaymentStatus(GetString(f, "PaymentStatus")),
+            Status = Safe(GetString(f, "Status"), "PENDING"),
+            PaymentStatus = Safe(GetString(f, "PaymentStatus"), "PENDING"),
             EnrollmentDate = GetDate(f, "EnrollmentDate") ?? DateTime.MinValue,
             StartDate = GetDate(f, "StartDate"),
             EndDate = GetDate(f, "EndDate"),
             Notes = GetStringNullable(f, "Notes"),
             ApprovedBy = GetUserDisplayName(f, "ApprovedBy"),
-            PaymentApprovedBy = GetUserDisplayName(f, "PaymentApprovedBy"),
-            Created = GetDate(f, "Created") ?? DateTime.MinValue,
-            Modified = GetDate(f, "Modified") ?? DateTime.MinValue,
-            CreatedBy = GetUserDisplayName(f, "Author"),
-            ModifiedBy = GetUserDisplayName(f, "Editor")
+            PaymentApprovedBy = GetUserDisplayName(f, "PaymentApprovedBy")
         };
     }
 
-    private static EnrollmentStatus ParseStatus(string s)
-        => Enum.TryParse<EnrollmentStatus>(s, ignoreCase: true, out var v) ? v : EnrollmentStatus.Pending;
-
-    private static PaymentStatus ParsePaymentStatus(string s)
-        => Enum.TryParse<PaymentStatus>(s, ignoreCase: true, out var v) ? v : PaymentStatus.Pending;
+    // ======================================================
+    // HELPER
+    // ======================================================
+    private static string Safe(string? value, string fallback)
+        => string.IsNullOrWhiteSpace(value) ? fallback : value;
 }

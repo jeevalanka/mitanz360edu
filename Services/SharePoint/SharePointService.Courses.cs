@@ -37,7 +37,7 @@ public partial class SharePointService
         // Config already contains LIST ID.
         _coursesListId = CoursesListName;
 
-        _logger.LogInformation(
+        _logger.LogDebug(
             "Using SharePoint Courses List ID: {ListId}",
             _coursesListId);
 
@@ -63,7 +63,7 @@ public partial class SharePointService
         {
             var listId = await GetCoursesListIdAsync();
 
-            _logger.LogInformation(
+            _logger.LogDebug(
                 "Loading courses from SharePoint List ID: {ListId}",
                 listId);
 
@@ -91,7 +91,7 @@ public partial class SharePointService
 
                     results.Add(course);
 
-                    _logger.LogInformation("COURSE LOADED: {Title} | Duration: {Duration} | Credits: {Credits}",
+                    _logger.LogDebug("COURSE LOADED: {Title} | Duration: {Duration} | Credits: {Credits}",
                         course.Title,
                         course.DurationMinutes,
                         course.CreditValue);
@@ -110,7 +110,7 @@ public partial class SharePointService
                     .GetAsync();
             }
 
-            _logger.LogInformation(
+            _logger.LogDebug(
                 "Total courses loaded: {Count}",
                 results.Count);
         }
@@ -205,7 +205,7 @@ public partial class SharePointService
                 Fields = fields
             });
 
-        _logger.LogInformation(
+        _logger.LogDebug(
             "Course created successfully: {Title}",
             model.Title);
 
@@ -238,7 +238,7 @@ public partial class SharePointService
             .Fields
             .PatchAsync(fields);
 
-        _logger.LogInformation(
+        _logger.LogDebug(
             "Course updated successfully: {Id}",
             model.Id);
     }
@@ -266,7 +266,7 @@ public partial class SharePointService
             .Items[courseId.ToString()]
             .DeleteAsync();
 
-        _logger.LogInformation(
+        _logger.LogDebug(
             "Course deleted successfully: {Id}",
             courseId);
     }

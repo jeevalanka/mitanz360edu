@@ -1,5 +1,6 @@
 ﻿using Azure.Identity;
 using Microsoft.Graph;
+using Microsoft.Extensions.Configuration;
 
 namespace MITANZ360Edu.Web.Services;
 
@@ -25,6 +26,10 @@ public partial class SharePointService
     // =====================================================
 
     private readonly IConfiguration _configuration;
+    public SharePointService(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
 
     private readonly ILogger<SharePointService> _logger;
 
@@ -228,5 +233,48 @@ public partial class SharePointService
         var random = Random.Shared.Next(1000, 9999);
         return $"CID-{timestamp}-{random}";
     }
+
+    public async Task<int?> GetExistingCourseIdAsync(string courseName, string courseCode)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(courseName) ||
+                string.IsNullOrWhiteSpace(courseCode))
+                return null;
+
+            var filter =
+                $"fields/Title eq '{courseName.Replace("'", "''")}' and " +
+                $"fields/CourseCode eq '{courseCode.Replace("'", "''")}'";
+
+            var listId = _configuration["SharePoint:Lists:AIRepository"];
+
+            var result = await _graphClient
+                .Sites[SiteId]
+                .Lists[listId]
+                .Items
+                .GetAsync(config =>
+                {
+                    config.QueryParameters.Filter = filter;
+                    config.QueryParameters.Top = 1;
+                    config.QueryParameters.Expand = new[] { "fields" };
+                });
+
+            var item = result?.Value?.FirstOrDefault();
+
+            if (item != null)
+            {
+                return int.Parse(item.Id);
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("❌ GetExistingCourseId failed:");
+            Console.WriteLine(ex.Message);
+            return null;
+        }
+    }
+
 
 }

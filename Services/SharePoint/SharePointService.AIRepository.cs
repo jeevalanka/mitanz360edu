@@ -19,7 +19,6 @@ namespace MITANZ360Edu.Web.Services
         public string Status { get; set; } = "";
         public string Tags { get; set; } = "";
         public decimal Score { get; set; }
-        public string EntityType { get; set; } = "";
     }
 
     public partial class SharePointService
@@ -88,7 +87,6 @@ namespace MITANZ360Edu.Web.Services
                     Tags = GetField(fields, "Tags"),
 
                     Score = decimal.TryParse(GetField(fields, "Score"), out var s) ? s : 0,
-                    EntityType = GetField(fields, "EntityType")
                 });
             }
 
@@ -111,7 +109,6 @@ namespace MITANZ360Edu.Web.Services
                 { "Status", item.Status },
                 { "Tags", item.Tags },
                 { "Score", item.Score },
-                { "EntityType", item.EntityType }
             };
 
             await _graphClient
@@ -150,7 +147,6 @@ namespace MITANZ360Edu.Web.Services
                 { "Status", item.Status },
                 { "Tags", item.Tags },
                 { "Score", item.Score },
-                { "EntityType", item.EntityType }
             };
 
             await _graphClient
@@ -183,19 +179,27 @@ namespace MITANZ360Edu.Web.Services
         }
 
         // =====================================================
-        // ✅ AI SAVE
+        // ✅ AI UPDATE (NEW - DTO BASED + PROMPT TO TAGS)
         // =====================================================
-        public async Task UpdateAIFieldsAndAttachFileAsync(
+        public async Task UpdateAIFieldsAsync(
             int itemId,
-            AIService.AIResult aiResult)
+            AIResultDto aiResult,
+            string promptName,
+            CancellationToken cancellationToken = default)
         {
             var listId = _configuration["SharePoint:Lists:AIRepository"];
 
+            if (string.IsNullOrWhiteSpace(listId))
+                throw new InvalidOperationException("AIRepository ListId missing.");
+
             var fields = new Dictionary<string, object>
             {
-                { "Summary", aiResult.SummaryText ?? "" },
-                { "Metadata", aiResult.Json ?? "" },
-                { "HtmlReport", aiResult.HtmlContent ?? "" }
+                { "Summary", aiResult.Summary ?? "" },
+                { "HtmlReport", aiResult.Html ?? "" },
+
+                // ✅ Save selected prompt
+                { "Tags", promptName ?? "" },
+                { "Score", aiResult.Score }
             };
 
             await _graphClient
@@ -203,10 +207,51 @@ namespace MITANZ360Edu.Web.Services
                 .Lists[listId]
                 .Items[itemId.ToString()]
                 .Fields
-                .PatchAsync(new FieldValueSet
-                {
-                    AdditionalData = fields
-                });
+                .PatchAsync(
+                    new FieldValueSet
+                    {
+                        AdditionalData = fields
+                    },
+                    null,
+                    cancellationToken
+                );
+        }
+        // =====================================================
+        // ✅ CHECK - Course Exists
+        // =====================================================
+        public async Task<bool> CourseExistsAsync(string courseName, string courseCode)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(courseName) ||
+                    string.IsNullOrWhiteSpace(courseCode))
+                    return false;
+
+                var filter =
+                    $"fields/Title eq '{courseName.Replace("'", "''")}' and " +
+                    $"fields/CourseCode eq '{courseCode.Replace("'", "''")}'";
+
+                var listId = _configuration["SharePoint:Lists:AIRepository"];
+
+                var result = await _graphClient
+                    .Sites[SiteId]
+                    .Lists[listId]
+                    .Items
+                    .GetAsync(config =>
+                    {
+                        config.QueryParameters.Filter = filter;
+                        config.QueryParameters.Top = 1;
+                        config.QueryParameters.Expand = new[] { "fields" };
+                    });
+
+                return result?.Value?.Any() == true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("❌ CourseExists check failed:");
+                Console.WriteLine(ex.Message);
+                return false;
+            }
         }
     }
 }

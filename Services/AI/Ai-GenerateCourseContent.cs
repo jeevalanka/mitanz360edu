@@ -32,16 +32,12 @@ namespace MITANZ360Edu.Web.Services.AI
             // ✅ SUMMARY
             var summary = GenerateSummary(normalizedJson);
 
-            // ✅ DOCX
-            var docx = GenerateDocx(html);
-
             return new AIResult
             {
                 Success = true,
                 Json = normalizedJson,
                 HtmlContent = html,     // ✅ RAW HTML
                 SummaryText = summary,
-                DocxFile = docx,
                 FileName = $"Course_{DateTime.UtcNow:yyyyMMddHHmmss}.docx"
             };
         }
@@ -139,7 +135,6 @@ namespace MITANZ360Edu.Web.Services.AI
                     Return only the final JSON object.
                     ";
                             }
-
         // ✅ MOCK AI/Real
         private async Task<string> ExecuteAzureOpenAIAsync(
             string jsonPayload,
@@ -215,277 +210,7 @@ namespace MITANZ360Edu.Web.Services.AI
                    ?? "AI-generated course summary.";
         }
 
-        // ✅ DOCX GENERATION (IN-MEMORY)
-        private byte[] GenerateDocx(string text)
-        {
-            using var mem = new MemoryStream();
-
-            using (var doc =
-                WordprocessingDocument.Create(mem, WordprocessingDocumentType.Document, true))
-            {
-                var mainPart = doc.AddMainDocumentPart();
-                mainPart.Document = new Document();
-                var body = new Body();
-
-                body.AppendChild(new Paragraph(new Run(new Text("Course Summary"))));
-                body.AppendChild(new Paragraph(new Run(new Text(text))));
-
-                mainPart.Document.Append(body);
-                mainPart.Document.Save();
-            }
-
-            return mem.ToArray();
-        }
-
         // Helper Method 1-9
-        private void RenderCourseDetails(JsonObject root, StringBuilder sb)
-        {
-            var course = root["CourseSetup"]?["CourseDetails"];
-
-            if (course == null)
-                return;
-
-            sb.Append($"""
-    <div class='report-card'>
-        <h2>📘 Course Information</h2>
-
-        <p><strong>Course Name:</strong>
-        {course["CourseName"]}</p>
-
-        <p><strong>Course Code:</strong>
-        {course["CourseCode"]}</p>
-
-        <p><strong>Credits:</strong>
-        {course["Credits"]}</p>
-
-        <p><strong>Total Hours:</strong>
-        {course["TotalHours"]}</p>
-    </div>
-    """);
-        }
-        private void RenderBusinessContext(JsonObject root, StringBuilder sb)
-        {
-            var business =
-                root["BusinessAndAudience"]?["BusinessContext"];
-
-            if (business == null)
-                return;
-
-            sb.Append($"""
-    <div class='report-card'>
-        <h2>🏢 Business Context</h2>
-
-        <p>
-        {business["BusinessProblem"]}
-        </p>
-
-        <p>
-        <strong>Expected Outcome:</strong><br/>
-        {business["ExpectedOutcome"]}
-        </p>
-    </div>
-    """);
-        }
-        private void RenderAudience(JsonObject root, StringBuilder sb)
-        {
-            var audience =
-                root["BusinessAndAudience"]?["Audience"];
-
-            if (audience == null)
-                return;
-
-            sb.Append($"""
-    <div class='report-card'>
-        <h2>👥 Target Audience</h2>
-
-        <p>
-        {audience["TargetAudience"]}
-        </p>
-
-        <p>
-        <strong>Prerequisites:</strong><br/>
-        {audience["PriorKnowledge"]}
-        </p>
-    </div>
-    """);
-        }
-        private void RenderLearningObjectives(
-    JsonObject root,
-    StringBuilder sb)
-        {
-            var objectives =
-                root["LearningDesign"]?["LearningObjectives"]
-                ?.AsArray();
-
-            if (objectives == null || objectives.Count == 0)
-                return;
-
-            sb.Append("""
-    <div class='report-card'>
-        <h2>🎯 Learning Objectives</h2>
-        <ol>
-    """);
-
-            foreach (var item in objectives)
-            {
-                sb.Append($"<li>{item}</li>");
-            }
-
-            sb.Append("""
-        </ol>
-    </div>
-    """);
-        }
-        private void RenderAssessmentStrategy(
-    JsonObject root,
-    StringBuilder sb)
-        {
-            var assessment =
-                root["AssessmentAndLabs"]?["Assessment"];
-
-            if (assessment == null)
-                return;
-
-            sb.Append($"""
-    <div class='report-card'>
-        <h2>📝 Assessment Strategy</h2>
-
-        <p>
-        <strong>Assessment Type:</strong>
-        {assessment["AssessmentType"]?["Value"]}
-        </p>
-
-        <p>
-        <strong>Pass Criteria:</strong>
-        {assessment["PassCriteria"]}
-        </p>
-    </div>
-    """);
-        }
-        private void RenderCourseStructure(JsonObject root, StringBuilder sb)
-        {
-            var structure =
-                root["LearningDesign"]?["CourseStructure"];
-
-            if (structure == null)
-                return;
-
-            sb.Append($"""
-    <div class='report-card'>
-
-        <h2>📚 Course Structure</h2>
-
-        <p>
-            <strong>Module Count:</strong>
-            {structure["ModuleCount"]}
-        </p>
-
-        <p>
-            <strong>Lessons Per Module:</strong>
-            {structure["LessonsPerModule"]}
-        </p>
-
-        <p>
-            <strong>Hours Per Module:</strong>
-            {structure["HoursPerModule"]}
-        </p>
-
-    </div>
-    """);
-        }
-        private void RenderCertification(JsonObject root, StringBuilder sb)
-        {
-            var certification =
-                root["CertificationAndCompliance"]?["Certification"];
-
-            if (certification == null)
-                return;
-
-            sb.Append($"""
-    <div class='report-card'>
-
-        <h2>🏅 Certification</h2>
-
-        <p>
-            <strong>Name:</strong>
-            {certification["CertificationName"]}
-        </p>
-
-        <p>
-            <strong>Vendor:</strong>
-            {certification["Vendor"]?["Value"]}
-        </p>
-
-        <p>
-            <strong>Enabled:</strong>
-            {certification["IsEnabled"]}
-        </p>
-
-    </div>
-    """);
-        }
-        private void RenderResources(JsonObject root, StringBuilder sb)
-        {
-            var resources =
-                root["DeliveryAndResources"]?["ResourceRequirements"];
-
-            if (resources == null)
-                return;
-
-            sb.Append($"""
-    <div class='report-card'>
-
-        <h2>📖 Learning Resources</h2>
-
-        <p>
-            <strong>Platform:</strong>
-            {resources["Platform"]}
-        </p>
-
-        <p>
-            <strong>Tools:</strong>
-            {resources["Tools"]}
-        </p>
-
-        <p>
-            <strong>Requires Lab:</strong>
-            {resources["RequiresLab"]}
-        </p>
-
-        <p>
-            <strong>Notes:</strong>
-            {resources["AdditionalNotes"]}
-        </p>
-
-    </div>
-    """);
-        }
-        private void RenderCompliance(JsonObject root, StringBuilder sb)
-        {
-            var compliance =
-                root["CertificationAndCompliance"]?["Compliance"];
-
-            if (compliance == null)
-                return;
-
-            sb.Append($"""
-    <div class='report-card'>
-
-        <h2>✅ Compliance</h2>
-
-        <p>
-            <strong>Enabled:</strong>
-            {compliance["IsEnabled"]}
-        </p>
-
-        <p>
-            <strong>Standard:</strong>
-            {compliance["Standard"]?["Value"]}
-        </p>
-
-    </div>
-    """);
-        }
 
         //Run Test From GenerateCourseContentAsync
         public async Task TestAzureOpenAIAsync()
@@ -524,8 +249,6 @@ namespace MITANZ360Edu.Web.Services.AI
             public string SummaryText { get; set; } = string.Empty;
 
             public string HtmlContent { get; set; } = string.Empty;
-
-            public byte[]? DocxFile { get; set; }
 
             public string FileName { get; set; } = string.Empty;
 

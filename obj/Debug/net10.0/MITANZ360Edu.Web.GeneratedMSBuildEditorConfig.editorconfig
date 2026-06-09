@@ -267,6 +267,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pblxOYXZpZ2F0aW9uQ2FyZEZvcm0ucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/MITANZ360EDU-System/GitHub/mitanz360edu/Components/Pages/Admin/ReferenceData.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pblxSZWZlcmVuY2VEYXRhLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/MITANZ360EDU-System/GitHub/mitanz360edu/Components/Pages/Admin/RoleDialog.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pblxSb2xlRGlhbG9nLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 

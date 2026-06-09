@@ -11,6 +11,8 @@
 @inject SharePointService SharePointService
 @inject IWebHostEnvironment Env
 @inject AIService AIService
+@inject IConfiguration Configuration
+@inject DialogService DialogService
 
 <div class="app">
 
@@ -52,39 +54,40 @@
                             TValue="int?"
                             Value="@SelectedItemId"
                             ValueChanged="OnCourseChanged"
-                            Style="width:100%"
+                            Style="min-width:200px;max-width:200px;width:200px;"
                             Placeholder="Select Course" />
+
+            <RadzenDropDown Data="@PromptFiles"
+                            @bind-Value="SelectedPrompt"
+                            Style="min-width:200px;max-width:200px;width:200px;"
+                            Placeholder="Select Prompt" />
         </div>
 
-        <div class="actions">
-            <RadzenButton Text="New" Click="@LoadTemplate" />
+            <div class="actions">
 
-            <RadzenButton Text="Save" Click="@SaveJson" />
+            <RadzenButton Text="New" Icon="refresh" Click="@RefreshNew" Disabled="@IsGenerating" />
 
-            <RadzenButton Icon="delete"
-                          Text="Delete"
-                          ButtonStyle="ButtonStyle.Danger"
-                          Click="@((MouseEventArgs e) => ConfirmDelete())"
-                          Disabled="@(SelectedItemId == null)" />
+                <RadzenButton Icon="delete"
+                              Text="Delete"
+                              ButtonStyle="ButtonStyle.Danger"
+                              Click="@((MouseEventArgs e) => ConfirmDelete())"
+                              Disabled="@(SelectedItemId == null)" />
 
-            <RadzenButton Icon="auto_awesome"
-                          Text="AI Generate"
-                          ButtonStyle="ButtonStyle.Primary"
-                          Click="@GenerateContentAsync"
-                          Disabled="@(!SelectedItemId.HasValue || IsGenerating)"
-                          Busy="@IsGenerating"
-                          BusyText="Generating AI..." />
-        </div>
+                <RadzenButton Icon="auto_awesome"
+                              Text="@(IsGenerating ? "Generating..." : "AI Generate")"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Click="@GenerateContentAsync"
+                              Disabled="@(!SelectedItemId.HasValue || IsGenerating)"
+                              Busy="@IsGenerating"
+                              BusyText="🚀 Generating AI..." />
+
+                <RadzenButton Text="Save" Click="@SaveJson" />
+
+            </div>
     </div>
 
     <!-- ✅ TABS -->
     <div class="tabs">
-
-        <!-- ✅ SUMMARY TAB (MANUAL) -->
-        <button class="tab @(ActiveTab == "Summary" ? "active" : "")"
-                @onclick="SetSummaryTab">
-            Summary
-        </button>
 
         <!-- ✅ JSON TABS -->
         @foreach (var kv in JsonModel.Where(x => x.Key != "Summary"))
@@ -96,7 +99,11 @@
                 @key
             </button>
         }
-
+        <!-- ✅ SUMMARY TAB (MANUAL)-->
+        <button class="tab @(ActiveTab == "Summary" ? "active" : "")"
+                @onclick="SetSummaryTab">
+            Summary
+        </button>
     </div>
 
 
@@ -108,6 +115,22 @@
 </div>
 
 <style>
+
+    /* ✅ Come from AI */
+
+    .ai-output .card {
+        background: #ffffff !important;
+        color: #1f1f1f !important;
+    }
+
+    .ai-output .card-body {
+        background: #ffffff !important;
+        color: #1f1f1f !important;
+    }
+
+    .ai-output * {
+        color: #1f1f1f !important;
+    }
 
     /* ✅ ROOT */
     .app {
@@ -239,16 +262,11 @@
     }
 
     /* ✅ MOBILE */
-    @@media(max - width:600px) {
-        .group {
-            grid-template-columns: 1fr;
-        }
-    }
+    @@media(max - width:600px) {.group {grid-template-columns: 1fr;}}
 
 </style>
 
 @code {
-
     private List<AIRepositoryItem> items = new();
     private JsonObject JsonModel = new();
     private string ActiveTab = "";
@@ -264,66 +282,87 @@
     private string HtmlContent = "";
     private string FileUrl = "";
 
+    private string OriginalMetadata = "";
+
+    private List<string> PromptFiles = new();
+    private string SelectedPrompt = "";
+    private bool isGenerating = false;
+    private string aiStatusMessage = "";
+
     protected override async Task OnInitializedAsync()
     {
         items = await SharePointService.GetAIRepositoryItemsAsync(orderBy: "id desc");
-        LoadTemplate();
+        LoadPromptFiles();
+        await RefreshNew();
     }
 
     private void OnCourseChanged(int? id)
     {
         SelectedItemId = id;
 
-        if (id.HasValue)
+        if (!id.HasValue)
+            return;
+
+        var item = items.FirstOrDefault(x => x.Id == id);
+
+        if (item == null)
         {
-            var item = items.FirstOrDefault(x => x.Id == id);
+            Console.WriteLine("❌ Item not found");
+            return;
+        }
 
-            if (item != null)
+        Console.WriteLine($"✅ Loading Item ID: {item.Id}");
+
+        try
+        {
+            // ✅ Keep original metadata safe
+            OriginalMetadata = item.Metadata ?? "";
+
+            if (!string.IsNullOrWhiteSpace(item.Metadata))
             {
-                // ✅ Load JSON model
-                JsonModel = JsonNode.Parse(item.Metadata)?.AsObject() ?? new();
+                var parsed = JsonNode.Parse(item.Metadata)?.AsObject();
 
-                // ✅ Default tab
-                ActiveTab = JsonModel.FirstOrDefault().Key ?? "";
-
-                // ✅ Summary
-                SummaryText = item.Summary ?? "";
-
-                // ✅ HTML REPORT (FINAL CLEAN LOGIC)
-                if (string.IsNullOrWhiteSpace(item.HtmlReport))
+                if (parsed != null)
                 {
-                    HtmlContent = "<p>No HTML content</p>";
+                    JsonModel = parsed;
+
+                    Console.WriteLine($"✅ Metadata loaded ({item.Metadata.Length} chars)");
                 }
                 else
                 {
-                    var content = item.HtmlReport.Trim();
-
-                    if (content.StartsWith("{"))
-                    {
-                        // ✅ JSON → convert to rich HTML (one method only)
-                        HtmlContent = ConvertJsonToRichHtml(content);
-                    }
-                    else
-                    {
-                        // ✅ already HTML
-                        HtmlContent = content;
-                    }
+                    Console.WriteLine("⚠ Metadata parsed as null - keeping existing JsonModel");
                 }
-
-                // ✅ File URL
-                FileUrl = BuildFileUrl(item.Id);
+            }
+            else
+            {
+                Console.WriteLine("⚠ Metadata is empty - keeping existing JsonModel");
             }
         }
-    }
+        catch (Exception ex)
+        {
+            Console.WriteLine("❌ Metadata parse failed");
+            Console.WriteLine(ex.Message);
 
-    private void LoadTemplate()
-    {
-        var path = Path.Combine(Env.WebRootPath, "Data", "template.json");
+            // ✅ Never clear JsonModel
+            // ✅ Never load template here
+            // ✅ Never overwrite OriginalMetadata
+        }
 
-        JsonModel = JsonNode.Parse(File.ReadAllText(path))?.AsObject() ?? new();
-        ActiveTab = JsonModel.FirstOrDefault().Key ?? "";
+        ActiveTab = JsonModel?.FirstOrDefault().Key ?? "";
 
-        SelectedItemId = null;
+        SummaryText = item.Summary ?? "";
+
+        SelectedPrompt = item.Tags?.Trim() ?? "";
+
+        HtmlContent = string.IsNullOrWhiteSpace(item.HtmlReport)
+            ? "<p>No HTML content</p>"
+            : $@"<div style='background:#fff;padding:20px'>
+                {SanitizeHtml(item.HtmlReport)}
+            </div>";
+
+        FileUrl = BuildFileUrl(item.Id);
+
+        StateHasChanged();
     }
 
     private async Task SaveJson()
@@ -334,100 +373,76 @@
                 JsonModel?["CourseSetup"]?["CourseDetails"]?["CourseName"]?.ToString()
                 ?? "Untitled";
 
-            // ✅ ✅ --- NEW COURSE ---
+            // ✅ Never allow null / empty metadata
+            var metadata =
+                JsonModel != null && JsonModel.Count > 0
+                    ? JsonModel.ToJsonString()
+                    : OriginalMetadata;
+
+            if (string.IsNullOrWhiteSpace(metadata))
+            {
+                SaveMessage = "❌ Metadata cannot be empty";
+                ShowNotification = true;
+                return;
+            }
+
             if (!SelectedItemId.HasValue)
             {
+                // ✅ NEW RECORD
                 await SharePointService.CreateAIRepositoryItemAsync(
                     new AIRepositoryItem
                     {
                         Title = courseName,
-                        Metadata = JsonModel.ToJsonString(),
+                        Metadata = metadata,
+                        HtmlReport = HtmlContent,
                         Summary = SummaryText,
-                        HtmlReport = HtmlContent
+                        Tags = SelectedPrompt,
+                        Status = "Pending",
+                        Score = CalculateScore(HtmlContent)
                     });
 
-                // ✅ IMPORTANT: Reload and grab latest item
                 items = await SharePointService.GetAIRepositoryItemsAsync(orderBy: "id desc");
 
-                var latestItem = items.FirstOrDefault();
+                SelectedItemId = items.FirstOrDefault()?.Id;
 
-                if (latestItem != null)
-                {
-                    SelectedItemId = latestItem.Id;
-                    SaveMessage = "✅ New course created";
-                }
-                else
-                {
-                    SaveMessage = "❌ Create might have failed";
-                }
+                // ✅ Keep latest metadata snapshot
+                OriginalMetadata = metadata;
 
-                ShowNotification = true;
-                await Task.Delay(2000);
-                ShowNotification = false;
-
-                return;
-            }
-
-            // ✅ ✅ --- EXISTING COURSE UPDATE ---
-            var existingItem = items.FirstOrDefault(x => x.Id == SelectedItemId.Value);
-
-            if (existingItem == null)
-            {
-                SaveMessage = "❌ Item not found";
-                ShowNotification = true;
-                return;
-            }
-
-            var oldName = existingItem.Title ?? "";
-
-            // ✅ NAME CHANGE = CREATE NEW
-            if (!string.Equals(oldName, courseName, StringComparison.OrdinalIgnoreCase))
-            {
-                await SharePointService.CreateAIRepositoryItemAsync(
-                    new AIRepositoryItem
-                    {
-                        Title = courseName,
-                        Metadata = JsonModel.ToJsonString(),
-                        Summary = SummaryText,
-                        HtmlReport = HtmlContent
-                    });
-
-                // ✅ Reload + select new item
-                items = await SharePointService.GetAIRepositoryItemsAsync(orderBy: "id desc");
-
-                var latestItem = items.FirstOrDefault();
-                if (latestItem != null)
-                {
-                    SelectedItemId = latestItem.Id;
-                }
-
-                SaveMessage = "✅ New course created (renamed)";
+                SaveMessage = "✅ New course created";
             }
             else
             {
+                // ✅ EXISTING RECORD
                 await SharePointService.UpdateAIRepositoryItemAsync(
                     new AIRepositoryItem
                     {
                         Id = SelectedItemId.Value,
                         Title = courseName,
-                        Metadata = JsonModel.ToJsonString(),
+                        Metadata = metadata,
                         Summary = SummaryText,
-                        HtmlReport = HtmlContent
+                        HtmlReport = HtmlContent,
+                        Tags = SelectedPrompt
                     });
+
+                // ✅ Refresh backup after successful save
+                OriginalMetadata = metadata;
 
                 SaveMessage = "✅ Course updated";
             }
 
             ShowNotification = true;
+
             await Task.Delay(2000);
+
             ShowNotification = false;
 
-            // ✅ Final refresh
             items = await SharePointService.GetAIRepositoryItemsAsync(orderBy: "id desc");
         }
         catch (Exception ex)
         {
+            Console.WriteLine("❌ Save Error");
             Console.WriteLine(ex);
+
             SaveMessage = "❌ Save failed";
             ShowNotification = true;
         }
@@ -454,8 +469,7 @@
 
         items = await SharePointService.GetAIRepositoryItemsAsync(orderBy: "id desc");
 
-        LoadTemplate();
-
+        await RefreshNew();
         SaveMessage = "🗑 Deleted";
         ShowNotification = true;
 
@@ -475,25 +489,52 @@
             builder.OpenElement(seq++, "div");
             builder.AddAttribute(seq++, "class", "section");
 
-            // ✅ SUMMARY TEXT
+            // ✅ HEADER
             builder.OpenElement(seq++, "h3");
+            builder.AddAttribute(seq++, "style", "margin-top:18px; color:darkorange;");
             builder.AddContent(seq++, "Summary");
             builder.CloseElement();
 
+            // ✅ SUMMARY TEXT
             builder.OpenElement(seq++, "div");
             builder.AddAttribute(seq++, "class", "summary-box");
             builder.AddContent(seq++, SummaryText ?? "No summary available");
             builder.CloseElement();
 
-            // ✅ HTML REPORT HEADER
-            builder.OpenElement(seq++, "h3");
-            builder.AddAttribute(seq++, "style", "margin-top:20px;");
-            builder.AddContent(seq++, "HTML Report");
+            // ✅ SCORE + TAGS
+            var score = CalculateScore(HtmlContent);
+
+            builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "style",
+                $"margin-top:10px;" +
+                "padding:10px;" +
+                "border-radius:6px;" +
+                $"background:{(score > 80 ? "#d4edda" : score > 60 ? "#fff3cd" : "#f8d7da")};" +
+                "border:1px solid #ddd;"
+            );
+
+            // ✅ SCORE
+            builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "style", "font-weight:600;");
+            builder.AddContent(seq++, $"Score: {score}");
             builder.CloseElement();
 
-            // ✅ ✅ ✅ FIXED HTML RENDER (THIS IS THE IMPORTANT PART)
+            // ✅ TAGS
             builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "style", "margin-top:6px;");
+            builder.AddContent(seq++, $"Tags: {SelectedPrompt}");
+            builder.CloseElement();
 
+            builder.CloseElement(); // ✅ CLOSE SCORE BOX
+
+            // ✅ REPORT HEADER
+            builder.OpenElement(seq++, "h3");
+            builder.AddAttribute(seq++, "style", "margin-top:18px; color:darkorange;");
+            builder.AddContent(seq++, "Report");
+            builder.CloseElement();
+
+            // ✅ HTML RENDER
+            builder.OpenElement(seq++, "div");
             builder.AddAttribute(seq++, "style",
                 "background:#fff;" +
                 "padding:10px;" +
@@ -502,17 +543,17 @@
                 "overflow:auto;"
             );
 
-            // 🔥 THIS LINE FIXES YOUR ISSUE
-            builder.AddMarkupContent(seq++, HtmlContent ?? "<p>No content</p>");
+            builder.AddMarkupContent(seq++, SanitizeHtml(HtmlContent));
 
-            builder.CloseElement(); // end HTML container
+            builder.CloseElement(); // ✅ CLOSE HTML BOX
 
-            // ✅ FILE SECTION
+            // ✅ FILE HEADER
             builder.OpenElement(seq++, "h3");
-            builder.AddAttribute(seq++, "style", "margin-top:20px;");
-            builder.AddContent(seq++, "AI Result File");
+            builder.AddAttribute(seq++, "style", "margin-top:18px; color:darkorange;");
+            builder.AddContent(seq++, "Att: File");
             builder.CloseElement();
 
+            // ✅ FILE LINK
             if (!string.IsNullOrEmpty(FileUrl))
             {
                 builder.OpenElement(seq++, "a");
@@ -528,15 +569,18 @@
                 builder.CloseElement();
             }
 
-            builder.CloseElement(); // end section
+            builder.CloseElement(); // ✅ CLOSE MAIN SECTION
+
             return;
         }
 
-        // ✅ JSON TABS (UNCHANGED)
-        if (!JsonModel.ContainsKey(ActiveTab)) return;
+        // ✅ JSON TABS
+        if (!JsonModel.ContainsKey(ActiveTab))
+            return;
 
         RenderNode(builder, ref seq, JsonModel[ActiveTab], JsonModel, ActiveTab);
     };
+
     private void RenderNode(RenderTreeBuilder builder, ref int seq, JsonNode node, JsonObject parent, string key)
     {
         // ✅ OBJECT
@@ -660,62 +704,88 @@
     {
         try
         {
-            IsGenerating = true;
+            // ✅ Save current JSON first
+            if (SelectedItemId.HasValue)
+            {
+                await SaveJson();
+            }
 
+            IsGenerating = true;
             SaveMessage = "🤖 Generating content...";
             ShowNotification = true;
 
-            var response = await AIService.GenerateCourseContentAsync(
-                JsonModel.ToJsonString());
+            await InvokeAsync(StateHasChanged);
+            await Task.Yield();
 
-            if (response != null)
-            {
-                // ✅ Update UI JSON
-                if (!string.IsNullOrWhiteSpace(response.Json))
-                {
-                    var newJson = JsonNode.Parse(response.Json)?.AsObject();
-                    if (newJson != null)
-                    {
-                        JsonModel = newJson;
-                        ActiveTab = JsonModel.FirstOrDefault().Key ?? "";
-                    }
-                }
+            var response = await AIService.GenerateContentAsync(
+                JsonModel,
+                SelectedPrompt
+            );
 
-                // ✅ UPDATE SHAREPOINT ITEM
-                if (SelectedItemId.HasValue)
-                {
-                    await SharePointService.UpdateAIFieldsAndAttachFileAsync(
-                        SelectedItemId.Value,
-                        response);
-                }
-
-                StateHasChanged();
-
-                SaveMessage = "✅ AI content generated & saved!";
-            }
-            else
+            if (response == null)
             {
                 SaveMessage = "⚠ No AI response";
+                return;
             }
+
+            SaveMessage = "🧠 Processing AI response...";
+            await InvokeAsync(StateHasChanged);
+
+            HtmlContent = response.Html ?? "";
+
+
+            SummaryText = GenerateSummary(HtmlContent);
+
+            if (SelectedItemId.HasValue)
+            {
+
+                var aiResult = new AIResultDto
+                {
+                    Html = HtmlContent,
+                    Summary = SummaryText,
+                    Tags = SelectedPrompt,
+                    // ✅ REMOVE Metadata COMPLETELY
+                    Score = CalculateScore(HtmlContent)
+                };
+
+                await SharePointService.UpdateAIFieldsAsync(
+                    SelectedItemId.Value,
+                    aiResult,
+                    SelectedPrompt,
+                    CancellationToken.None
+                );
+            }
+
+            SaveMessage = "✅ AI content generated & saved!";
         }
         catch (Exception ex)
         {
+            Console.WriteLine("❌ AI ERROR:");
             Console.WriteLine(ex);
+
             SaveMessage = "❌ AI generation failed";
         }
         finally
         {
             IsGenerating = false;
 
-            await Task.Delay(2500);
+            await Task.Delay(1500);
             ShowNotification = false;
+
+            await InvokeAsync(StateHasChanged);
         }
     }
 
     private string BuildFileUrl(int itemId)
     {
-        // ✅ Adjust your tenant URL
-        var baseUrl = "https://mitga.sharepoint.com/sites/MITANZ360Edu";
+        var baseUrl = Configuration["SharePoint:BaseUrl"];
+
+        if (string.IsNullOrWhiteSpace(baseUrl))
+        {
+            Console.WriteLine("❌ SharePoint BaseUrl missing in appsettings");
+            return string.Empty;
+        }
+
         return $"{baseUrl}/AI_Result_{itemId}";
     }
 
@@ -777,6 +847,7 @@
             return $"<pre>{System.Net.WebUtility.HtmlEncode(json)}</pre>";
         }
     }
+
     private void AppendField(StringBuilder sb, string label, JsonNode value)
     {
         sb.Append($@"
@@ -785,6 +856,173 @@
             <span>{value}</span>
         </div>
     ");
+    }
+
+    private async Task RefreshNew()
+    {
+        try
+        {
+            Console.WriteLine("✅ NEW COURSE INITIALIZED");
+
+            SelectedItemId = null;
+
+            SummaryText = "";
+            HtmlContent = "";
+            FileUrl = "";
+
+            items = await SharePointService.GetAIRepositoryItemsAsync(orderBy: "id desc");
+
+            // ✅ ONLY PLACE WHERE TEMPLATE IS ALLOWED
+            var path = Path.Combine(
+                Env.WebRootPath,
+                "Data",
+                "template.json");
+
+            JsonModel =
+                JsonNode.Parse(File.ReadAllText(path))?.AsObject()
+                ?? new JsonObject();
+
+            // ✅ KEEP TEMPLATE AS BACKUP METADATA
+            OriginalMetadata = JsonModel.ToJsonString();
+
+            Console.WriteLine(
+                $"✅ Template metadata loaded ({OriginalMetadata.Length} chars)");
+
+            ActiveTab = JsonModel.FirstOrDefault().Key ?? "";
+
+            SaveMessage = "🆕 New course template loaded";
+            ShowNotification = true;
+
+            await Task.Delay(1500);
+
+            ShowNotification = false;
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("❌ New template load failed");
+            Console.WriteLine(ex);
+
+            SaveMessage = "❌ New template load failed";
+            ShowNotification = true;
+        }
+    }
+
+    private void LoadPromptFiles()
+    {
+        var promptFolder =
+            Path.Combine(
+                Env.WebRootPath,
+                "Data",
+                "Prompts");
+
+        if (!Directory.Exists(promptFolder))
+            return;
+
+        PromptFiles = Directory
+            .GetFiles(promptFolder, "*.txt")
+            .Select(Path.GetFileNameWithoutExtension)
+            .OrderBy(x => x)
+            .ToList();
+
+        SelectedPrompt =
+            PromptFiles.FirstOrDefault() ?? "";
+    }
+
+    private string SanitizeHtml(string html)
+    {
+        if (string.IsNullOrWhiteSpace(html))
+            return "";
+
+        var clean = html;
+
+        // ✅ Decode SharePoint encoding
+        try
+        {
+            clean = System.Text.Json.JsonSerializer.Deserialize<string>($"\"{clean}\"") ?? clean;
+            clean = System.Net.WebUtility.HtmlDecode(clean);
+        }
+        catch { }
+
+        // ✅ REMOVE ExternalClass
+        clean = System.Text.RegularExpressions.Regex.Replace(
+            clean,
+            @"ExternalClass[^\s""]*",
+            "",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase
+        );
+
+        // ✅ REMOVE Bootstrap card + dark styles (MAIN FIX)
+        clean = System.Text.RegularExpressions.Regex.Replace(
+            clean,
+            @"\b(card|card-body|shadow-sm|mb-\d+|bg-dark|text-white)\b",
+            "",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase
+        );
+
+        // ✅ FORCE WHITE BACKGROUND
+        clean = System.Text.RegularExpressions.Regex.Replace(
+            clean,
+            @"background\s*:\s*[^;]+;",
+            "background:white;",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase
+        );
+
+        return clean;
+    }
+
+    private string CleanHtml(string html)
+    {
+        if (string.IsNullOrWhiteSpace(html)) return "";
+
+        var clean = html;
+
+        // ✅ Remove SharePoint ExternalClass
+        clean = System.Text.RegularExpressions.Regex.Replace(
+            clean,
+            @"class=""ExternalClass[^""]*""",
+            "",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase
+        );
+
+        // ✅ Remove Bootstrap card classes completely
+        clean = clean.Replace("card", "")
+                     .Replace("card-body", "")
+                     .Replace("shadow-sm", "")
+                     .Replace("mb-4", "");
+
+        return clean;
+    }
+
+    private string GenerateSummary(string html)
+    {
+        if (string.IsNullOrWhiteSpace(html)) return "";
+
+        // ✅ Remove HTML tags
+        var text = System.Text.RegularExpressions.Regex.Replace(html, "<.*?>", " ");
+
+        // ✅ Trim + limit
+        text = text.Trim();
+
+        if (text.Length > 200)
+            text = text.Substring(0, 200) + "...";
+
+        return text;
+    }
+
+    private decimal CalculateScore(string html)
+    {
+        if (string.IsNullOrWhiteSpace(html)) return 0;
+
+        decimal score = 50;
+
+        if (html.Contains("<table")) score += 15;
+        if (html.Contains("<ul")) score += 10;
+        if (html.Contains("<h2")) score += 10;
+        if (html.Length > 1000) score += 15;
+
+        return Math.Min(score, 100);
     }
 
 

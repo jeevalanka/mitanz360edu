@@ -6,179 +6,24 @@
 @using Radzen
 @using Radzen.Blazor
 
-@inject NavigationManager NavigationManager
 @inject ModelContentService ModelContentService
 @inject SharePointService SharePointService
 @inject NotificationService NotificationService
 @inject DialogService DialogService
 @inject ILogger<ModelContent> Logger
 
-<PageTitle>
-    Model Content
-</PageTitle>
-
-<style>
-
-    .mc-shell {
-        min-height: 100vh;
-        background: #f5f7fb;
-        padding: 1.25rem;
-    }
-
-    .mc-main-grid {
-        display: grid;
-        grid-template-columns: 1.5fr .8fr;
-        gap: 1.25rem;
-    }
-
-    .mc-card {
-        background: white;
-        border-radius: 24px;
-        border: 1px solid #e5e7eb;
-        overflow: hidden;
-        box-shadow: 0 2px 10px rgba(0,0,0,.05);
-    }
-
-    .mc-card-header {
-        padding: 1.5rem;
-        border-bottom: 1px solid #f1f5f9;
-    }
-
-    .mc-title {
-        font-size: 2rem;
-        font-weight: 800;
-        color: #0f172a;
-    }
-
-    .mc-subtitle {
-        margin-top: .35rem;
-        color: #64748b;
-        font-size: 1rem;
-    }
-
-    .mc-toolbar {
-        display: flex;
-        gap: .75rem;
-        flex-wrap: wrap;
-        margin-top: 1.25rem;
-    }
-
-    .mc-grid-wrapper {
-        padding: 1rem;
-    }
-
-    .mc-editor {
-        padding: 1.5rem;
-    }
-
-    .mc-status-pill {
-        padding: .45rem .85rem;
-        border-radius: 999px;
-        font-size: .8rem;
-        font-weight: 800;
-    }
-
-    .mc-published {
-        background: #dcfce7;
-        color: #166534;
-    }
-
-    .mc-draft {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    .mc-type-pill {
-        background: #dbeafe;
-        color: #1d4ed8;
-        border-radius: 999px;
-        padding: .45rem .85rem;
-        font-size: .8rem;
-        font-weight: 800;
-    }
-
-    .mc-actions {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: .6rem;
-    }
-
-    .rz-datatable-data td:last-child,
-    .rz-grid-table td:last-child,
-    .rz-grid-table th:last-child {
-        width: 150px !important;
-        min-width: 150px !important;
-        max-width: 150px !important;
-        text-align: center;
-    }
-
-    .action-btn {
-        width: 42px !important;
-        height: 42px !important;
-        min-width: 42px !important;
-        padding: 0 !important;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        border-radius: 14px !important;
-        background: white !important;
-        border: 1px solid #e2e8f0 !important;
-        color: #94a3b8 !important;
-        transition: all 0.2s ease;
-    }
-
-        .action-btn .rzi {
-            font-size: 20px !important;
-        }
-
-        .action-btn:hover {
-            transform: translateY(-2px);
-        }
-
-    .active-btn {
-        background: #ea580c !important;
-        border-color: #ea580c !important;
-        color: white !important;
-        box-shadow: 0 12px 24px rgba(234,88,12,.25);
-    }
-
-    .ai-btn {
-        background: linear-gradient(135deg,#10b981,#059669) !important;
-        border: none !important;
-        color: white !important;
-        box-shadow: 0 10px 24px rgba(16,185,129,.25);
-    }
-
-    .editor-wrapper {
-        border: 1px solid #e5e7eb;
-        border-radius: 20px;
-        overflow: hidden;
-        background: white;
-    }
-
-    @@media(max-width:1200px) {
-
-        .mc-main-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-</style>
+<PageTitle>Model Content</PageTitle>
 
 <div class="mc-shell">
 
     <div class="mc-main-grid">
 
         <!-- LEFT -->
-
         <div class="mc-card">
 
             <div class="mc-card-header">
 
-                <div class="mc-title">
-                    Content Management
-                </div>
+                <div class="mc-title">Content Management</div>
 
                 <div class="mc-subtitle">
                     Enterprise educational content records
@@ -195,20 +40,20 @@
                                     Style="width:180px;" />
 
                     <RadzenDropDown TValue="string"
-                                    Data="@_contentTypeNames"
+                                    Data="@_contentTypes"
+                                    TextProperty="Title"
+                                    ValueProperty="Code"
                                     @bind-Value="_filterContentType"
                                     Placeholder="Content Type"
                                     Style="width:220px;" />
 
                     <RadzenButton Text="Refresh"
                                   Icon="refresh"
-                                  Click="@LoadAsync"
-                                  ButtonStyle="ButtonStyle.Secondary" />
+                                  Click="@LoadAsync" />
 
                     <RadzenButton Text="New Content"
                                   Icon="add_circle"
                                   Click="@CreateNew"
-                                  ButtonStyle="ButtonStyle.Primary"
                                   Style="background:#ff6b35;border:none;" />
 
                 </div>
@@ -220,80 +65,41 @@
                 <RadzenDataGrid TItem="ModelContentModel"
                                 Data="@FilteredItems"
                                 AllowPaging="true"
-                                AllowSorting="true"
-                                AllowFiltering="false"
                                 PageSize="10">
 
                     <Columns>
 
-                        <RadzenDataGridColumn TItem="ModelContentModel"
-                                              Property="Title"
-                                              Title="Title" />
+                        <RadzenDataGridColumn Property="Title" Title="Title" />
 
-                        <RadzenDataGridColumn TItem="ModelContentModel"
-                                              Property="CourseId"
-                                              Title="Course ID"
-                                              Width="120px" />
+                        <RadzenDataGridColumn Property="CourseId" Title="Course ID" />
 
-                        <RadzenDataGridColumn TItem="ModelContentModel"
-                                              Property="ModuleNo"
-                                              Title="Module"
-                                              Width="90px" />
+                        <RadzenDataGridColumn Property="ModuleNo" Title="Module" />
 
-                        <RadzenDataGridColumn TItem="ModelContentModel"
-                                              Title="Type"
-                                              Width="100px">
-
+                        <RadzenDataGridColumn Title="Type">
                             <Template Context="item">
-
                                 <span class="mc-type-pill">
-                                    @item.ContentType
+                                    @GetContentTypeTitle(item.ContentTypeCode)
                                 </span>
-
                             </Template>
-
                         </RadzenDataGridColumn>
 
-                        <RadzenDataGridColumn TItem="ModelContentModel"
-                                              Title="Status"
-                                              Width="100px">
-
+                        <RadzenDataGridColumn Title="Status">
                             <Template Context="item">
-
                                 <span class="mc-status-pill @(item.IsPublished ? "mc-published" : "mc-draft")">
                                     @(item.IsPublished ? "Published" : "Draft")
                                 </span>
-
                             </Template>
-
                         </RadzenDataGridColumn>
 
-                        <RadzenDataGridColumn TItem="ModelContentModel"
-                                              Title="Actions"
-                                              Width="150px">
-
+                        <RadzenDataGridColumn Title="Actions">
                             <Template Context="item">
-
                                 <div class="mc-actions">
 
                                     <RadzenButton Icon="visibility"
-                                                  Size="ButtonSize.Small"
-                                                  Click="@(() => SelectView(item))"
-                                                  class="@(selectedItemId == item.Id.ToString() ? "action-btn active-btn" : "action-btn")" />
-
-                                    <RadzenButton Icon="auto_awesome"
-                                                  Size="ButtonSize.Small"
-                                                  class="action-btn ai-btn"
-                                                  Click="@(() =>
-                                                                                                    {
-                                                                                                        _aiItem = item;
-                                                                                                        _aiVisible = true;
-                                                                                                    })" />
+                                                  Click="@(() => SelectView(item))" />
 
                                 </div>
-
                             </Template>
-
                         </RadzenDataGridColumn>
 
                     </Columns>
@@ -305,28 +111,17 @@
         </div>
 
         <!-- RIGHT -->
-
         <div class="mc-card">
 
             <div class="mc-card-header">
-
-                <div class="mc-title">
-                    Content Editor
-                </div>
-
-                <div class="mc-subtitle">
-                    Enterprise educational content editor
-                </div>
-
+                <div class="mc-title">Content Editor</div>
             </div>
 
             <div class="mc-editor">
 
                 @if (_selected == null)
                 {
-                    <div>
-                        Select or create content.
-                    </div>
+                    <div>Select or create content.</div>
                 }
                 else
                 {
@@ -338,158 +133,30 @@
 
                             <Tabs>
 
-                                <!-- GENERAL -->
-
                                 <RadzenTabsItem Text="General">
 
-                                    <div class="row">
+                                    <RadzenTextBox @bind-Value="_selected.Title"
+                                                   Style="width:100%;" />
 
-                                        <div class="col-md-12 mb-3">
+                                    <RadzenDropDown Data="@_courses"
+                                                    TextProperty="CourseCode"
+                                                    ValueProperty="CourseCode"
+                                                    @bind-Value="_selected.CourseId"
+                                                    Style="width:100%;" />
 
-                                            <RadzenLabel Text="Title" />
+                                    <RadzenTextBox @bind-Value="_selected.ModuleNo"
+                                                   Style="width:100%;" />
 
-                                            <RadzenTextBox @bind-Value="_selected.Title"
-                                                           Style="width:100%;" />
+                                    <!-- ✅ FIXED DROPDOWN -->
+                                    <RadzenDropDown TValue="string"
+                                                    Data="@_contentTypes"
+                                                    TextProperty="Title"
+                                                    ValueProperty="Code"
+                                                    @bind-Value="_selected.ContentTypeCode"
+                                                    Style="width:100%;" />
 
-                                        </div>
-
-                                        <div class="col-md-6 mb-3">
-
-                                            <RadzenLabel Text="Course Code" />
-
-                                            <RadzenDropDown TValue="string"
-                                                            Data="@_courses"
-                                                            TextProperty="CourseCode"
-                                                            ValueProperty="CourseCode"
-                                                            @bind-Value="_selected.CourseId"
-                                                            Placeholder="Select Course Code"
-                                                            AllowClear="true"
-                                                            Style="width:100%;" />
-
-                                        </div>
-
-                                        <div class="col-md-6 mb-3">
-
-                                            <RadzenLabel Text="Module" />
-
-                                            <RadzenTextBox @bind-Value="_selected.ModuleNo"
-                                                           Style="width:100%;" />
-
-                                        </div>
-
-                                        <div class="col-md-6 mb-3">
-
-                                            <RadzenLabel Text="Type" />
-
-                                            <RadzenDropDown TValue="string"
-                                                            Data="@_contentTypeNames.Where(x => x != "All Types")"
-                                                            @bind-Value="_selectedContentTypeName"
-                                                            Placeholder="Select Content Type"
-                                                            Style="width:100%;" />
-
-                                        </div>
-
-                                        <div class="col-md-6 mb-3">
-
-                                            <RadzenLabel Text="Duration (Minutes)" />
-
-                                            <RadzenNumeric @bind-Value="_selected.DurationMinutes"
-                                                           Style="width:100%;" />
-
-                                        </div>
-
-                                    </div>
-
-                                </RadzenTabsItem>
-
-                                <!-- CONTENT -->
-
-                                <RadzenTabsItem Text="Content">
-
-                                    <div class="mb-4">
-
-                                        <RadzenLabel Text="Content Body" />
-
-                                        <div class="editor-wrapper">
-
-                                            <RadzenHtmlEditor @bind-Value="_selected.ContentBody"
-                                                              Style="height:400px; width:100%;">
-
-                                            </RadzenHtmlEditor>
-
-                                        </div>
-
-                                    </div>
-
-                                    <div class="mb-4">
-
-                                        <RadzenLabel Text="Learning Outcomes" />
-
-                                        <RadzenTextArea @bind-Value="_selected.LearningOutcomes"
-                                                        Rows="6"
-                                                        Style="width:100%;" />
-
-                                    </div>
-
-                                </RadzenTabsItem>
-
-                                <!-- RESOURCES -->
-
-                                <RadzenTabsItem Text="Resources">
-
-                                    <div class="mb-3">
-
-                                        <RadzenLabel Text="File Url" />
-
-                                        <RadzenTextBox @bind-Value="_selected.FileUrl"
-                                                       Style="width:100%;" />
-
-                                    </div>
-
-                                    <div class="mb-3">
-
-                                        <RadzenLabel Text="Resource Url" />
-
-                                        <RadzenTextBox @bind-Value="_selected.ResourceUrl"
-                                                       Style="width:100%;" />
-
-                                    </div>
-
-                                </RadzenTabsItem>
-
-                                <!-- SETTINGS -->
-
-                                <RadzenTabsItem Text="Settings">
-
-                                    <div class="mb-3">
-
-                                        <RadzenCheckBox @bind-Value="_selected.IsPublished" />
-
-                                        <span style="margin-left:.5rem;">
-                                            Published
-                                        </span>
-
-                                    </div>
-
-                                    <div class="mb-3">
-
-                                        <RadzenCheckBox @bind-Value="_selected.IsMandatory" />
-
-                                        <span style="margin-left:.5rem;">
-                                            Mandatory
-                                        </span>
-
-                                    </div>
-
-                                    <div class="mb-3">
-
-                                        <RadzenCheckBox @bind-Value="_selected.IsVisibleToStudents" />
-
-                                        <span style="margin-left:.5rem;">
-                                            Visible To Students
-                                        </span>
-
-                                    </div>
+                                    <RadzenNumeric @bind-Value="_selected.DurationMinutes"
+                                                   Style="width:100%;" />
 
                                 </RadzenTabsItem>
 
@@ -497,25 +164,8 @@
 
                         </RadzenTabs>
 
-                        <div style="margin-top:1.5rem;display:flex;gap:1rem;">
-
-                            <RadzenButton Text="Save"
-                                          Icon="save"
-                                          ButtonType="ButtonType.Submit"
-                                          ButtonStyle="ButtonStyle.Primary" />
-
-                            <RadzenButton Text="Delete"
-                                          Icon="delete"
-                                          Click="@DeleteAsync"
-                                          ButtonStyle="ButtonStyle.Danger"
-                                          Visible="@(_selected != null && _selected.Id > 0)" />
-
-                            <RadzenButton Text="Cancel"
-                                          Icon="close"
-                                          Click="@CancelEdit"
-                                          ButtonStyle="ButtonStyle.Light" />
-
-                        </div>
+                        <RadzenButton Text="Save"
+                                      ButtonType="ButtonType.Submit" />
 
                     </RadzenTemplateForm>
                 }
@@ -528,27 +178,17 @@
 
 </div>
 
-<!-- DETACHED AI COMPONENT -->
-
-<AiInsightPanel Visible="@_aiVisible"
-                VisibleChanged="@OnAiVisibleChanged"
-                ContentItem="@_aiItem" />
-
 @code {
 
-    private List<ModelContentModel> _items = [];
-
-    private IReadOnlyList<CourseModel> _courses = [];
+    private List<ModelContentModel> _items = new();
+    private List<ReferenceDataItem> _contentTypes = new();
+    private IReadOnlyList<CourseModel> _courses = new List<CourseModel>();
 
     private ModelContentModel? _selected;
 
-    private string _search = string.Empty;
-
-    private string? selectedItemId;
-
-    private bool _aiVisible;
-
-    private ModelContentModel? _aiItem;
+    private string _search = "";
+    private string _filterPublished = "All";
+    private string? _filterContentType;
 
     private readonly List<string> _publishFilters =
     [
@@ -557,43 +197,10 @@
         "Draft"
     ];
 
-    private string _filterPublished = "All";
-
-    private readonly List<string> _contentTypeNames =
-    [
-        "All Types",
-        "Module",
-        "Lesson",
-        "Assessment",
-        "Quiz",
-        "Assignment",
-        "Video",
-        "Resource",
-        "Lab"
-    ];
-
-    private string _selectedContentTypeName = "Module";
-
-    private string _filterContentType = "All Types";
-
     protected override async Task OnInitializedAsync()
     {
         await LoadAsync();
     }
-
-    private IEnumerable<ModelContentModel> FilteredItems =>
-        _items
-            .Where(x =>
-                string.IsNullOrWhiteSpace(_search)
-                || x.Title.Contains(_search, StringComparison.OrdinalIgnoreCase)
-                || x.CourseId.Contains(_search, StringComparison.OrdinalIgnoreCase))
-            .Where(x =>
-                _filterContentType == "All Types"
-                || x.ContentType.ToString() == _filterContentType)
-            .Where(x =>
-                _filterPublished == "All"
-                || (_filterPublished == "Published" && x.IsPublished)
-                || (_filterPublished == "Draft" && !x.IsPublished));
 
     private async Task LoadAsync()
     {
@@ -602,153 +209,68 @@
             _items = await ModelContentService.GetAllAsync();
 
             _courses = await SharePointService.GetCoursesAsync();
+
+            _contentTypes = await SharePointService
+                .GetReferenceDataByCategoryAsync("LMS", "ContentType");
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Failed loading content.");
+            Logger.LogError(ex, "Load failed");
 
             NotificationService.Notify(
                 NotificationSeverity.Error,
-                "Load Failed",
+                "Error",
                 ex.Message);
         }
     }
+
+    private IEnumerable<ModelContentModel> FilteredItems =>
+        _items
+            .Where(x =>
+                string.IsNullOrWhiteSpace(_search)
+                || (x.Title ?? "").Contains(_search, StringComparison.OrdinalIgnoreCase))
+            .Where(x =>
+                string.IsNullOrWhiteSpace(_filterContentType)
+                || x.ContentTypeCode == _filterContentType)
+            .Where(x =>
+                _filterPublished == "All"
+                || (_filterPublished == "Published" && x.IsPublished)
+                || (_filterPublished == "Draft" && !x.IsPublished));
 
     private void CreateNew()
     {
         _selected = new ModelContentModel();
-
-        selectedItemId = null;
-
-        _selectedContentTypeName = "Module";
     }
 
-    private async Task SelectView(ModelContentModel item)
+    private void SelectView(ModelContentModel item)
     {
-        selectedItemId = item.Id.ToString();
-
         _selected = item;
-
-        _selectedContentTypeName =
-            item.ContentType.ToString();
-
-        await InvokeAsync(StateHasChanged);
     }
 
     private async Task SaveAsync()
     {
-        if (_selected == null)
+        if (_selected == null) return;
+
+        var ok = _selected.Id == 0
+            ? await ModelContentService.CreateAsync(_selected)
+            : await ModelContentService.UpdateAsync(_selected);
+
+        if (ok)
         {
-            return;
-        }
-
-        try
-        {
-            bool success;
-
-            if (_selected.Id == 0)
-            {
-                success =
-                    await ModelContentService.CreateAsync(_selected);
-            }
-            else
-            {
-                success =
-                    await ModelContentService.UpdateAsync(_selected);
-            }
-
-            if (!success)
-            {
-                NotificationService.Notify(
-                    NotificationSeverity.Error,
-                    "Save Failed",
-                    "Unable to save content.");
-
-                return;
-            }
-
-            NotificationService.Notify(
-                NotificationSeverity.Success,
-                "Saved",
-                "Content saved successfully.");
-
+            NotificationService.Notify(NotificationSeverity.Success, "Saved", "Success");
             await LoadAsync();
         }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Save failed.");
-
-            NotificationService.Notify(
-                NotificationSeverity.Error,
-                "Save Failed",
-                ex.Message);
-        }
     }
 
-    private async Task DeleteAsync()
+    // ✅ TITLE MAPPING FIX
+    private string GetContentTypeTitle(string? code)
     {
-        if (_selected == null)
-        {
-            return;
-        }
+        if (string.IsNullOrWhiteSpace(code))
+            return "N/A";
 
-        try
-        {
-            var confirm =
-                await DialogService.Confirm(
-                    $"Delete '{_selected.Title}' ?",
-                    "Confirm Delete");
+        var match = _contentTypes
+            .FirstOrDefault(x => x.Code == code);
 
-            if (confirm != true)
-            {
-                return;
-            }
-
-            var deleted =
-                await ModelContentService.DeleteAsync(_selected.Id);
-
-            if (!deleted)
-            {
-                NotificationService.Notify(
-                    NotificationSeverity.Error,
-                    "Delete Failed",
-                    "Unable to delete content.");
-
-                return;
-            }
-
-            NotificationService.Notify(
-                NotificationSeverity.Success,
-                "Deleted",
-                "Content deleted successfully.");
-
-            _selected = null;
-
-            selectedItemId = null;
-
-            await LoadAsync();
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Delete failed.");
-
-            NotificationService.Notify(
-                NotificationSeverity.Error,
-                "Delete Failed",
-                ex.Message);
-        }
-    }
-
-    private void CancelEdit()
-    {
-        _selected = null;
-
-        selectedItemId = null;
-    }
-
-    private Task OnAiVisibleChanged(bool value)
-    {
-        _aiVisible = value;
-        return Task.CompletedTask;
+        return match?.Title ?? code;
     }
 }

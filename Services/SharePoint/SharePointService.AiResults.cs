@@ -54,7 +54,6 @@ namespace MITANZ360Edu.Web.Services
 
             var fields = new Dictionary<string, object>
             {
-                { "EntityType", entityType },
                 { "Metadata", metadataJson },
                 { "Status", "Draft" }
             };

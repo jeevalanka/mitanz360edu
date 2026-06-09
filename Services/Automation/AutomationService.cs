@@ -90,14 +90,6 @@ public partial class AutomationService
 
             await _sharePointService.UpdateAIRepositoryItemAsync(item, ct);
 
-            // ✅ STEP 4 — UPLOAD DOCX
-            if (result.DocxBytes?.Length > 0)
-            {
-                await _sharePointService.UploadCourseDocAsync(
-                    item.Id,
-                    result.DocxBytes,
-                    $"{item.Title}.docx");
-            }
 
             // ✅ STEP 5 — AUDIT ✅ FIXED HERE
             await _sharePointService.WriteAuditPublicAsync(
@@ -248,14 +240,6 @@ public partial class AutomationService
             }
 
             // ✅ STEP 7 — DOC
-            if (result.DocxBytes?.Length > 0)
-            {
-                await _sharePointService.UploadCourseDocAsync(
-                    int.Parse(itemId),   // ✅ FIX HERE
-                    result.DocxBytes,
-                    $"AI-{itemId}.docx"
-                );
-            }
 
             // ✅ STEP 8 — SAVE FILES
             await _sharePointService.SaveAIResultAsync(
