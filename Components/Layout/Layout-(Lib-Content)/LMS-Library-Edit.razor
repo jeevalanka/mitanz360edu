@@ -90,7 +90,6 @@
         <RadzenColumn Size="8">
 
             <!-- GENERAL -->
-
             <RadzenCard Style="@GlassCardStyle">
                 <RadzenStack Gap="1.25rem">
                     <RadzenText TextStyle="TextStyle.H5" Style="@SectionHeaderStyle">
@@ -125,56 +124,6 @@
                 </RadzenStack>
             </RadzenCard>
 
-            <!-- EXTENDED METADATA -->
-
-            <RadzenCard Style="@GlassCardStyle">
-                <RadzenStack Gap="1rem">
-                    <RadzenText TextStyle="TextStyle.H5"
-                                Style="@SectionHeaderStyle">
-                        Extended Metadata
-                    </RadzenText>
-
-                    <RadzenTextArea @bind-Value="Model.MetadataJson"
-                                    Rows="10"
-                                    Style="@InputStyle"
-                                    Title="Structured metadata information stored in JSON format." />
-                </RadzenStack>
-            </RadzenCard>
-
-            <!-- AI -->
-
-            <RadzenCard Style="@AiCardStyle">
-                <RadzenStack Gap="1rem">
-                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem"AlignItems="AlignItems.Center">
-                        <RadzenIcon Icon="psychology" Style=" font-size:28px; color:#0078D4;" />
-                        <RadzenText TextStyle="TextStyle.H5" Style="@SectionHeaderStyle">
-                            AI Intelligence Feed
-                        </RadzenText>
-
-                        <RadzenButton Icon="psychology"
-                                      Text="Generate AI Feedback"
-                                      ButtonStyle="ButtonStyle.Primary"
-                                      Click="@GenerateAIFeedbackAsync"
-                                      Disabled="@IsAiButtonDisabled"
-                                      Busy="@IsLoading"
-                                      BusyText="AI Processing..." />
-
-                    </RadzenStack>
-
-                    <RadzenTextArea @bind-Value="Model.AiFeed"
-                                    Rows="10"
-                                    Style="@InputStyle"
-                                    Title="AI-generated summaries, intelligence insights, or recommendations." />
-                </RadzenStack>
-            </RadzenCard>
-
-        </RadzenColumn>
-
-        <!-- ============================================= -->
-        <!-- RIGHT -->
-        <!-- ============================================= -->
-
-        <RadzenColumn Size="4">
             <!-- METADATA -->
             <RadzenCard Style="@GlassCardStyle">
 
@@ -209,6 +158,81 @@
                 </RadzenStack>
 
             </RadzenCard>
+
+            <!-- EXTENDED METADATA -->
+            <RadzenCard Style="@GlassCardStyle">
+                <RadzenStack Gap="1rem">
+                    <RadzenText TextStyle="TextStyle.H5" Style="@SectionHeaderStyle">
+                        Extended Metadata
+                    </RadzenText>
+
+                    <RadzenTextArea @bind-Value="Model.MetadataJson"
+                                    ReadOnly="true"
+                                    Rows="10"
+                                    Style="@InputStyle"
+                                    Title="Structured metadata information stored in JSON format." />
+                </RadzenStack>
+            </RadzenCard>
+
+            <!-- AI -->
+            <RadzenCard Style="@AiCardStyle">
+                <RadzenStack Gap="1rem">
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem"AlignItems="AlignItems.Center">
+                        <RadzenIcon Icon="psychology" Style=" font-size:28px; color:lightskyblue;" />
+                        <RadzenText TextStyle="TextStyle.H5" Style="@SectionHeaderStyle">
+                            AI Intelligence Feed
+                        </RadzenText>
+
+                        <RadzenButton Icon="psychology"
+                                      Text="Generate AI Feedback"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Click="@GenerateAIFeedbackAsync"
+                                      Disabled="@IsAiButtonDisabled"
+                                      Busy="@IsLoading"
+                                      BusyText="AI Processing..." />
+
+                    </RadzenStack>
+
+                    <RadzenTextArea Value="Model.AiFeed"
+                                    ReadOnly="true"
+                                    Rows="10"
+                                    Style="@($"{InputStyle}; background:#f3f2f1;")"
+                                    Title="AI-generated summaries, intelligence insights, or recommendations." />
+                </RadzenStack>
+            </RadzenCard>
+
+        </RadzenColumn>
+
+        <!-- ============================================= -->
+        <!-- RIGHT -->
+        <!-- ============================================= -->
+
+        <RadzenColumn Size="4">
+
+            <!-- QUICK INFO -->
+            <RadzenCard Style="@($"{GlassCardStyle}; background:#e7f1fb;")">
+                <RadzenStack Gap="0.75rem">
+                    <RadzenText TextStyle="TextStyle.H5" Style="@SectionHeaderStyle">
+                        Quick Info
+                    </RadzenText>
+
+                    <div>
+                        <b>File:</b> @Model.Name
+                    </div>
+
+                    <div>
+                        <b>Modified:</b> @Model.LastModified?.LocalDateTime.ToString("g")
+
+                    </div>
+
+                    <div>
+                        <b>Size:</b>
+                        @FormatBytes(Model.Size)
+                    </div>
+
+                </RadzenStack>
+            </RadzenCard>
+
             <!-- GOVERNANCE -->
             <RadzenCard Style="@GlassCardStyle">
 
@@ -300,35 +324,9 @@
 
             </RadzenCard>
 
-            <!-- QUICK INFO -->
-            <RadzenCard Style="@GlassCardStyle">
+            <!-- ACTIVITY -->
+            <ActMetadataCard @bind-Value="Model.ACTMetaJson" />
 
-                <RadzenStack Gap="0.75rem">
-
-                    <RadzenText TextStyle="TextStyle.H5"
-                                Style="@SectionHeaderStyle">
-
-                        Quick Info
-
-                    </RadzenText>
-
-                    <div>
-                        <b>File:</b> @Model.Name
-                    </div>
-
-                    <div>
-                        <b>Modified:</b> @Model.LastModified?.LocalDateTime.ToString("g")
-
-                    </div>
-
-                    <div>
-                        <b>Size:</b>
-                        @FormatBytes(Model.Size)
-                    </div>
-
-                </RadzenStack>
-
-            </RadzenCard>
         </RadzenColumn>
 
     </RadzenRow>
@@ -355,25 +353,30 @@
                           Text="Open Online"
                           ButtonStyle="ButtonStyle.Primary"
                           Click="@OpenOnline"
-                          Style="@ActionButtonStyle" />
+                          Style="@ActionButtonStyle"
+                          title="Open this item in the online view" />
 
             <RadzenButton ButtonStyle="ButtonStyle.Primary"
                           Icon="save"
                           Text="Save Changes"
                           Click="@SaveAsync"
-                          Style="@ActionButtonStyle" />
+                          Style="@ActionButtonStyle"
+                          title="Save all changes made to this item" />
 
             <RadzenButton Icon="delete"
                           Text="Delete"
                           ButtonStyle="ButtonStyle.Primary"
                           Click="@ConfirmDeleteAsync"
-                          Style="@ActionButtonStyle" />
+                          Style="@ActionButtonStyle"
+                          title="Permanently delete this item (cannot be undone)" />
 
             <RadzenButton ButtonStyle="ButtonStyle.Warning"
                           Icon="close"
                           Text="Cancel"
                           Click="@BackToLibrary"
-                          Style="@ActionButtonStyle" />
+                          Style="@ActionButtonStyle"
+                          title="Cancel and return without saving changes" />
+
 
         </RadzenStack>
 
@@ -474,74 +477,75 @@
     // =====================================================
     protected override async Task OnParametersSetAsync()
     {
-        // Load Course from SharePoint
-        Courses = await SharePointService.GetCoursesAsync();
-        // ✅ ✅ ADD THESE
-        ContentTypes = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "ContentType");
-        SourceTypes = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "SourceType");
-        CourseModels = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "CourseModelType");
-        Countries = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "Country");
-
-
-        if (string.IsNullOrWhiteSpace(Id))
+        try
         {
-            Model = new LibraryItem
+            // =====================================================
+            // ✅ VALIDATION: Prevent invalid navigation / refresh
+            // =====================================================
+            if (string.IsNullOrWhiteSpace(Id))
             {
-                ContentId = SharePointService.GenerateContentId(),
-                IsPublished = true,
-                Source = "Internal"
-            };
+                NavigationManager.NavigateTo("/lms-library-introduction", true);
+                return;
+            }
 
-            return;
-        }
+            // =====================================================
+            // Load reference data
+            // =====================================================
+            Courses = await SharePointService.GetCoursesAsync();
+            ContentTypes = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "ContentType");
+            SourceTypes = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "SourceType");
+            CourseModels = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "CourseModelType");
+            Countries = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "Country");
 
-        // -----------------------------------------------------
-        // Resolve LMS Drive
-        // -----------------------------------------------------
-        var driveId = await SharePointService.GetPublicLmsDriveIdAsync();
+            // =====================================================
+            // Get LMS Drive
+            // =====================================================
+            var driveId = await SharePointService.GetPublicLmsDriveIdAsync();
 
-        // -----------------------------------------------------
-        // Load SharePoint item + metadata
-        // -----------------------------------------------------
-        var item = await SharePointService.GetItemAsync(driveId, Id);
-        if (item == null)
-        {
-            NotificationService.Notify(NotificationSeverity.Error, "Not Found", "Document not found");
-            return;
-        }
+            // =====================================================
+            // Load item
+            // =====================================================
+            var item = await SharePointService.GetItemAsync(driveId, Id);
 
-        // -----------------------------------------------------
-        // Bind model
-        // -----------------------------------------------------
-        Model = item;
-
-        // -----------------------------------------------------
-        // ✅ Restore SelectedCountry from MetadataJson
-        // -----------------------------------------------------
-        if (!string.IsNullOrWhiteSpace(Model.MetadataJson))
-        {
-            try
+            // =====================================================
+            // ✅ HARD GUARD: If item not found → redirect
+            // =====================================================
+            if (item == null)
             {
-                var metadata = JsonSerializer.Deserialize<Dictionary<string, object>>(Model.MetadataJson);
+                NavigationManager.NavigateTo("/lms-library-introduction", true);
+                return;
+            }
 
-                if (metadata != null)
+            Model = item;
+
+            // =====================================================
+            // ✅ Restore metadata safely
+            // =====================================================
+            if (!string.IsNullOrWhiteSpace(Model.MetadataJson))
+            {
+                try
                 {
-                    // ✅ COUNTRY
-                    if (metadata.TryGetValue("CountryCode", out var countryCode))
+                    var metadata = JsonSerializer.Deserialize<Dictionary<string, object>>(Model.MetadataJson);
+
+                    if (metadata != null && metadata.TryGetValue("CountryCode", out var countryCode))
                     {
                         SelectedCountry = countryCode?.ToString();
                     }
-
-
+                }
+                catch
+                {
+                    // ignore invalid JSON
                 }
             }
-            catch
-            {
-                // ignore invalid JSON
-            }
+        }
+        catch
+        {
+            // =====================================================
+            // ✅ GLOBAL FAILSAFE: Redirect on ANY failure
+            // =====================================================
+            NavigationManager.NavigateTo("/lms-library-introduction", true);
         }
     }
-
     // =====================================================
     // SAVE
     // =====================================================
@@ -549,27 +553,14 @@
     {
         try
         {
-            var driveId =
-                await SharePointService.GetPublicLmsDriveIdAsync();
-
-            await SharePointService.UpdateLibraryItemAsync(
-                driveId,
-                Id,
-                Model);
-
-            NotificationService.Notify(
-                NotificationSeverity.Success,
-                "Success",
-                "Content updated successfully.");
-
+            var driveId = await SharePointService.GetPublicLmsDriveIdAsync();
+            await SharePointService.UpdateLibraryItemAsync(driveId,Id,Model);
+            NotificationService.Notify(NotificationSeverity.Success,"Success","Content updated successfully.");
             NavigationManager.NavigateTo("/lms-library-introduction");
         }
         catch (Exception ex)
         {
-            NotificationService.Notify(
-                NotificationSeverity.Error,
-                "Error",
-                ex.Message);
+            NotificationService.Notify(NotificationSeverity.Error,"Error",ex.Message);
         }
     }
 
@@ -751,8 +742,9 @@
 
         metadata["CourseId"] = selected.CourseCode;
         metadata["CourseTitle"] = selected.Title;
-        metadata["CourseLearningOutcomes"] = selected.LearningOutcomes;
-        metadata["CourseDescription"] = selected.Description;
+
+        metadata["CourseDescription"] = ContentCleaner.CleanForLms(selected.Description);
+        metadata["CourseLearningOutcomes"] = ContentCleaner.CleanForLms(selected.LearningOutcomes);
 
         // =====================================================
         // SAVE UPDATED METADATA
@@ -934,6 +926,8 @@
         return WebUtility.HtmlDecode(doc.DocumentNode.InnerText)
                          .Trim();
     }
+
+
 }
 
 <style>

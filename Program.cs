@@ -177,6 +177,55 @@ var app = builder.Build();
 
 #endregion
 
+#region ✅ DOCUMENT PROXY API (MINIMAL API)
+
+app.MapGet("/api/documents/view/{id}", async (
+    string id,
+    SharePointService sp,
+    HttpContext context) =>
+{
+    if (string.IsNullOrWhiteSpace(id))
+        return Results.BadRequest();
+
+    try
+    {
+        var stream = await sp.DownloadFileAsync(id);
+
+        var fileName = context.Request.Query["name"].ToString();
+
+        var ext = Path.GetExtension(fileName).ToLower();
+
+        var contentType = ext switch
+        {
+            ".pdf" => "application/pdf",
+
+            ".html" => "text/html",
+            ".htm" => "text/html",
+
+            ".png" => "image/png",
+            ".jpg" => "image/jpeg",
+            ".jpeg" => "image/jpeg",
+            ".gif" => "image/gif",
+
+            ".mp4" => "video/mp4",
+            ".webm" => "video/webm",
+            ".mov" => "video/quicktime",
+
+            _ => "application/octet-stream"
+        };
+
+        return Results.File(
+            stream,
+            contentType,
+            enableRangeProcessing: true);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"File error: {ex.Message}");
+    }
+});
+#endregion
+
 #region 🧱 DATABASE INITIALIZATION
 
 using (var scope = app.Services.CreateScope())
@@ -187,9 +236,7 @@ using (var scope = app.Services.CreateScope())
         services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>();
 
     await using var db = await factory.CreateDbContextAsync();
-
     await db.Database.MigrateAsync();
-
     await DbInitializer.SeedAsync(services);
     await EnsureSysAdminAsync(services);
 }

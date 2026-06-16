@@ -231,7 +231,7 @@ public partial class SharePointService
     {
         var timestamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
         var random = Random.Shared.Next(1000, 9999);
-        return $"CID-{timestamp}-{random}";
+        return $"ACT-{timestamp}-{random}";
     }
 
     public async Task<int?> GetExistingCourseIdAsync(string courseName, string courseCode)

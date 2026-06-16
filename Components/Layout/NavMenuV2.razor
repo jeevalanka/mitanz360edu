@@ -20,12 +20,11 @@
                         NavItem("/sysdashboard","bi-speedometer2","Dashboard"),
                         NavItem("/admin/system-settings","bi-gear-wide-connected","System Values"),
                         NavItem("/system-doctor","bi-heart-pulse","Sys Doctor"),
-                        NavItem("/document-viewer","bi-file-earmark-text","Req-Files"),
                         NavItem("/lms-library-CRUD","bi-collection","LMS-Library"),
-                        NavItem("/lms-library-introduction","bi-book","Documents-Lib"),
                         NavItem("/admin/ai-configuration","bi-cpu","AI-Workflow"),
-                        NavItem("/course-builder","bi-cpu","New Course+AI"),
+                        NavItem("/course-builder","bi-cpu","Course-Builder"),
                         NavItem("/reference-data/LMS","bi-cpu","Referance List"),
+                        NavItem("/app-nav-cards","bi-grid-1x2-fill","Navigation Cards"),
                     })
                 }
 
@@ -36,10 +35,10 @@
                         NavItem("/lms-dashboard","bi-speedometer2","Dashboard"),
                         NavItem("/users","bi-people-fill","Users"),
                         NavItem("/admin/roles","bi-shield-lock-fill","Roles"),
-                        NavItem("/delete-user","bi-person-x-fill","Delete"),
-                        NavItem("/courses","bi-journal-bookmark-fill","Courses"),
-                        NavItem("/model-content","bi-kanban-fill","Content(Mod)"),
-                        NavItem("/app-nav-cards","bi-grid-1x2-fill","Navigation Cards"),
+                        NavItem("/delete-user","bi-person-x-fill","Delete Users"),
+                        NavItem("/courses","bi-journal-bookmark-fill","Course+Cont"),
+                        NavItem("/App-Info-viewer-admin","bi-file-earmark-text","Edit-Infomation"),
+                        NavItem("/lms-library-introduction","bi-book","Documents-Lib"),
                     })
                 }
 
@@ -70,6 +69,7 @@
                         NavItem("/ai-ops-info","bi-cpu-fill","Automation")
                     })
                 }
+
                 @if (true)
                 {
                     @MenuGroup("Tools", "tools", new[]
@@ -101,11 +101,9 @@
             @MenuGroup("Guest", "guest", new[]
             {
                 NavItem("/","bi-house-door-fill","Home"),
-                NavItem("/content-viewer?file=about.html","bi-info-circle-fill","About"),
+                NavItem("/App-Info-viewer-all","bi-file-earmark-text","Infomation"),
                 NavItem("/contact","bi-envelope-fill","Contact"),
                 NavItem("/xlogin","bi-box-arrow-in-right","Login"),
-                NavItem("/help-documents","bi-folder2-open","Help Docs")
-
             })
 
         </div>

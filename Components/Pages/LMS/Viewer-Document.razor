@@ -1,0 +1,150 @@
+﻿@page "/document/{Id}"
+@layout MainLayout_No_Left_RightPan
+
+
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<div class="viewer">
+
+    <div class="header">
+        <button @onclick="GoBack">← Back</button>
+        <span>@FileName</span>
+    </div>
+
+    <div class="body">
+
+        @if (IsPdf)
+        {
+            <iframe src="@FileUrl"></iframe>
+        }
+        else if (IsImage)
+        {
+            <img src="@FileUrl" class="image-preview" />
+        }
+        else if (IsVideo)
+        {
+            <video class="video-player"
+                   controls
+                   playsinline
+                   preload="metadata">
+                <source src="@FileUrl">
+                Your browser does not support video playback.
+            </video>
+        }
+        else if (IsHtml)
+        {
+            <iframe src="@FileUrl" width="100%" height="100%"></iframe>
+        }
+        @if (IsOffice)
+        {
+            <iframe src="@OfficeViewerUrl"
+                    width="100%"
+                    height="100%"
+                    frameborder="0">
+            </iframe>
+        }
+    </div>
+
+</div>
+
+<style>
+    .video-player {
+        width: 100%;
+        height: 100%;
+        background: black;
+        object-fit: contain;
+    }
+
+    .image-preview {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .image-preview {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .viewer {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .header {
+        height: 60px;
+        background: #0a1f44;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .body {
+        flex: 1;
+    }
+
+    iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    .fallback {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        flex-direction: column;
+    }
+
+</style>
+
+@code {
+
+    [Parameter] public string Id { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "name")]
+    public string? Name { get; set; }
+    private string FileName => Name ?? "Document";
+    private string FileUrl => $"/api/documents/view/{Id}?name={Uri.EscapeDataString(FileName)}";
+    private bool IsPdf => FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+    private string OfficeViewerUrl =>
+        $"https://view.officeapps.live.com/op/embed.aspx?src={Uri.EscapeDataString(AbsoluteFileUrl)}";
+    private string AbsoluteFileUrl =>
+        $"{Nav.BaseUri.TrimEnd('/')}/api/documents/view/{Id}?name={Uri.EscapeDataString(FileName)}";
+
+    private bool IsHtml =>
+        FileName.EndsWith(".html", StringComparison.OrdinalIgnoreCase) ||
+        FileName.EndsWith(".htm", StringComparison.OrdinalIgnoreCase);
+
+    private bool IsImage =>
+        FileName.EndsWith(".png") ||
+        FileName.EndsWith(".jpg") ||
+        FileName.EndsWith(".jpeg");
+
+    private bool IsVideo =>
+        FileName.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) ||
+        FileName.EndsWith(".webm", StringComparison.OrdinalIgnoreCase) ||
+        FileName.EndsWith(".mov", StringComparison.OrdinalIgnoreCase) ||
+        FileName.EndsWith(".avi", StringComparison.OrdinalIgnoreCase);
+
+    private bool IsOffice =>
+        FileName.EndsWith(".docx", StringComparison.OrdinalIgnoreCase) ||
+        FileName.EndsWith(".doc", StringComparison.OrdinalIgnoreCase) ||
+        FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase) ||
+        FileName.EndsWith(".xls", StringComparison.OrdinalIgnoreCase) ||
+        FileName.EndsWith(".pptx", StringComparison.OrdinalIgnoreCase) ||
+        FileName.EndsWith(".ppt", StringComparison.OrdinalIgnoreCase) ||
+        FileName.EndsWith(".vsdx", StringComparison.OrdinalIgnoreCase);
+
+    private async Task GoBack()
+    {
+        await JS.InvokeVoidAsync("history.back");
+    }
+}

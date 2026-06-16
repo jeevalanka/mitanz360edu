@@ -1,10 +1,10 @@
 ﻿@page "/courses"
 @layout MainLayout_NoRightPan
 
-
 @using MITANZ360Edu.Web.Models
 @using MITANZ360Edu.Web.Services
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components
 @using Radzen
 
 @inject DialogService DialogService
@@ -15,13 +15,11 @@
 
 <AuthorizeView Roles="Admin,SysAdmin">
     <Authorized>
-
         <RadzenButton Text="Add Course"
                       Icon="add_circle"
                       Class="btn-add"
                       ButtonStyle="ButtonStyle.Primary"
                       Click="@(() => Nav.NavigateTo("/courses/edit/0"))" />
-
     </Authorized>
 </AuthorizeView>
 
@@ -36,108 +34,54 @@ else if (courses.Count == 0)
 else
 {
     <div class="card-grid">
-
         @foreach (var c in courses)
         {
             <div class="course-card glass">
 
-                <!-- ===================================================== -->
                 <!-- IMAGE -->
-                <!-- ===================================================== -->
-
                 <img src="@GetImageUrl(c.ImageUrl)"
                      class="course-image"
                      onerror="this.onerror=null;this.src='/Images/Courses/AI-Edu.png';" />
 
-                <!-- ===================================================== -->
-                <!-- BODY -->
-                <!-- ===================================================== -->
-
                 <div class="course-body">
 
                     <!-- TITLE -->
-
-                    <h5>
-                        @(string.IsNullOrWhiteSpace(c.Title)
-                            ? "Untitled Course"
-                            : c.Title)
-                    </h5>
+                    <h5>@(string.IsNullOrWhiteSpace(c.Title) ? "Untitled Course" : c.Title)</h5>
 
                     <!-- CATEGORY -->
-
                     <span class="tag">
-
-                        @(string.IsNullOrWhiteSpace(c.CourseCategory)
-                            ? "General"
-                            : c.CourseCategory)
-
+                        @(!string.IsNullOrWhiteSpace(c.CourseCategory) ? c.CourseCategory : "General")
                     </span>
 
                     <!-- DETAILS -->
-
                     <div class="course-details">
-                        <div>
-                            <strong>ID:</strong>
-                            @(string.IsNullOrWhiteSpace(c.Id.ToString())
-                                ? "-"
-                                : c.Id)
-                        </div>
-
-                        <div>
-                            <strong>Code:</strong>
-                            @(string.IsNullOrWhiteSpace(c.CourseCode)
-                                ? "-"
-                                : c.CourseCode)
-                        </div>
-
-                        <div>
-                            <strong>Level:</strong>
-                            @(string.IsNullOrWhiteSpace(c.Level)
-                                ? "-"
-                                : c.Level)
-                        </div>
-
-                        <div>
-                            <strong>Delivery:</strong>
-                            @(string.IsNullOrWhiteSpace(c.DeliveryMode)
-                                ? "-"
-                                : c.DeliveryMode)
-                        </div>
-
-                        <div>
-                            <strong>Credits:</strong>
-                            @(c.CreditValue?.ToString("0") ?? "0")
-                        </div>
-
-                        <div>
-                            <strong>Duration:</strong>
-                            @(c.DurationMinutes?.ToString("0") ?? "0") mins
-                        </div>
-
+                        <div><strong>ID:</strong> @c.Id</div>
+                        <div><strong>Code:</strong> @c.CourseCode</div>
+                        <div><strong>Level:</strong> @c.Level</div>
+                        <div><strong>Delivery:</strong> @c.DeliveryMode</div>
+                        <div><strong>Credits:</strong> @(c.CreditValue?.ToString("0") ?? "0")</div>
+                        <div><strong>Duration:</strong> @(c.DurationMinutes?.ToString("0") ?? "0") mins</div>
                     </div>
 
-                    <!-- ===================================================== -->
                     <!-- BUTTONS -->
-                    <!-- ===================================================== -->
-
                     <div class="btn-group">
 
-                        <!-- OPEN -->
-
+                        <!-- ✅ IMPORTANT: PASS COURSE NAME -->
                         <RadzenButton Text="Open"
                                       Icon="launch"
                                       Size="ButtonSize.Small"
                                       ButtonStyle="ButtonStyle.Primary"
-                                      Disabled="@(c.Id <= 0)"
-                                      Click="@(() => Nav.NavigateTo($"/course/{c.Id}"))" />
+                                      Click="@(() => OpenCourseInfo(c))" />
 
-                        <!-- ADMIN BUTTONS -->
+                        <!-- ✅ same fix here -->
+                        <RadzenButton Text="Models"
+                                      Icon="dashboard"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Secondary"
+                                      Click="@(() => OpenCourse(c))" />
 
                         <AuthorizeView Roles="Admin,SysAdmin">
-
                             <Authorized>
-
-                                <!-- EDIT -->
 
                                 <RadzenButton Text="Edit"
                                               Icon="edit"
@@ -145,66 +89,38 @@ else
                                               ButtonStyle="ButtonStyle.Warning"
                                               Click="@(() => Nav.NavigateTo($"/courses/edit/{c.Id}"))" />
 
-                                <!-- CLONE -->
-
                                 <RadzenButton Text="Clone"
                                               Icon="content_copy"
                                               Size="ButtonSize.Small"
                                               ButtonStyle="ButtonStyle.Info"
-                                              Click="@(() => ConfirmClone(c.Id, c.Title))" />
-
-                                <!-- MODELS -->
-
-                                <RadzenButton Text="Models"
-                                              Icon="dashboard"
-                                              Size="ButtonSize.Small"
-                                              ButtonStyle="ButtonStyle.Secondary"
-                                              Click="@(() => Nav.NavigateTo($"/modelcontent/{c.CourseCode}"))" />
-
-                                <!-- DELETE -->
+                                              Click="@(() => ConfirmClone(c.Id, c.Title))" />  
 
                                 <RadzenButton Text="Delete"
                                               Icon="delete"
                                               Size="ButtonSize.Small"
                                               ButtonStyle="ButtonStyle.Danger"
                                               Click="@(() => ConfirmDelete(c.Id, c.Title))" />
-
                             </Authorized>
 
                         </AuthorizeView>
 
                     </div>
-
                 </div>
-
             </div>
         }
-
     </div>
 }
 
 @code {
 
-    // ======================================================
-    // STATE
-    // ======================================================
-
     private List<CourseModel> courses = new();
-
     private bool isLoading = true;
-
-    // ======================================================
-    // INITIALIZE
-    // ======================================================
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            courses =
-                (await SharePointService.GetCoursesAsync())
-                ?.ToList()
-                ?? new List<CourseModel>();
+            courses = (await SharePointService.GetCoursesAsync())?.ToList() ?? new();
         }
         finally
         {
@@ -212,184 +128,76 @@ else
         }
     }
 
-    // ======================================================
-    // IMAGE URL
-    // ======================================================
+    // ✅ Navigate to Course Information Page by CourseId only
+    private void OpenCourseInfo(CourseModel course)
+    {
+        if (course == null) return;
 
-    private static string GetImageUrl(
-        string? imageUrl)
+        Nav.NavigateTo($"/course/{course.Id}");
+    }
+
+    // ✅ ✅ ✅ FINAL FIX — SINGLE SOURCE OF TRUTH
+    private void OpenCourse(CourseModel course)
+    {
+        if (course == null || string.IsNullOrWhiteSpace(course.FolderId))
+            return;
+
+        // ✅ FORCE correct display name (fallback logic)
+        var displayName = !string.IsNullOrWhiteSpace(course.CourseCode)
+            ? course.CourseCode        // ✅ USE THIS (Test001)
+            : course.Title ?? "Course";
+
+        var safeName = Uri.EscapeDataString(displayName);
+
+        Nav.NavigateTo($"/course/{course.FolderId}?name={safeName}");
+    }
+
+    private static string GetImageUrl(string? imageUrl)
     {
         if (string.IsNullOrWhiteSpace(imageUrl))
-        {
             return "/Images/Courses/AI-Edu.png";
-        }
 
-        return imageUrl.StartsWith(
-            "http",
-            StringComparison.OrdinalIgnoreCase)
-                ? imageUrl
-                : $"/Images/Courses/{imageUrl}";
+        return imageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+            ? imageUrl
+            : $"/Images/Courses/{imageUrl}";
     }
 
-    // ======================================================
-    // DELETE CONFIRMATION
-    // ======================================================
-
-    private async Task ConfirmDelete(
-        int courseId,
-        string? title)
+    private async Task ConfirmDelete(int courseId, string? title)
     {
-        var enrollmentCount =
-            await SharePointService
-                .GetEnrollmentCountAsync(courseId);
-
-        if (enrollmentCount > 0)
-        {
-            await DialogService.Alert(
-                $"The course \"{title ?? "this course"}\" has " +
-                $"{enrollmentCount} enrollment(s) and cannot be deleted.",
-                "Delete Blocked");
-
-            return;
-        }
-
-        var confirmed =
-            await DialogService.OpenAsync<ConfirmDeleteDialog>(
-                "Confirm Delete",
-                new Dictionary<string, object?>
-                {
-                    ["Title"] = title ?? "this course"
-                },
-                new DialogOptions
-                {
-                    Width = "420px",
-                    CloseDialogOnOverlayClick = false
-                });
-
-        if (confirmed == true)
-        {
-            try
-            {
-                await SharePointService.DeleteCourseAsync(courseId);
-
-                // ✅ REMOVE FROM UI (IMPORTANT)
-                courses = courses
-                    .Where(c => c.Id != courseId)
-                    .ToList();
-
-                StateHasChanged();
-            }
-            catch (Exception ex)
-            {
-                await DialogService.Alert(
-                    ex.Message,
-                    "Delete Failed");
-            }
-        }
-    }
-
-    // ======================================================
-    // CLONE COURSE
-    // ======================================================
-
-    private async Task ConfirmClone(
-        int courseId,
-        string? title)
-    {
-        var confirmed =
-            await DialogService.Confirm(
-                $"Do you want to duplicate \"{title}\" ?",
-                "Confirm Clone",
-                new ConfirmOptions
-                {
-                    OkButtonText = "Clone",
-                    CancelButtonText = "Cancel"
-                });
-
-        if (confirmed != true)
-        {
-            return;
-        }
-
         try
         {
-            // LOAD ORIGINAL
+            await SharePointService.DeleteCourseAsync(courseId);
 
-            var original =
-                await SharePointService
-                    .GetCourseByIdAsync(courseId);
-
-            if (original == null)
-            {
-                await DialogService.Alert(
-                    "Original course not found.",
-                    "Clone Failed");
-
-                return;
-            }
-
-            // CREATE DUPLICATE
-
-            var clone = new CourseModel
-            {
-                // IMPORTANT
-                Id = 0,
-
-                // CORE
-                Title = $"{original.Title} (Copy)",
-                CourseCode = $"{original.CourseCode}-COPY",
-
-                // CLASSIFICATION
-                CourseCategory = original.CourseCategory,
-                CourseContentType = original.CourseContentType,
-                CourseType = original.CourseType,
-                Level = original.Level,
-                Language = original.Language,
-
-                // STATUS
-                CourseStatus = original.CourseStatus,
-                ApprovalStatus = original.ApprovalStatus,
-                Archived = false,
-                CourseVersion = original.CourseVersion,
-                EffectiveFrom = original.EffectiveFrom,
-
-                // DELIVERY
-                DeliveryMode = original.DeliveryMode,
-                IsSelfPaced = original.IsSelfPaced,
-                EnrollmentOpen = original.EnrollmentOpen,
-                EnrollmentType = original.EnrollmentType,
-                DurationMinutes = original.DurationMinutes,
-                CreditValue = original.CreditValue,
-
-                // CONTENT
-                Description = original.Description,
-                LearningOutcomes = original.LearningOutcomes,
-
-                // CERTIFICATION
-                CertificateIssued =
-                    original.CertificateIssued,
-
-                // IMAGE
-                ImageUrl = original.ImageUrl
-            };
-
-            // SAVE NEW RECORD
-
-            var newId =
-                await SharePointService
-                    .CreateCourseAsync(clone);
-
-            // REDIRECT TO EDIT PAGE
-
-            Nav.NavigateTo(
-                $"/courses/edit/{newId}");
+            courses = courses.Where(c => c.Id != courseId).ToList();
         }
         catch (Exception ex)
         {
-            await DialogService.Alert(
-                ex.Message,
-                "Clone Failed");
+            await DialogService.Alert(ex.Message, "Delete Failed");
         }
+    }
+
+    private async Task ConfirmClone(int courseId, string? title)
+    {
+        var original = await SharePointService.GetCourseByIdAsync(courseId);
+
+        if (original == null)
+        {
+            await DialogService.Alert("Course not found", "Error");
+            return;
+        }
+
+        var clone = new CourseModel
+        {
+            Title = original.Title + " (Copy)",
+            CourseCode = original.CourseCode + "-COPY",
+            CourseCategory = original.CourseCategory,
+            CourseType = original.CourseType,
+            Level = original.Level
+        };
+
+        var newId = await SharePointService.CreateCourseAsync(clone);
+
+        Nav.NavigateTo($"/courses/edit/{newId}");
     }
 }
 

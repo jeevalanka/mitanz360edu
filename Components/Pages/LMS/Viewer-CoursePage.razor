@@ -1,0 +1,45 @@
+﻿@page "/course-viewer"
+
+@using MITANZ360Edu.Web.Models
+@inject SharePointService SharePointService
+
+<RadzenCard Style="padding:20px;">
+
+    <RadzenText TextStyle="TextStyle.H5">
+        Select Course
+    </RadzenText>
+
+    <RadzenDropDown Data="@Courses"
+                    TextProperty="Title"
+                    ValueProperty="FolderId"
+                    @bind-Value="SelectedFolderId"
+                    Placeholder="Select Course"
+                    Style="width:100%; margin-top:10px;" />
+
+</RadzenCard>
+
+@if (!string.IsNullOrWhiteSpace(SelectedFolderId))
+{
+    <!-- ✅ INITIATE VIEWER -->
+    <Viewer_CourseFolder FolderId="@SelectedFolderId" />
+}
+
+@code {
+
+    // ✅ FIX: use IReadOnlyList (NOT List)
+    private IReadOnlyList<CourseModel> Courses = [];
+
+    private string? SelectedFolderId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // ✅ NO CONVERSION NEEDED
+        Courses = await SharePointService.GetCoursesAsync();
+
+        // ✅ Auto-initiate first course
+        if (Courses.Any() && !string.IsNullOrWhiteSpace(Courses.First().FolderId))
+        {
+            SelectedFolderId = Courses.First().FolderId;
+        }
+    }
+}

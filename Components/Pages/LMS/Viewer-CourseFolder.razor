@@ -1,0 +1,186 @@
+﻿
+@inject SharePointService SharePointService
+@inject IJSRuntime JS
+
+<div style="display:flex; gap:16px; height:80vh;">
+
+    <!-- ========================= -->
+    <!-- LEFT PANEL (FILES) -->
+    <!-- ========================= -->
+    <div style="
+        width:30%;
+        overflow:auto;
+        border-radius:20px;
+        padding:16px;
+        background:rgba(255,255,255,0.6);
+        backdrop-filter:blur(14px);
+        box-shadow:0 8px 24px rgba(0,0,0,0.1);">
+
+        <RadzenText TextStyle="TextStyle.H5" style="font-weight:700;">
+            📂 Documents
+        </RadzenText>
+
+        @if (Files == null)
+        {
+            <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" style="margin-top:20px;" />
+        }
+        else if (!Files.Any())
+        {
+            <p>No documents found</p>
+        }
+        else
+        {
+            @foreach (var file in Files)
+            {
+                <div @onclick="@(() => SelectFile(file))"
+                     style="
+                    padding:12px;
+                    margin-top:8px;
+                    border-radius:14px;
+                    cursor:pointer;
+                    transition:0.2s;
+                    background:@(file == SelectedFile ? "#0078D4" : "transparent");
+                    color:@(file == SelectedFile ? "white" : "black");">
+
+                    <div style="font-weight:600;">
+                        @GetFileIcon(file.ContentType) @file.Name
+                    </div>
+
+                    <div style="font-size:11px;">
+                        @FormatBytes(file.Size)
+                    </div>
+                </div>
+            }
+        }
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- RIGHT PANEL (VIEWER) -->
+    <!-- ========================= -->
+    <div style="
+        width:70%;
+        border-radius:20px;
+        padding:16px;
+        background:rgba(255,255,255,0.6);
+        backdrop-filter:blur(14px);
+        box-shadow:0 8px 24px rgba(0,0,0,0.1);">
+
+        @if (SelectedFile == null)
+        {
+            <div style="text-align:center; margin-top:120px;">
+                <RadzenIcon Icon="cloud_upload" style="font-size:60px;" />
+                <p>Select a document to preview</p>
+            </div>
+        }
+        else
+        {
+            <div style="display:flex; justify-content:space-between;">
+                <RadzenText TextStyle="TextStyle.H6">
+                    @SelectedFile.Name
+                </RadzenText>
+
+                <RadzenButton Icon="download"
+                              Text="Download"
+                              Click="@(() => DownloadFile(SelectedFile.Id))" />
+            </div>
+
+            <div style="margin-top:10px; height:100%;">
+
+                @if (IsLoading)
+                {
+                    <div style="text-align:center; margin-top:100px;">
+                        <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
+                        <p>Loading preview...</p>
+                    </div>
+                }
+                else
+                {
+                    @if (IsPdf(SelectedFile))
+                    {
+                        <iframe src="@GetFileUrl(SelectedFile.Id)"
+                                style="width:100%; height:500px; border:none;">
+                        </iframe>
+                    }
+                    else if (IsImage(SelectedFile))
+                    {
+                        <img src="@GetFileUrl(SelectedFile.Id)"
+                             style="max-width:100%; max-height:500px;" />
+                    }
+                    else
+                    {
+                        <div style="text-align:center; margin-top:80px;">
+                            <RadzenIcon Icon="description" style="font-size:48px;" />
+                            <p>Preview not available</p>
+                        </div>
+                    }
+                }
+
+            </div>
+        }
+
+    </div>
+
+</div>
+
+@code {
+    [Parameter] public string FolderId { get; set; }
+
+    private List<LibraryItem>? Files;
+    private LibraryItem? SelectedFile;
+    private bool IsLoading;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Files = await SharePointService.GetFolderFilesAsync(FolderId);
+    }
+
+    // =========================================
+    // SELECT FILE
+    // =========================================
+    private async Task SelectFile(LibraryItem file)
+    {
+        SelectedFile = file;
+        IsLoading = true;
+
+        await Task.Delay(300); // UX smoother (fake loading)
+        IsLoading = false;
+    }
+
+    // =========================================
+    // HELPERS
+    // =========================================
+    private string GetFileUrl(string id)
+        => $"/api/documents/view/{id}";
+
+    private async Task DownloadFile(string id)
+    {
+        await JS.InvokeVoidAsync("open", GetFileUrl(id), "_blank");
+    }
+
+    private bool IsPdf(LibraryItem file)
+        => file.ContentType?.Contains("pdf") == true;
+
+    private bool IsImage(LibraryItem file)
+        => file.ContentType?.Contains("image") == true;
+
+    private string FormatBytes(long bytes)
+    {
+        if (bytes <= 0) return "0 B";
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        int order = (int)Math.Log(bytes, 1024);
+        return $"{bytes / Math.Pow(1024, order):0.##} {sizes[order]}";
+    }
+
+    private string GetFileIcon(string? type)
+    {
+        if (string.IsNullOrWhiteSpace(type)) return "📁";
+
+        if (type.Contains("pdf")) return "📄";
+        if (type.Contains("image")) return "🖼";
+        if (type.Contains("word")) return "📘";
+        if (type.Contains("excel")) return "📊";
+
+        return "📁";
+    }
+}

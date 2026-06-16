@@ -26,13 +26,15 @@ wwwroot\Data\Styles\MicrosoftFluent-Style.txt
 wwwroot\Data\template.json
 wwwroot\Data\UniversalSystemPrompt.txt
 wwwroot\favicon.png
-wwwroot\Files\A modern New Zealand technology classroom with diverse students learning Cloud Computing and AI, gui.jpeg
-wwwroot\Files\about.html
-wwwroot\Files\AIPrompt01.txt
-wwwroot\Files\countries.json
-wwwroot\Files\LMS AI Functions.html
-wwwroot\Files\Product-Info.html
-wwwroot\Files\videopad_stock_footage.mp4
+wwwroot\Files\00-About MITANZ.html
+wwwroot\Files\01.International-Placement.html
+wwwroot\Files\02.MCP Certification.html
+wwwroot\Files\04.AI-Powered Student Platform.html
+wwwroot\Files\09. International Students.html
+wwwroot\Files\06.Future Platform Roadmap.html
+wwwroot\Files\05.LMS AI-Functions.html
+wwwroot\Files\10.Thanks.jpeg
+wwwroot\Files\12.Video Sample.mp4
 wwwroot\HelpDoc\01. Getting Started\00.Welcome Guide.html
 wwwroot\HelpDoc\01. Getting Started\About Guide.html
 wwwroot\HelpDoc\01. Getting Started\Application help.html
@@ -43,6 +45,7 @@ wwwroot\HelpDoc\03. Staff Guides\Staff Guide.html
 wwwroot\HelpDoc\04. Administration\Admin Guide.html
 wwwroot\HelpDoc\04. Administration\Create your about page.html
 wwwroot\Images\AboutSys.png
+wwwroot\Images\AI HelpDesk.png
 wwwroot\Images\AI-Edu.png
 wwwroot\Images\ArchEdu.png
 wwwroot\Images\Automation\Mar-15.png
@@ -68,6 +71,7 @@ wwwroot\Images\Logo-MITANZ.png
 wwwroot\Images\Logo.png
 wwwroot\Images\MITvsMAKE.png
 wwwroot\Images\OurPresens.png
+wwwroot\Images\SMS System.png
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css
@@ -126,10 +130,11 @@ wwwroot\Reports\Reconciliation_20260404_025307.xlsx
 wwwroot\Reports\Reconciliation_20260406_164929.xlsx
 wwwroot\Temp-Files\Bank_Statement_April_2026.pdf
 wwwroot\Temp-Files\Ledger_April_2026.pdf
+wwwroot\Video\AboutMITANZ.mp4
 Components\Account\Shared\PasskeySubmit.razor.js
 Components\Layout\ReconnectModal.razor.js
-C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\build\..\_framework\blazor.web.js
-C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\build\..\_framework\blazor.server.js
+C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.9\build\..\_framework\blazor.web.js
+C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.9\build\..\_framework\blazor.server.js
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\AI-Academic-Instruction-Hub.json
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\AI-master-template.full.json
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\AI-Eng\CEO-Bank-Reconciliation.v1.json
@@ -157,11 +162,13 @@ D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\Prompts\Tutor-Guide.txt
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\Styles\MicrosoftFluent-Style.txt
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\template.json
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Data\UniversalSystemPrompt.txt
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\about.html
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\AIPrompt01.txt
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\countries.json
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\LMS AI Functions.html
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\Product-Info.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\00-About MITANZ.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\01.International-Placement.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\02.MCP Certification.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\04.AI-Powered Student Platform.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\09. International Students.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\06.Future Platform Roadmap.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\05.LMS AI-Functions.html
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\01. Getting Started\00.Welcome Guide.html
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\01. Getting Started\About Guide.html
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\01. Getting Started\Application help.html
@@ -217,5 +224,5 @@ D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstr
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\lib\bootstrap\dist\js\bootstrap.min.js.map
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\Components\Account\Shared\PasskeySubmit.razor.js
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\Components\Layout\ReconnectModal.razor.js
-C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\_framework\blazor.web.js
-C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.8\_framework\blazor.server.js
+C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.9\_framework\blazor.web.js
+C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.9\_framework\blazor.server.js

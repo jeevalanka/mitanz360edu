@@ -23,29 +23,31 @@ namespace MITANZ360Edu.Web.Services;
 public class LibraryItem
 {
     // =====================================================
-    // GRAPH / SHAREPOINT IDENTIFIERS
+    // GRAPH IDENTIFIERS
     // =====================================================
-
     public string Id { get; set; } = string.Empty;
     public string DriveId { get; set; } = string.Empty;
     public string ParentFolderId { get; set; } = string.Empty;
 
     // =====================================================
-    // FILE / FOLDER INFO
+    // FILE / FOLDER
     // =====================================================
-
     public string Name { get; set; } = string.Empty;
     public bool IsFolder { get; set; }
+
     public long Size { get; set; }
-    public string MimeType { get; set; } = string.Empty;
-    public string WebUrl { get; set; } = string.Empty;
-    public string DownloadUrl { get; set; } = string.Empty;
     public DateTimeOffset? LastModified { get; set; }
 
-    // =====================================================
-    // LMS METADATA
-    // =====================================================
+    // ✅ USE THIS ONLY
+    public string? ContentType { get; set; }
 
+    // OPTIONAL
+    public string WebUrl { get; set; } = string.Empty;
+    public string DownloadUrl { get; set; } = string.Empty;
+
+    // =====================================================
+    // LMS METADATA (KEEP AS IS ✅)
+    // =====================================================
     public string? Title { get; set; }
     public string ContentTypeCode { get; set; } = string.Empty;
     public string Source { get; set; } = string.Empty;
@@ -53,10 +55,33 @@ public class LibraryItem
     public string CourseId { get; set; } = string.Empty;
     public string CourseModelCode { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+
     public bool IsPublished { get; set; }
     public bool IsArchived { get; set; }
+
     public string MetadataJson { get; set; } = string.Empty;
     public string? AiFeed { get; set; }
+    public string ACTMetaJson { get; set; } = string.Empty;
+}
+
+public class ActMetadata
+{
+    public string? Title { get; set; }
+
+    // reading | video | quiz | group | lab | assignment
+    public string? Type { get; set; }
+
+    public string? Description { get; set; }
+
+    // External content (MS Learn, Video, Quiz link, Lab portal)
+    public string? Url { get; set; }
+
+    // Only relevant for quiz
+    public int PassingScore { get; set; }
+
+    public int DurationMinutes { get; set; }
+
+    public bool IsMandatory { get; set; }
 }
 
 public partial class SharePointService
@@ -170,81 +195,39 @@ public partial class SharePointService
                     // =====================================
 
                     Id = item.Id ?? string.Empty,
-
                     Name = item.Name ?? "Unnamed",
-
                     DriveId = driveId,
+                    ParentFolderId = item.ParentReference?.Id ?? string.Empty,
+                    WebUrl = item.WebUrl ?? string.Empty,
 
-                    ParentFolderId =
-                        item.ParentReference?.Id
-                        ?? string.Empty,
-
-                    WebUrl =
-                        item.WebUrl
-                        ?? string.Empty,
-
-                    DownloadUrl =
-                        item.AdditionalData != null &&
-                        item.AdditionalData.ContainsKey(
+                    DownloadUrl = item.AdditionalData != null && item.AdditionalData.ContainsKey(
                             "@microsoft.graph.downloadUrl")
                             ? item.AdditionalData[
                                 "@microsoft.graph.downloadUrl"]
                                 ?.ToString() ?? string.Empty
                             : string.Empty,
 
-                    IsFolder =
-                        item.Folder != null,
-
-                    Size =
-                        item.Size ?? 0,
-
-                    MimeType =
-                        item.File?.MimeType
-                        ?? string.Empty,
-
-                    LastModified =
-                        item.LastModifiedDateTime,
+                    IsFolder = item.Folder != null,
+                    Size = item.Size ?? 0,
+                    ContentType = item.File?.MimeType,
+                    LastModified = item.LastModifiedDateTime,
 
                     // =====================================
                     // LMS METADATA
                     // =====================================
 
-                    Title =
-                        GetField(fields, "Title"),
-
-                    Description =
-                        GetField(fields, "_ExtendedDescription"),
-
-                    ContentId =
-                        GetField(fields, "COR_ContentId"),
-
-                    CourseId =
-                        GetField(fields, "COR_CourseId"),
-
-                    CourseModelCode =
-                            GetField(fields, "COR_CourseModel"),
-
-                    ContentTypeCode =
-                        GetField(fields, "COR_ContentType"),
-
-                    IsPublished =
-                        GetBoolField(
-                            fields,
-                            "REL_IsPublished"),
-
-                    IsArchived =
-                        GetBoolField(
-                            fields,
-                            "ARC_IsArchived"),
-
-                    Source =
-                        GetField(fields, "GOV_Source"),
-
-                    MetadataJson =
-                        GetField(fields, "EXT_Metadata"),
-
-                    AiFeed =
-                        GetField(fields, "AI_Feed")
+                    Title = GetField(fields, "Title"),
+                    Description = GetField(fields, "_ExtendedDescription"),
+                    ContentId = GetField(fields, "COR_ContentId"),
+                    CourseId = GetField(fields, "COR_CourseId"),
+                    CourseModelCode = GetField(fields, "COR_CourseModel"),
+                    ContentTypeCode = GetField(fields, "COR_ContentType"),
+                    IsPublished = GetBoolField( fields, "REL_IsPublished"),
+                    IsArchived = GetBoolField( fields, "ARC_IsArchived"),
+                    Source = GetField(fields, "GOV_Source"),
+                    MetadataJson = GetField(fields, "EXT_Metadata"),
+                    AiFeed = GetField(fields, "AI_Feed"),
+                    ACTMetaJson = GetField(fields, "ACT_Metadata"),
                 });
             }
 
@@ -429,40 +412,19 @@ public partial class SharePointService
                 AdditionalData =
                     new Dictionary<string, object>
                     {
-                        ["Title"] =
-                            model.Title ?? string.Empty,
-
-                        ["_ExtendedDescription"] =
-                            model.Description ?? string.Empty,
-
-                        ["COR_ContentId"] =
-                            model.ContentId ?? string.Empty,
-
-                        ["COR_CourseId"] =
-                            model.CourseId ?? string.Empty,
-
+                        ["Title"] = model.Title ?? string.Empty,
+                        ["_ExtendedDescription"] = model.Description ?? string.Empty,
+                        ["COR_ContentId"] = model.ContentId ?? string.Empty,
+                        ["COR_CourseId"] = model.CourseId ?? string.Empty,
                         ["COR_CourseModel"] = model.CourseModelCode ?? string.Empty,
-
-                        ["COR_ContentType"] =
-                            model.ContentTypeCode ?? string.Empty,
-
-                        ["COR_ContentTitle"] =
-                            model.Title ?? string.Empty,
-
-                        ["REL_IsPublished"] =
-                            model.IsPublished,
-
-                        ["ARC_IsArchived"] =
-                            model.IsArchived,
-
-                        ["GOV_Source"] =
-                            model.Source ?? string.Empty,
-
-                        ["EXT_Metadata"] =
-                            model.MetadataJson ?? string.Empty,
-
-                        ["AI_Feed"] =
-                            model.AiFeed ?? string.Empty
+                        ["COR_ContentType"] = model.ContentTypeCode ?? string.Empty,
+                        ["COR_ContentTitle"] = model.Title ?? string.Empty,
+                        ["REL_IsPublished"] = model.IsPublished,
+                        ["ARC_IsArchived"] = model.IsArchived,
+                        ["GOV_Source"] = model.Source ?? string.Empty,
+                        ["EXT_Metadata"] = model.MetadataJson ?? string.Empty,
+                        ["AI_Feed"] = model.AiFeed ?? string.Empty,
+                        ["ACT_Metadata"] = model.ACTMetaJson ?? string.Empty,
                     }
             };
 
@@ -549,13 +511,9 @@ public partial class SharePointService
 
                 DriveId = driveId,
 
-                ParentFolderId =
-                    item.ParentReference?.Id
-                    ?? string.Empty,
+                ParentFolderId = item.ParentReference?.Id ?? string.Empty,
 
-                WebUrl =
-                    item.WebUrl
-                    ?? string.Empty,
+                WebUrl = item.WebUrl ?? string.Empty,
 
                 DownloadUrl =
                     item.AdditionalData != null &&
@@ -566,55 +524,22 @@ public partial class SharePointService
                             ?.ToString() ?? string.Empty
                         : string.Empty,
 
-                IsFolder =
-                    item.Folder != null,
-
-                Size =
-                    item.Size ?? 0,
-
-                MimeType =
-                    item.File?.MimeType
-                    ?? string.Empty,
-
-                LastModified =
-                    item.LastModifiedDateTime,
-
-                Title =
-                    GetField(fields, "Title"),
-
-                Description =
-                    GetField(fields, "_ExtendedDescription"),
-
-                ContentId =
-                    GetField(fields, "COR_ContentId"),
-
-                CourseId =
-                    GetField(fields, "COR_CourseId"),
-
-                CourseModelCode =
-                    GetField(fields, "COR_CourseModel"),
-
-                ContentTypeCode =
-                    GetField(fields, "COR_ContentType"),
-
-                IsPublished =
-                    GetBoolField(
-                        fields,
-                        "REL_IsPublished"),
-
-                IsArchived =
-                    GetBoolField(
-                        fields,
-                        "ARC_IsArchived"),
-
-                Source =
-                    GetField(fields, "GOV_Source"),
-
-                MetadataJson =
-                    GetField(fields, "EXT_Metadata"),
-
-                AiFeed =
-                    GetField(fields, "AI_Feed")
+                IsFolder = item.Folder != null,
+                Size = item.Size ?? 0,
+                ContentType = item.File?.MimeType,
+                LastModified = item.LastModifiedDateTime,
+                Title = GetField(fields, "Title"),
+                Description = GetField(fields, "_ExtendedDescription"),
+                ContentId = GetField(fields, "COR_ContentId"),
+                CourseId = GetField(fields, "COR_CourseId"),
+                CourseModelCode = GetField(fields, "COR_CourseModel"),
+                ContentTypeCode = GetField(fields, "COR_ContentType"),
+                IsPublished = GetBoolField( fields, "REL_IsPublished"),
+                IsArchived = GetBoolField( fields, "ARC_IsArchived"),
+                Source = GetField(fields, "GOV_Source"),
+                MetadataJson = GetField(fields, "EXT_Metadata"),
+                AiFeed = GetField(fields, "AI_Feed"),
+                ACTMetaJson = GetField(fields, "ACT_Metadata"),
             };
         }
         catch (Exception ex)

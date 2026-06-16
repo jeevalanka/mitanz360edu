@@ -1,5 +1,5 @@
 ﻿@page "/help-documents"
-@layout SimpleLayout
+@layout MainLayout_No_Left_RightPan
 
 @using Microsoft.AspNetCore.Components
 @using System.Text.Encodings.Web
@@ -444,10 +444,7 @@
     // =========================================
     // HOME
     // =========================================
-    private void GoHome()
-    {
-        Navigation.NavigateTo("/");
-    }
+    private void GoHome(){Navigation.NavigateTo("/");}
 
     // =========================================
     // MODEL
@@ -484,9 +481,10 @@
         min-width: 300px;
         height: 100vh;
         overflow-y: auto;
-        background: linear-gradient(180deg, #0f172a, #111827);
-        color: white;
+        background: linear-gradient(180deg, white, blue);
+        color: black;
         padding: 14px;
+        border-radius: 14px;
     }
 
     .top-header {
@@ -495,6 +493,7 @@
         justify-content: space-between;
         gap: 10px;
         margin-bottom: 12px;
+        color: black;
     }
 
     .sidebar-header {
@@ -513,7 +512,7 @@
     .sidebar-info p {
         margin-top: 2px;
         font-size: 0.72rem;
-        color: rgba(255,255,255,0.72);
+        color: ash;
     }
 
     /* HOME */
@@ -523,7 +522,7 @@
         padding: 8px 12px;
         font-size: 0.82rem;
         font-weight: 600;
-        background: linear-gradient(135deg, #f59e0b, #f97316);
+        background: linear-gradient(80deg, lightblue, blue);
         color: white;
         cursor: pointer;
         white-space: nowrap;
@@ -534,7 +533,7 @@
         font-size: 0.80rem;
         font-weight: 700;
         margin-bottom: 10px;
-        color: #93c5fd;
+        color: green;
     }
 
     .empty-message {

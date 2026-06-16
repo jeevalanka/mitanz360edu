@@ -8,7 +8,7 @@ namespace MITANZ360Edu.Web.Models
         // ======================================================
         // SharePoint System Fields
         // ======================================================
-        public int Id { get; set; } // SharePoint List Item ID (PRIMARY KEY)
+        public int Id { get; set; }
         public DateTime? Created { get; set; }
         public DateTime? Modified { get; set; }
         public string? CreatedBy { get; set; }
@@ -22,11 +22,14 @@ namespace MITANZ360Edu.Web.Models
         public string CourseCode { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
 
+        // ✅ ✅ REQUIRED FOR VIEWER (ADD THIS)
+        public string? FolderId { get; set; }
+
         // ======================================================
         // Classification
         // ======================================================
         public string CourseCategory { get; set; } = string.Empty;
-        public string CourseContentType { get; set; } = string.Empty; // Single-choice (SharePoint Choice)
+        public string CourseContentType { get; set; } = string.Empty;
         public string CourseType { get; set; } = string.Empty;
         public string Level { get; set; } = string.Empty;
         public string Language { get; set; } = string.Empty;
@@ -42,7 +45,7 @@ namespace MITANZ360Edu.Web.Models
         public decimal? DurationMinutes { get; set; }
 
         // ======================================================
-        // Ownership (READ-ONLY SAFE FOR NOW)
+        // Ownership
         // ======================================================
         public string? CourseOwnerDisplayName { get; set; }
         public string? CourseOwnerEmail { get; set; }
@@ -68,7 +71,7 @@ namespace MITANZ360Edu.Web.Models
         public bool CertificateIssued { get; set; }
 
         // ======================================================
-        // Image & Ai
+        // Image & AI
         // ======================================================
         public string? ImageUrl { get; set; }
         public string? AiFeed { get; set; }

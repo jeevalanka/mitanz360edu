@@ -1,0 +1,396 @@
+﻿
+@page "/course/{FolderId}"
+@layout MainLayout_No_Left_RightPan
+
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
+@using MITANZ360Edu.Web.Services
+@using MITANZ360Edu.Web.Models
+
+@inject SharePointService SharePointService
+@inject NavigationManager Nav
+
+<div class="container-fluid">
+
+    <div class="layout">
+
+        <!-- LEFT PANEL -->
+        <div class="left-panel">
+
+            <div class="header">
+                Course Content
+            </div>
+
+            <div class="course">
+                @CourseName
+            </div>
+
+            @foreach (var c in Categories ?? new())
+            {
+                <button class="menu @(SelectedCategoryId == c.Id ? "active" : "")"
+                        @onclick="() => SelectCategory(c)">
+                    @Clean(c.Name)
+                </button>
+            }
+
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="right-panel">
+
+            <div class="breadcrumb">
+                @for (int i = 0; i < Breadcrumb.Count; i++)
+                {
+                    <span class="crumb"
+                          @onclick="() => NavigateTo(i)">
+                        @Clean(Breadcrumb[i].Name)
+                    </span>
+
+                    @if (i < Breadcrumb.Count - 1)
+                    {
+                        <span> </span>
+                    }
+                }
+            </div>
+
+            <div class="content-card">
+
+                <table class="modern-table">
+
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var item in Items ?? new())
+                        {
+                            <tr @onclick="async () => await OpenItem(item)">
+
+                                <td>
+
+                                    <div class="file-name">
+
+                                        <span class="file-icon">
+                                            @GetFileIcon(item)
+                                        </span>
+
+                                        <span>
+                                            @RemoveExtension(item.Name)
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+                                <td>
+                                    @GetFileType(item)
+                                </td>
+
+                                <td>
+                                    @FormatSize(item.Size)
+                                </td>
+
+                                <td class="action-col">
+                                    ➤
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+
+    .layout {
+        display: flex;
+        gap: 24px;
+        min-height: 80vh;
+        padding: 20px;
+    }
+
+    /* LEFT PANEL */
+
+    .left-panel {
+        width: 200px;
+        min-width: 200px;
+        padding: 10px;
+        border-radius: 24px;
+        background: linear-gradient(180deg,#08204d,#001633);
+        color: white;
+        box-shadow: 0 10px 25px rgba(0,0,0,.15);
+    }
+
+    .header {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    .course {
+        font-size: 30px;
+        font-weight: 700;
+        margin-bottom: 25px;
+        color:darkorange;
+    }
+
+    .menu {
+        width: 100%;
+        border: none;
+        margin-bottom: 10px;
+        padding: 15px;
+        border-radius: 15px;
+        color: white;
+        background: rgba(255,255,255,.08);
+        cursor: pointer;
+        transition: .2s;
+        font-size: 14px;
+        text-align: center;
+    }
+
+        .menu:hover,
+        .menu.active {
+            background: #123f87;
+        }
+
+    /* RIGHT PANEL */
+
+    .right-panel {
+        flex: 1;
+    }
+
+    .breadcrumb {
+        margin-bottom: 15px;
+        color: #64748b;
+        font-size: 15px;
+    }
+
+    .crumb {
+        cursor: pointer;
+    }
+
+        .crumb:hover {
+            color: #0f172a;
+        }
+
+    .content-card {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0,0,0,.08);
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .accent {
+        width: 5px;
+        height: 30px;
+        background: #f59e0b;
+        border-radius: 10px;
+    }
+
+    .section-title h3 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 700;
+    }
+
+    /* TABLE */
+
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .modern-table thead {
+            background: #f4f6f9;
+        }
+
+        .modern-table th {
+            text-align: left;
+            padding: 10px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .modern-table td {
+            border-top: 1px solid #e5e7eb;
+            font-size: 14px;
+        }
+
+        .modern-table tbody tr {
+            cursor: pointer;
+            transition: .2s;
+        }
+
+            .modern-table tbody tr:hover {
+                background: #f8fafc;
+            }
+
+    .file-name {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .file-icon {
+        font-size: 24px;
+    }
+
+    .action-col {
+        width: 50px;
+        text-align: center;
+        font-size: 22px;
+    }
+
+</style>
+
+@code {
+
+    [Parameter]
+    public string FolderId { get; set; } = string.Empty;
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "name")]
+    public string? CourseNameQuery { get; set; }
+
+    private string CourseName = "Course";
+
+    private List<LibraryItem>? Categories;
+    private List<LibraryItem>? Items;
+
+    private string? SelectedCategoryId;
+
+    private List<LibraryItem> Breadcrumb = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        CourseName = CourseNameQuery ?? "Course";
+
+        Categories = await SharePointService
+            .GetCourseCategoriesAsync(FolderId);
+
+        var first = Categories?.FirstOrDefault();
+
+        if (first != null)
+        {
+            await SelectCategory(first);
+        }
+    }
+
+    private async Task SelectCategory(LibraryItem category)
+    {
+        SelectedCategoryId = category.Id;
+
+        Breadcrumb.Clear();
+        Breadcrumb.Add(category);
+
+        Items = await SharePointService
+            .GetFolderContentAsync(category.Id);
+    }
+
+    private async Task OpenItem(LibraryItem item)
+    {
+        if (item.IsFolder)
+        {
+            Breadcrumb.Add(item);
+
+            Items = await SharePointService
+                .GetFolderContentAsync(item.Id);
+        }
+        else
+        {
+            Nav.NavigateTo(
+                $"/document/{item.Id}?name={Uri.EscapeDataString(item.Name)}");
+        }
+    }
+
+    private async Task NavigateTo(int index)
+    {
+        var target = Breadcrumb[index];
+
+        Breadcrumb = Breadcrumb
+            .Take(index + 1)
+            .ToList();
+
+        Items = await SharePointService
+            .GetFolderContentAsync(target.Id);
+    }
+
+    private string GetFileType(LibraryItem item)
+        => item.IsFolder
+            ? "Folder"
+            : Path.GetExtension(item.Name)
+                .Trim('.')
+                .ToUpper();
+
+    private string RemoveExtension(string name)
+        => Path.GetFileNameWithoutExtension(name);
+
+    private string FormatSize(long? size)
+        => size == null
+            ? "-"
+            : $"{size / 1024:N0} KB";
+
+    private string GetFileIcon(LibraryItem item)
+    {
+        if (item.IsFolder)
+            return "📁";
+
+        var ext = Path.GetExtension(item.Name).ToLower();
+
+        return ext switch
+        {
+            ".pdf" => "📄",
+            ".doc" => "📝",
+            ".docx" => "📝",
+            ".ppt" => "📊",
+            ".pptx" => "📊",
+            ".xls" => "📈",
+            ".xlsx" => "📈",
+            ".zip" => "🗜️",
+            ".txt" => "📃",
+            ".jpg" => "🖼️",
+            ".jpeg" => "🖼️",
+            ".png" => "🖼️",
+            ".gif" => "🖼️",
+            ".mp4" => "🎬",
+            ".avi" => "🎬",
+            ".mp3" => "🎵",
+            ".wav" => "🎵",
+            ".json" => "⚙️",
+            ".xml" => "⚙️",
+            ".cs" => "💻",
+            ".razor" => "💻",
+            ".html" => "🌐",
+            ".htm" => "🌐",
+            ".url" => "🔗",
+            _ => "📄"
+        };
+    }
+
+    private string Clean(string name)
+        => name.Contains("_")
+            ? name.Split("_", 2)[1]
+            : name;
+}

@@ -68,4 +68,15 @@
 		</Content>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Compile Remove="wwwroot\Files\Sample\**" />
+	  <Content Remove="wwwroot\Files\Sample\**" />
+	  <EmbeddedResource Remove="wwwroot\Files\Sample\**" />
+	  <None Remove="wwwroot\Files\Sample\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="wwwroot\Files\01.International-Placement.html" />
+	</ItemGroup>
+
 </Project>

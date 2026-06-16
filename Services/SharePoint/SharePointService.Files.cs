@@ -26,7 +26,6 @@ public partial class SharePointService
                     .PutAsync(stream);
             }
 
-
     // =====================================================
     // DOWNLOAD FILE BY DRIVE ITEM ID
     // =====================================================
@@ -65,7 +64,6 @@ public partial class SharePointService
             "DownloadFileAsync",
             ct);
     }
-
     public async Task<Stream?> DownloadFileAsync(string driveId, string itemId)
     {
         try
@@ -240,8 +238,6 @@ public partial class SharePointService
             ct);
     }
 
-
-
     /// <summary>
     /// Extract raw text content from SharePoint file
     /// </summary>
@@ -310,6 +306,303 @@ public partial class SharePointService
             .GetAsync(cancellationToken: ct);
 
         return drives?.Value?.FirstOrDefault();
+    }
+
+    // =====================================================
+    // ✅ GET FILES FROM FOLDER (COURSE BASED)
+    // =====================================================
+    public async Task<List<LibraryItem>> GetFolderFilesAsync(
+        string folderId,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(folderId))
+            throw new ArgumentNullException(nameof(folderId));
+
+        var driveId = await GetLmsDriveIdAsync();
+
+        _logger.LogInformation(
+            "Fetching folder files | DriveId={DriveId} FolderId={FolderId}",
+            driveId,
+            folderId);
+
+        return await ExecuteWithRetryAsync(
+            async token =>
+            {
+                var result = new List<LibraryItem>();
+
+                var response = await _graphClient
+                    .Drives[driveId]
+                    .Items[folderId]
+                    .Children
+                    .GetAsync(config =>
+                    {
+                        config.QueryParameters.Top = 100;
+                        config.QueryParameters.Select = new[]
+                        {
+                        "id",
+                        "name",
+                        "size",
+                        "file",
+                        "folder",
+                        "lastModifiedDateTime"
+                        };
+                    }, token);
+
+                if (response?.Value == null)
+                    return result;
+
+                foreach (var item in response.Value)
+                {
+                    // ✅ Skip folders (only files)
+                    if (item.File == null)
+                        continue;
+
+                    result.Add(new LibraryItem
+                    {
+                        Id = item.Id,
+                        Name = item.Name,
+                        Size = item.Size ?? 0,
+                        LastModified = item.LastModifiedDateTime,
+                        ContentType = item.File.MimeType
+                    });
+                }
+
+                return result;
+
+            },
+            "GetFolderFilesAsync",
+            ct);
+    }
+
+
+    // =====================================================
+    // ✅ CREATE COURSE FOLDER + ALL SUBFOLDERS
+    // =====================================================
+    public async Task<string> CreateCourseFolderStructureAsync(string courseCode)
+    {
+        if (string.IsNullOrWhiteSpace(courseCode))
+            throw new ArgumentException("CourseCode is required");
+
+        var driveId = await GetLmsDriveIdAsync();
+
+        _logger.LogInformation("Creating full folder structure for {CourseCode}", courseCode);
+
+        // =====================================================
+        // ✅ STEP 1: GET ROOT
+        // =====================================================
+        var root = await _graphClient
+            .Drives[driveId]
+            .Root
+            .GetAsync();
+
+        if (root == null || string.IsNullOrWhiteSpace(root.Id))
+            throw new Exception("Unable to resolve root");
+
+        // =====================================================
+        // ✅ STEP 2: ENSURE "Courses" BASE FOLDER EXISTS
+        // =====================================================
+        var coursesFolder = await EnsureFolderAsync(driveId, root.Id, "Courses");
+
+        // =====================================================
+        // ✅ STEP 3: CREATE MAIN COURSE FOLDER
+        // =====================================================
+        var courseFolder = await EnsureFolderAsync(driveId, coursesFolder.Id, courseCode);
+
+        // =====================================================
+        // ✅ STEP 4: CREATE SUBFOLDERS
+        // =====================================================
+        var subFolders = new[]
+        {
+            "01_Tutor",
+            "02_Models",
+            "03_Activities",
+            "04_Share",
+            "05_Assessments"
+        };
+
+        foreach (var sub in subFolders)
+        {
+            await EnsureFolderAsync(driveId, courseFolder.Id, sub);
+        }
+
+        _logger.LogInformation("Folder structure created for {CourseCode}", courseCode);
+
+        return courseFolder.Id!;
+    }
+
+    // =====================================================
+    // ✅ HELPER: ENSURE FOLDER EXISTS (CREATE IF NOT)
+    // =====================================================
+    private async Task<DriveItem> EnsureFolderAsync(
+        string driveId,
+        string parentId,
+        string folderName)
+    {
+        try
+        {
+            // ✅ Try get existing folder
+            var existing = await _graphClient
+                .Drives[driveId]
+                .Items[parentId]
+                .ItemWithPath(folderName)
+                .GetAsync();
+
+            if (existing != null)
+                return existing;
+        }
+        catch
+        {
+            // Not found → will create
+        }
+
+        // ✅ Create new folder
+        var folder = new DriveItem
+        {
+            Name = folderName,
+            Folder = new Folder(),
+            AdditionalData = new Dictionary<string, object>
+            {
+                ["@microsoft.graph.conflictBehavior"] = "rename"
+            }
+        };
+
+        var created = await _graphClient
+            .Drives[driveId]
+            .Items[parentId]
+            .Children
+            .PostAsync(folder);
+
+        if (created == null)
+            throw new Exception($"Failed to create folder: {folderName}");
+
+        return created;
+    }
+
+    // =====================================================
+    // ✅ GET COURSE CONTENT CATEGORIES (SUBFOLDERS)
+    // =====================================================
+    public async Task<List<LibraryItem>> GetCourseCategoriesAsync(string courseFolderId)
+    {
+        var driveId = await GetLmsDriveIdAsync();
+
+        var items = await _graphClient
+            .Drives[driveId]
+            .Items[courseFolderId]
+            .Children
+            .GetAsync();
+
+        if (items?.Value == null)
+            return new();
+
+        return items.Value
+            .Where(x => x.Folder != null)   // ✅ ONLY FOLDERS
+            .Select(x => new LibraryItem
+            {
+                Id = x.Id,
+                Name = x.Name
+            })
+            .ToList();
+    }
+
+    // =====================================================
+    // ✅ GET FILES FROM COURSE CATEGORY FOLDER
+    // =====================================================
+    public async Task<List<LibraryItem>> GetCourseCategoryFilesAsync(
+        string courseFolderId,
+        string categoryFolderName)
+    {
+        if (string.IsNullOrWhiteSpace(courseFolderId))
+            throw new ArgumentNullException(nameof(courseFolderId));
+
+        if (string.IsNullOrWhiteSpace(categoryFolderName))
+            throw new ArgumentNullException(nameof(categoryFolderName));
+
+        var driveId = await GetLmsDriveIdAsync();
+
+        // ✅ STEP 1: Get category folder (e.g., 02_Models)
+        var categoryFolder = await _graphClient
+            .Drives[driveId]
+            .Items[courseFolderId]
+            .ItemWithPath(categoryFolderName)
+            .GetAsync();
+
+        if (categoryFolder == null || string.IsNullOrWhiteSpace(categoryFolder.Id))
+        {
+            _logger.LogWarning(
+                "Category folder not found: {Category}",
+                categoryFolderName);
+
+            return new();
+        }
+
+        // ✅ STEP 2: Get files inside that folder
+        var items = await _graphClient
+            .Drives[driveId]
+            .Items[categoryFolder.Id]
+            .Children
+            .GetAsync();
+
+        if (items?.Value == null)
+            return new();
+
+        var result = new List<LibraryItem>();
+
+        foreach (var item in items.Value)
+        {
+            // ✅ ONLY FILES (skip subfolders)
+            if (item.File == null)
+                continue;
+
+            result.Add(new LibraryItem
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Size = item.Size ?? 0,
+                ContentType = item.File.MimeType,
+                LastModified = item.LastModifiedDateTime
+            });
+        }
+
+        return result;
+    }
+
+    // =====================================================
+    // ✅ GET FULL FOLDER CONTENT (FILES + SUBFOLDERS)
+    // =====================================================
+    public async Task<List<LibraryItem>> GetFolderContentAsync(string folderId)
+    {
+        if (string.IsNullOrWhiteSpace(folderId))
+            throw new ArgumentNullException(nameof(folderId));
+
+        var driveId = await GetLmsDriveIdAsync();
+
+        var items = await _graphClient
+            .Drives[driveId]
+            .Items[folderId]
+            .Children
+            .GetAsync();
+
+        var result = new List<LibraryItem>();
+
+        if (items?.Value == null)
+            return result;
+
+        foreach (var item in items.Value)
+        {
+            result.Add(new LibraryItem
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Size = item.Size ?? 0,
+                LastModified = item.LastModifiedDateTime,
+                ContentType = item.File?.MimeType,
+
+                // ✅ KEY FLAG
+                IsFolder = item.Folder != null
+            });
+        }
+
+        return result;
     }
 
 }
