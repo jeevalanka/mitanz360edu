@@ -447,6 +447,14 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xTdHVkZW50XFN0dWRlbnREYXNoYm9hcmQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/MITANZ360EDU-System/GitHub/mitanz360edu/Components/Pages/Workflow/AIWorkflowStudio.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xXb3JrZmxvd1xBSVdvcmtmbG93U3R1ZGlvLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/MITANZ360EDU-System/GitHub/mitanz360edu/Components/Pages/Workflow/WorkflowRunner.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xXb3JrZmxvd1xXb3JrZmxvd1J1bm5lci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/MITANZ360EDU-System/GitHub/mitanz360edu/Components/Pages/XAcademicCategories.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xYQWNhZGVtaWNDYXRlZ29yaWVzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 

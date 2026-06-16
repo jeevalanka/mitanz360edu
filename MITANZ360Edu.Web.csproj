@@ -26,6 +26,7 @@
 		<!-- Graph -->
 		<PackageReference Include="Microsoft.Graph" Version="6.1.0" />
 		<PackageReference Include="Microsoft.Kiota.Abstractions" Version="2.0.0" />
+		<PackageReference Include="Microsoft.Playwright" Version="1.60.0" />
 
 		<!-- System -->
 		<PackageReference Include="System.ClientModel" Version="1.13.0" />
@@ -77,6 +78,14 @@
 
 	<ItemGroup>
 	  <None Include="wwwroot\Files\01.International-Placement.html" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Services\Workflow\Execution\" />
+	  <Folder Include="Services\Workflow\Providers\" />
+	  <Folder Include="wwwroot\AI-Workflow\Samples\" />
+	  <Folder Include="wwwroot\AI-Workflow\Templates\" />
+	  <Folder Include="wwwroot\AI-Workflow\Workflows\" />
 	</ItemGroup>
 
 </Project>

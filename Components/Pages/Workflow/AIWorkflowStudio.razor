@@ -1,0 +1,550 @@
+﻿@page "/ai-workflow-studio"
+@layout MainLayout_No_Left_RightPan
+
+@using System.Text.Json
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Web
+
+@inject IJSRuntime JS
+@inject WorkflowRepository WorkflowRepository
+@inject WorkflowExecutionService WorkflowExecutionService
+@inject WorkflowValidator WorkflowValidator
+@inject WorkflowPluginManager PluginManager
+
+<PageTitle>AI Workflow Studio</PageTitle>
+
+<link href="css/workflowstudio.css" rel="stylesheet" />
+
+<div class="wf-shell">
+
+    <!-- Ribbon -->
+
+    <header class="wf-toolbar border-bottom">
+
+        <div class="btn-toolbar">
+
+            <button class="btn btn-primary btn-sm" @onclick="NewWorkflow">
+                <i class="bi bi-plus-circle"></i> New
+            </button>
+
+            <button class="btn btn-outline-primary btn-sm" @onclick="SaveWorkflow" disabled="@(!CanSave)">
+                <i class="bi bi-floppy"></i> Save
+            </button>
+
+            <button class="btn btn-outline-success btn-sm" @onclick="ExecuteWorkflow" disabled="@(!CanExecute)">
+                <i class="bi bi-play-fill"></i> Run
+            </button>
+
+            <button class="btn btn-outline-warning btn-sm" @onclick="ValidateWorkflow">
+                <i class="bi bi-shield-check"></i> Validate
+            </button>
+
+            <button class="btn btn-outline-secondary btn-sm" @onclick="AutoArrange">
+                <i class="bi bi-grid"></i> Arrange
+            </button>
+
+            <button class="btn btn-outline-danger btn-sm" @onclick="DeleteWorkflowConfirmed" disabled="@(!CanDelete)">
+                <i class="bi bi-trash"></i> Delete
+            </button>
+
+            <button class="btn btn-outline-dark btn-sm" @onclick="AiGenerateWorkflow">
+                <i class="bi bi-stars"></i> AI Generate
+            </button>
+
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+
+            <input class="form-control form-control-sm"
+                   style="width:220px"
+                   placeholder="Search..."
+                   @bind="SearchText" />
+
+            <span class="badge bg-success">@WorkflowStatus</span>
+
+        </div>
+
+    </header>
+
+    <div class="wf-main">
+
+        <!-- Left -->
+
+        <aside class="wf-left">
+
+            <div class="card mb-2">
+
+                <div class="card-header fw-bold">
+                    Workflows
+                </div>
+
+                <div class="list-group list-group-flush">
+
+                    @foreach (var workflow in FilteredWorkflows)
+                    {
+                        <button class="list-group-item list-group-item-action @(workflow==SelectedWorkflow?"active":"")"
+                                @onclick="@(()=>SelectWorkflow(workflow))">
+
+                            @workflow.Name
+
+                        </button>
+                    }
+
+                </div>
+
+            </div>
+
+            <div class="card">
+
+                <div class="card-header fw-bold">
+                    Plugins
+                </div>
+
+                <div class="list-group list-group-flush">
+
+                    @foreach (var plugin in Plugins)
+                    {
+                        <button class="list-group-item list-group-item-action"
+                                @onclick="@(()=>AddPlugin(plugin))">
+
+                            <i class="@GetPluginIcon(plugin) me-2"></i>
+
+                            @plugin
+
+                        </button>
+                    }
+
+                </div>
+
+            </div>
+
+        </aside>
+
+        <!-- Canvas -->
+
+        <section class="wf-center">
+
+            <WorkflowCanvas
+
+                @ref="Canvas"
+
+                Workflow="SelectedWorkflow"
+
+                SelectedStep="SelectedStep"
+
+                OnStepSelected="SelectStep"
+
+                OnStepMoved="StepMoved"
+
+                OnCanvasChanged="CanvasChanged" />
+
+        </section>
+
+        <!-- Properties -->
+
+        <aside class="wf-right">
+
+            <div class="card h-100">
+
+                <div class="card-header fw-bold">
+                    Properties
+                </div>
+
+                <div class="card-body">
+
+                    @if (SelectedStep != null)
+                    {
+                        <div class="mb-2">
+
+                            <label>Name</label>
+
+                            <input class="form-control"
+                                   @bind="SelectedStep.Name" />
+
+                        </div>
+
+                        <div class="mb-2">
+
+                            <label>Plugin</label>
+
+                            <input class="form-control"
+                                   @bind="SelectedStep.Plugin" />
+
+                        </div>
+
+                        <div class="mb-2">
+
+                            <label>Description</label>
+
+                            <textarea rows="4"
+                                      class="form-control"
+                                      @bind="SelectedStep.Description">
+                            </textarea>
+
+                        </div>
+
+                        <div class="row">
+
+                            <div class="col">
+
+                                <label>X</label>
+
+                                <input class="form-control"
+                                       type="number"
+                                       @bind="SelectedStep.X" />
+
+                            </div>
+
+                            <div class="col">
+
+                                <label>Y</label>
+
+                                <input class="form-control"
+                                       type="number"
+                                       @bind="SelectedStep.Y" />
+
+                            </div>
+
+                        </div>
+
+                        <div class="d-grid gap-2 mt-3">
+
+                            <button class="btn btn-outline-primary btn-sm"
+                                    @onclick="RunSelectedStep">
+
+                                Run Step
+
+                            </button>
+
+                            <button class="btn btn-outline-danger btn-sm"
+                                    @onclick="DeleteSelectedStep">
+
+                                Delete Step
+
+                            </button>
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+    <!-- Console -->
+
+    <footer class="wf-console">
+
+        <div class="d-flex justify-content-between mb-2">
+
+            <strong>Console</strong>
+
+            <div>
+
+                <button class="btn btn-sm btn-outline-secondary"
+                        @onclick="ClearConsole">
+
+                    Clear
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="wf-log">
+
+            @foreach (var log in Logs)
+            {
+                <div>@log</div>
+            }
+
+        </div>
+
+    </footer>
+
+</div>
+
+@code
+{
+    private WorkflowCanvas? Canvas;
+
+    private WorkflowDefinition? SelectedWorkflow;
+
+    private WorkflowStep? SelectedStep;
+
+    private readonly List<string> Logs = new();
+
+    private List<string> Plugins = new();
+
+    private List<WorkflowDefinition> Workflows = new();
+
+    private string WorkflowStatus = "Ready";
+
+    private string SearchText = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Plugins = PluginManager.GetPlugins()
+            .Select(x => x.Name)
+            .OrderBy(x => x)
+            .ToList();
+
+        Workflows = (await WorkflowRepository.GetAllAsync()).ToList();
+
+        SelectedWorkflow = Workflows.FirstOrDefault();
+    }
+
+    private IEnumerable<WorkflowDefinition> FilteredWorkflows =>
+        string.IsNullOrWhiteSpace(SearchText)
+            ? Workflows
+            : Workflows.Where(x =>
+                x.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+
+    private bool CanSave => SelectedWorkflow != null;
+
+    private bool CanDelete => SelectedWorkflow != null;
+
+    private bool CanExecute =>
+        SelectedWorkflow != null &&
+        SelectedWorkflow.Steps.Any();
+
+    private async Task NewWorkflow()
+    {
+        SelectedWorkflow = new WorkflowDefinition
+        {
+            Id = Guid.NewGuid(),
+            Name = "New Workflow"
+        };
+
+        SelectedStep = null;
+
+        Workflows.Add(SelectedWorkflow);
+
+        AddLog("New workflow created.");
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SaveWorkflow()
+    {
+        if (SelectedWorkflow == null)
+            return;
+
+        await WorkflowRepository.SaveAsync(SelectedWorkflow);
+
+        WorkflowStatus = "Saved";
+
+        AddLog($"{SelectedWorkflow.Name} saved.");
+    }
+
+    private async Task ExecuteWorkflow()
+    {
+        if (SelectedWorkflow == null)
+            return;
+
+        WorkflowStatus = "Running";
+
+        try
+        {
+            var result = await WorkflowExecutionService.ExecuteAsync(SelectedWorkflow);
+
+            AddLog("Workflow executed.");
+
+            if (result != null)
+                AddLog(JsonSerializer.Serialize(result));
+        }
+        catch (Exception ex)
+        {
+            AddLog(ex.Message);
+        }
+
+        WorkflowStatus = "Ready";
+    }
+
+    private async Task ValidateWorkflow()
+    {
+        if (SelectedWorkflow == null)
+            return;
+
+        var result = await WorkflowValidator.ValidateAsync(SelectedWorkflow);
+
+        AddLog(result.Success
+            ? "Validation passed."
+            : result.Message);
+    }
+
+    private async Task DeleteWorkflowConfirmed()
+    {
+        if (SelectedWorkflow == null)
+            return;
+
+        await WorkflowRepository.DeleteAsync(SelectedWorkflow.Id);
+
+        Workflows.Remove(SelectedWorkflow);
+
+        SelectedWorkflow = Workflows.FirstOrDefault();
+
+        SelectedStep = null;
+
+        WorkflowStatus = "Deleted";
+    }
+
+    private void SelectWorkflow(WorkflowDefinition workflow)
+    {
+        SelectedWorkflow = workflow;
+
+        SelectedStep = null;
+    }
+
+    private void SelectStep(WorkflowStep step)
+    {
+        SelectedStep = step;
+    }
+
+    private void AddPlugin(string plugin)
+    {
+        if (SelectedWorkflow == null)
+            return;
+
+        var step = new WorkflowStep
+        {
+            Id = Guid.NewGuid(),
+            Name = $"{plugin} Step",
+            Plugin = plugin,
+            X = 120,
+            Y = 120
+        };
+
+        SelectedWorkflow.Steps.Add(step);
+
+        SelectedStep = step;
+
+        Canvas?.Refresh();
+    }
+
+    private void DeleteSelectedStep()
+    {
+        if (SelectedWorkflow == null || SelectedStep == null)
+            return;
+
+        SelectedWorkflow.Steps.Remove(SelectedStep);
+
+        SelectedStep = null;
+
+        Canvas?.Refresh();
+    }
+
+    private async Task RunSelectedStep()
+    {
+        if (SelectedWorkflow == null || SelectedStep == null)
+            return;
+
+        try
+        {
+            await WorkflowExecutionService.ExecuteStepAsync(
+                SelectedWorkflow,
+                SelectedStep,
+                new WorkflowContext());
+
+            AddLog($"{SelectedStep.Name} completed.");
+        }
+        catch (Exception ex)
+        {
+            AddLog(ex.Message);
+        }
+    }
+
+    private async Task AiGenerateWorkflow()
+    {
+        var prompt = await JS.InvokeAsync<string>(
+            "prompt",
+            "Describe workflow");
+
+        if (string.IsNullOrWhiteSpace(prompt))
+            return;
+
+        try
+        {
+            var output = await WorkflowExecutionService.GenerateWorkflowAsync(prompt);
+
+            if (output != null)
+            {
+                SelectedWorkflow = output;
+
+                if (!Workflows.Any(x => x.Id == output.Id))
+                    Workflows.Add(output);
+
+                Canvas?.Refresh();
+
+                AddLog("AI workflow generated.");
+            }
+        }
+        catch (Exception ex)
+        {
+            AddLog(ex.Message);
+        }
+    }
+
+    private void AutoArrange()
+    {
+        if (SelectedWorkflow == null)
+            return;
+
+        int x = 80;
+        int y = 60;
+
+        foreach (var step in SelectedWorkflow.Steps)
+        {
+            step.X = x;
+            step.Y = y;
+
+            y += 140;
+
+            if (y > 900)
+            {
+                y = 60;
+                x += 320;
+            }
+        }
+
+        Canvas?.Refresh();
+    }
+
+    private void StepMoved(WorkflowStep step)
+    {
+        SelectedStep = step;
+    }
+
+    private void CanvasChanged()
+    {
+        WorkflowStatus = "Modified";
+    }
+
+    private void ClearConsole()
+    {
+        Logs.Clear();
+    }
+
+    private void AddLog(string text)
+    {
+        Logs.Add($"[{DateTime.Now:HH:mm:ss}] {text}");
+
+        if (Logs.Count > 300)
+            Logs.RemoveAt(0);
+    }
+
+    private string GetPluginIcon(string plugin) => plugin switch
+    {
+        "AI" => "bi bi-robot",
+        "HTTP" => "bi bi-globe",
+        "SQL" => "bi bi-database",
+        "Email" => "bi bi-envelope",
+        "SharePoint" => "bi bi-share",
+        "File" => "bi bi-file-earmark",
+        _ => "bi bi-box"
+    };
+}

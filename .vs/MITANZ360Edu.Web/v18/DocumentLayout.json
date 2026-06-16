@@ -3,23 +3,8 @@
   "WorkspaceRootPath": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|d:\\mitanz360edu-system\\github\\mitanz360edu\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\MITANZ360EDU-System\\Publish\\web.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|d:\\mitanz360edu-system\\github\\mitanz360edu\\components\\pages\\lms\\viewer-document.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|solutionrelative:components\\pages\\lms\\viewer-document.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|d:\\mitanz360edu-system\\github\\mitanz360edu\\components\\pages\\lms\\lms-library.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|solutionrelative:components\\pages\\lms\\lms-library.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|d:\\mitanz360edu-system\\github\\mitanz360edu\\components\\layout\\navmenuv2.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|solutionrelative:components\\layout\\navmenuv2.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+      "AbsoluteMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|d:\\mitanz360edu-system\\github\\mitanz360edu\\components\\pages\\workflow\\aiworkflowstudio.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{61FA49BB-0BFE-F81C-0487-540898EFC740}|MITANZ360Edu.Web.csproj|solutionrelative:components\\pages\\workflow\\aiworkflowstudio.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     }
   ],
   "DocumentGroupContainers": [
@@ -29,8 +14,21 @@
       "DocumentGroups": [
         {
           "DockedHeight": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 0,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "AIWorkflowStudio.razor",
+              "DocumentMoniker": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Components\\Pages\\Workflow\\AIWorkflowStudio.razor",
+              "RelativeDocumentMoniker": "Components\\Pages\\Workflow\\AIWorkflowStudio.razor",
+              "ToolTip": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Components\\Pages\\Workflow\\AIWorkflowStudio.razor",
+              "RelativeToolTip": "Components\\Pages\\Workflow\\AIWorkflowStudio.razor",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACUCAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-06-16T10:33:29.12Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
@@ -38,67 +36,6 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{004be353-6879-467c-9d1e-9ac23cdf6d49}"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Program.cs",
-              "DocumentMoniker": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Program.cs",
-              "RelativeDocumentMoniker": "Program.cs",
-              "ToolTip": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Program.cs",
-              "RelativeToolTip": "Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAPQAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-15T18:08:39.948Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "web.config",
-              "DocumentMoniker": "D:\\MITANZ360EDU-System\\Publish\\web.config",
-              "RelativeDocumentMoniker": "..\\..\\Publish\\web.config",
-              "ToolTip": "D:\\MITANZ360EDU-System\\Publish\\web.config",
-              "RelativeToolTip": "..\\..\\Publish\\web.config",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACAAAAAQAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
-              "WhenOpened": "2026-06-15T17:39:51.112Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "LMS-Library.razor",
-              "DocumentMoniker": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Components\\Pages\\LMS\\LMS-Library.razor",
-              "RelativeDocumentMoniker": "Components\\Pages\\LMS\\LMS-Library.razor",
-              "ToolTip": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Components\\Pages\\LMS\\LMS-Library.razor",
-              "RelativeToolTip": "Components\\Pages\\LMS\\LMS-Library.razor",
-              "ViewState": "AgIAAPYAAAAAAAAAAAAAAAoBAABBAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-06-15T17:18:23.801Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Viewer-Document.razor",
-              "DocumentMoniker": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Components\\Pages\\LMS\\Viewer-Document.razor",
-              "RelativeDocumentMoniker": "Components\\Pages\\LMS\\Viewer-Document.razor",
-              "ToolTip": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Components\\Pages\\LMS\\Viewer-Document.razor",
-              "RelativeToolTip": "Components\\Pages\\LMS\\Viewer-Document.razor",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-06-15T17:17:01.391Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "NavMenuV2.razor",
-              "DocumentMoniker": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Components\\Layout\\NavMenuV2.razor",
-              "RelativeDocumentMoniker": "Components\\Layout\\NavMenuV2.razor",
-              "ToolTip": "D:\\MITANZ360EDU-System\\GitHub\\mitanz360edu\\Components\\Layout\\NavMenuV2.razor",
-              "RelativeToolTip": "Components\\Layout\\NavMenuV2.razor",
-              "ViewState": "AgIAABsAAAAAAAAAAAAowCoAAAARAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-06-15T14:31:01.084Z"
             }
           ]
         }

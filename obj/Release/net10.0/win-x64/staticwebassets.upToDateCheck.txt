@@ -30,7 +30,9 @@ wwwroot\Files\00-About MITANZ.html
 wwwroot\Files\01.International-Placement.html
 wwwroot\Files\02.MCP Certification.html
 wwwroot\Files\04.AI-Powered Student Platform.html
+wwwroot\Files\05.LMS AI-Functions.html
 wwwroot\Files\06.Future Platform Roadmap.html
+wwwroot\Files\09. International Students.html
 wwwroot\Files\10.Thanks.jpeg
 wwwroot\Files\12.Video Sample.mp4
 wwwroot\HelpDoc\01. Getting Started\00.Welcome Guide.html
@@ -129,8 +131,6 @@ wwwroot\Reports\Reconciliation_20260406_164929.xlsx
 wwwroot\Temp-Files\Bank_Statement_April_2026.pdf
 wwwroot\Temp-Files\Ledger_April_2026.pdf
 wwwroot\Video\AboutMITANZ.mp4
-wwwroot\Files\05.LMS AI-Functions.html
-wwwroot\Files\09. International Students.html
 Components\Account\Shared\PasskeySubmit.razor.js
 Components\Layout\ReconnectModal.razor.js
 C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.9\build\..\_framework\blazor.web.js
@@ -166,7 +166,9 @@ D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\00-About MITANZ.html
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\01.International-Placement.html
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\02.MCP Certification.html
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\04.AI-Powered Student Platform.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\09. International Students.html
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\06.Future Platform Roadmap.html
+D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\05.LMS AI-Functions.html
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\01. Getting Started\00.Welcome Guide.html
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\01. Getting Started\About Guide.html
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\HelpDoc\01. Getting Started\Application help.html
@@ -224,5 +226,3 @@ D:\MITANZ360EDU-System\GitHub\mitanz360edu\Components\Account\Shared\PasskeySubm
 D:\MITANZ360EDU-System\GitHub\mitanz360edu\Components\Layout\ReconnectModal.razor.js
 C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.9\_framework\blazor.web.js
 C:\Users\jeeva\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.9\_framework\blazor.server.js
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\05.LMS AI-Functions.html
-D:\MITANZ360EDU-System\GitHub\mitanz360edu\wwwroot\Files\09. International Students.html

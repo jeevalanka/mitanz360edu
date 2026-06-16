@@ -14,10 +14,16 @@ using MITANZ360Edu.Web.Services.AI;
 using MITANZ360Edu.Web.Services.Automation;
 using MITANZ360Edu.Web.Services.DocumentProcessing;
 using MITANZ360Edu.Web.Services.Templates;
+using MITANZ360Edu.Web.Services.Workflow.Engine;
+using MITANZ360Edu.Web.Services.Workflow.Plugins;
+using MITANZ360Edu.Web.Services.Workflow.Repository;
+using MITANZ360Edu.Web.Services.Workflow.Validation;
 using OfficeOpenXml;
 using Radzen;
 using Radzen.Blazor;
 using System.Security.Claims;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -159,6 +165,25 @@ builder.Services.AddHttpClient<AIService>();
 
 #endregion
 
+#region ✅ Workflow Studio
+builder.Services.AddScoped<WorkflowRepository>();
+builder.Services.AddScoped<WorkflowExecutionService>();
+builder.Services.AddScoped<WorkflowPluginManager>();
+builder.Services.AddScoped<WorkflowEngine>();
+builder.Services.AddScoped<WorkflowExecutionService>();
+builder.Services.AddSingleton<WorkflowValidator>();
+
+builder.Services.AddScoped<IWorkflowPlugin, ScrapePlugin>();
+builder.Services.AddScoped<IWorkflowPlugin, HttpPlugin>();
+builder.Services.AddScoped<IWorkflowPlugin, FilePlugin>();
+builder.Services.AddScoped<IWorkflowPlugin, SqlPlugin>();
+builder.Services.AddScoped<IWorkflowPlugin, SharePointPlugin>();
+builder.Services.AddScoped<IWorkflowPlugin, EmailPlugin>();
+builder.Services.AddScoped<IWorkflowPlugin, AiPlugin>();
+
+builder.Services.AddHttpClient<HttpPlugin>();
+#endregion
+
 #region 🌐 MVC / API
 
 builder.Services.AddControllersWithViews();
@@ -251,7 +276,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();

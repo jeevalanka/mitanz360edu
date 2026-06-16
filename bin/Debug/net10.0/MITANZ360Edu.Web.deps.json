@@ -21,6 +21,7 @@
           "Microsoft.EntityFrameworkCore.SqlServer": "10.0.8",
           "Microsoft.Graph": "6.1.0",
           "Microsoft.Kiota.Abstractions": "2.0.0",
+          "Microsoft.Playwright": "1.60.0",
           "Radzen.Blazor": "10.4.5",
           "System.ClientModel": "1.13.0",
           "Tesseract": "5.2.0",
@@ -868,6 +869,17 @@
           }
         }
       },
+      "Microsoft.Playwright/1.60.0": {
+        "dependencies": {
+          "Microsoft.Bcl.AsyncInterfaces": "10.0.3"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.Playwright.dll": {
+            "assemblyVersion": "1.60.0.0",
+            "fileVersion": "1.60.0.0"
+          }
+        }
+      },
       "Microsoft.SqlServer.Server/1.0.0": {
         "runtime": {
           "lib/netstandard2.0/Microsoft.SqlServer.Server.dll": {
@@ -1495,6 +1507,13 @@
       "sha512": "sha512-yuQZ8VIWc3NCpK439zG105sAfyFkq8kA+fvxfXI1DA76gTGKNLBJtX8ljyuhMhcYCl/Uu9AOm/vfbbI/P5TapQ==",
       "path": "microsoft.kiota.serialization.text/2.0.0",
       "hashPath": "microsoft.kiota.serialization.text.2.0.0.nupkg.sha512"
+    },
+    "Microsoft.Playwright/1.60.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-RTwlxpmCsCMD8yCu8a9+/B+ce1axSVuRu3Ew4GI493g84bWxC323u69Tw8najJ/5uZ+cQVU3eDhB4GvubM9yHg==",
+      "path": "microsoft.playwright/1.60.0",
+      "hashPath": "microsoft.playwright.1.60.0.nupkg.sha512"
     },
     "Microsoft.SqlServer.Server/1.0.0": {
       "type": "package",
