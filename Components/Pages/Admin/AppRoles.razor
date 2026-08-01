@@ -1,269 +1,361 @@
 ﻿@page "/admin/roles"
 @layout MainLayout
+@attribute [Authorize(Roles = "Admin,SysAdmin")]
 
-@using MITANZ360Edu.Web.Models
-@using MITANZ360Edu.Web.Services
-@using MITANZ360Edu.Web.Components.Pages.Admin
-
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
 @using Radzen
 @using Radzen.Blazor
 
-@inject SharePointService SharePointService
+@using MITANZ360Edu.Web.Data
+
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject IServiceScopeFactory ScopeFactory
 @inject NotificationService NotificationService
 @inject DialogService DialogService
 
-<PageTitle>App Roles</PageTitle>
+<PageTitle>Application Roles Management</PageTitle>
 
-<div class="page-header">
+<div class="container mt-4 page-wrap">
 
-    <div>
+    <!-- ===================================================== -->
+    <!-- HEADER -->
+    <!-- ===================================================== -->
+    <div class="top-card mb-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h3 class="title mb-1">Application Roles Management</h3>
+                <div class="subtle">Manage application roles and access permissions.</div>
+            </div>
 
-        <h3 class="page-title">
+            <div class="d-flex gap-2 flex-wrap">
+                <RadzenTextBox @bind-Value="search"
+                               Placeholder="Search roles..."
+                               Style="width:300px;" />
 
-            Application Roles Management
-
-        </h3>
-
-        <div class="page-subtitle">
-
-            Manage application roles and access permissions.(RBAC)
+                <RadzenButton Text="New Role"
+                              Icon="add"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Click="OpenCreateRoleBlade" />
+            </div>
         </div>
-
     </div>
 
-    <div>
+    <!-- ===================================================== -->
+    <!-- GRID -->
+    <!-- ===================================================== -->
+    <div class="workspace-card">
+        <RadzenDataGrid Data="@FilteredRoles()"
+                        TItem="RoleRow"
+                        AllowPaging="true"
+                        PageSize="10"
+                        AllowSorting="true"
+                        AllowFiltering="false"
+                        Responsive="true"
+                        Class="mit-grid">
 
-        <RadzenButton Text="New Role"
-                      Icon="add_circle"
-                      ButtonStyle="ButtonStyle.Primary"
-                      Click="@CreateNewRole" />
+            <Columns>
+                <RadzenDataGridColumn TItem="RoleRow" Property="Name" Title="Role" />
+                <RadzenDataGridColumn TItem="RoleRow" Property="NormalizedName" Title="Normalized Name" />
+                <RadzenDataGridColumn TItem="RoleRow" Property="UsersCount" Title="Users" Width="120px" />
 
+                <RadzenDataGridColumn TItem="RoleRow" Title="Actions" Sortable="false" Filterable="false" Width="160px">
+                    <Template Context="r">
+                        <div class="d-flex gap-2">
+                            <RadzenButton Icon="edit"
+                                          Size="ButtonSize.Small"
+                                          ButtonStyle="ButtonStyle.Primary"
+                                          Click="@(async () => await OpenEditRoleBlade(r))" />
+
+                            <RadzenButton Icon="delete"
+                                          Size="ButtonSize.Small"
+                                          ButtonStyle="ButtonStyle.Danger"
+                                          Disabled="@busy"
+                                          Click="@(async () => await AskDeleteRole(r))" />
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+
+        </RadzenDataGrid>
     </div>
-
 </div>
 
-<RadzenCard class="main-card">
+<!-- ===================================================== -->
+<!-- ROLE SIDE PANEL -->
+<!-- ===================================================== -->
+<RadzenSidebar Position="SidebarPosition.Right"
+               Visible="@showRoleBlade"
+               Class="mit-blade">
 
-    <RadzenDataGrid TItem="AppRoleModel"
-                    Data="@Roles"
-                    AllowPaging="true"
-                    PageSize="10"
-                    AllowSorting="true"
-                    AllowFiltering="true"
-                    Responsive="true">
+    <div class="blade-header">
+        <div class="d-flex align-items-center gap-2">
+            <RadzenIcon Icon="@roleBladeIcon"
+                        Style="@($"color:{roleBladeIconColor};")" />
 
-        <Columns>
+            <h4 class="mb-0">@roleBladeTitle</h4>
+        </div>
 
-            <!-- ROLE -->
+        <RadzenButton Icon="close"
+                      Size="ButtonSize.Small"
+                      ButtonStyle="ButtonStyle.Light"
+                      Click="@CloseRoleBlade" />
+    </div>
 
-            <RadzenDataGridColumn TItem="AppRoleModel"
-                                  Property="Title"
-                                  Title="Role">
+    <div class="blade-body">
+        <div class="row">
+            <div class="col-12 mb-3">
+                <RadzenLabel Text="Role Name" />
+                <RadzenTextBox @bind-Value="model.Name"
+                               Name="RoleName"
+                               Style="width:100%;" />
+            </div>
 
-                <Template Context="role">
-
-                    <div class="role-badge">
-
-                        @role.Title
-
+            @if (isEditMode)
+            {
+                <div class="col-12">
+                    <div class="subtle">
+                        Renaming a role updates the Identity role record. Ensure any seeded role names in code remain aligned.
                     </div>
+                </div>
+            }
+        </div>
+    </div>
 
-                </Template>
+    <div class="blade-footer">
+        <RadzenButton Text="Cancel"
+                      ButtonStyle="ButtonStyle.Light"
+                      Click="@CloseRoleBlade"
+                      Disabled="@busy" />
 
-            </RadzenDataGridColumn>
+        <RadzenButton Text="Save"
+                      Icon="save"
+                      ButtonStyle="ButtonStyle.Primary"
+                      Disabled="@busy"
+                      Click="AskSaveRole" />
+    </div>
+</RadzenSidebar>
 
-            <!-- DESCRIPTION -->
+@code
+{
+    // =====================================================
+    // STATE
+    // =====================================================
 
-            <RadzenDataGridColumn TItem="AppRoleModel"
-                                  Property="Description"
-                                  Title="Description" />
+    private List<RoleRow> roles = new();
 
-            <!-- ACTIVE -->
+    private bool showRoleBlade;
+    private bool busy;
+    private bool isEditMode;
 
-            <RadzenDataGridColumn TItem="AppRoleModel"
-                                  Title="Active"
-                                  Width="90px">
+    private string search = string.Empty;
 
-                <Template Context="role">
+    private string roleBladeTitle = "New Role";
+    private string roleBladeIcon = "add";
+    private string roleBladeIconColor = "#2563eb";
 
-                    @if (role.IsActive)
-                    {
-                        <RadzenIcon Icon="check_circle"
-                                    Style="color:green;" />
-                    }
-                    else
-                    {
-                        <RadzenIcon Icon="cancel"
-                                    Style="color:red;" />
-                    }
+    private RoleRow? editingRole;
 
-                </Template>
+    private RoleEditModel model = new();
 
-            </RadzenDataGridColumn>
+    // Optional protection for critical roles used by authorization.
+    private static readonly HashSet<string> ProtectedRoleNames =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Admin",
+            "SysAdmin"
+        };
 
-            <!-- ACTIONS -->
+    // =====================================================
+    // INITIALIZE
+    // =====================================================
 
-            <RadzenDataGridColumn TItem="AppRoleModel"
-                                  Title="Actions"
-                                  Width="220px"
-                                  TextAlign="TextAlign.Center">
-
-                <Template Context="role">
-
-                    <!-- CLONE -->
-
-                    <RadzenButton Icon="content_copy"
-                                  Size="ButtonSize.Small"
-                                  ButtonStyle="ButtonStyle.Info"
-                                  class="me-2"
-                                  Click="@(() => CloneRole(role))" />
-
-                    <!-- EDIT -->
-
-                    <RadzenButton Icon="edit"
-                                  Size="ButtonSize.Small"
-                                  ButtonStyle="ButtonStyle.Warning"
-                                  class="me-2"
-                                  Click="@(() => EditRole(role))" />
-
-                    <!-- DELETE -->
-
-                    <RadzenButton Icon="delete"
-                                  Size="ButtonSize.Small"
-                                  ButtonStyle="ButtonStyle.Danger"
-                                  Click="@(() => DeleteRole(role))" />
-
-                </Template>
-
-            </RadzenDataGridColumn>
-
-        </Columns>
-
-    </RadzenDataGrid>
-
-</RadzenCard>
-
-@code {
-
-    private List<AppRoleModel>
-        Roles = [];
-
-    protected override async Task
-        OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
-        await LoadRolesAsync();
+        await LoadRoles();
     }
 
     // =====================================================
-    // LOAD
+    // LOAD ROLES
     // =====================================================
 
-    private async Task
-        LoadRolesAsync()
+    private async Task LoadRoles()
     {
-        Roles =
-            await SharePointService
-                .GetRolesAsync();
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        roles = await
+            (
+                from r in db.Roles
+                join ur in db.UserRoles on r.Id equals ur.RoleId into roleUsers
+                where !string.IsNullOrWhiteSpace(r.Name)
+                orderby r.Name
+                select new RoleRow
+                {
+                    Id = r.Id,
+                    Name = r.Name!,
+                    NormalizedName = r.NormalizedName ?? string.Empty,
+                    UsersCount = roleUsers.Count()
+                }
+            )
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    // =====================================================
+    // FILTER
+    // =====================================================
+
+    private IEnumerable<RoleRow> FilteredRoles()
+    {
+        if (string.IsNullOrWhiteSpace(search))
+        {
+            return roles;
+        }
+
+        var s = search.Trim().ToLowerInvariant();
+
+        return roles.Where(r =>
+            (r.Name ?? string.Empty).ToLowerInvariant().Contains(s) ||
+            (r.NormalizedName ?? string.Empty).ToLowerInvariant().Contains(s));
     }
 
     // =====================================================
     // CREATE
     // =====================================================
 
-    private async Task
-        CreateNewRole()
+    private Task OpenCreateRoleBlade()
     {
-        var result =
-            await DialogService.OpenAsync<RoleDialog>(
-                "Create Role",
-                null);
+        isEditMode = false;
+        editingRole = null;
 
-        if (result is AppRoleModel role)
+        model = new RoleEditModel
         {
-            await SharePointService
-                .CreateRoleAsync(role);
+            Name = string.Empty
+        };
 
-            NotificationService.Notify(
-                NotificationSeverity.Success,
-                "Created",
-                "Role created");
+        roleBladeTitle = "New Role";
+        roleBladeIcon = "add";
+        roleBladeIconColor = "#2563eb";
 
-            await LoadRolesAsync();
-        }
+        showRoleBlade = true;
+        return Task.CompletedTask;
     }
 
     // =====================================================
     // EDIT
     // =====================================================
 
-    private async Task
-        EditRole(
-            AppRoleModel role)
+    private Task OpenEditRoleBlade(RoleRow role)
     {
-        var parameters =
-            new Dictionary<string, object>
-            {
-                { "Model", role }
-            };
+        isEditMode = true;
+        editingRole = role;
 
-        var result =
-            await DialogService.OpenAsync<RoleDialog>(
-                "Edit Role",
-                parameters);
-
-        if (result is AppRoleModel updatedRole)
+        model = new RoleEditModel
         {
-            await SharePointService
-                .UpdateRoleAsync(updatedRole);
+            Id = role.Id,
+            Name = role.Name
+        };
 
-            NotificationService.Notify(
-                NotificationSeverity.Success,
-                "Updated",
-                "Role updated");
+        roleBladeTitle = "Edit Role";
+        roleBladeIcon = "security";
+        roleBladeIconColor = "#ea580c";
 
-            await LoadRolesAsync();
-        }
+        showRoleBlade = true;
+        return Task.CompletedTask;
     }
 
     // =====================================================
-    // CLONE
+    // SAVE
     // =====================================================
 
-    private async Task
-        CloneRole(
-            AppRoleModel role)
+    private async Task AskSaveRole()
     {
         try
         {
-            var clone =
-                new AppRoleModel
+            busy = true;
+
+            var validationError = ValidateModel();
+            if (!string.IsNullOrWhiteSpace(validationError))
+            {
+                Notify(validationError, NotificationSeverity.Error);
+                return;
+            }
+
+            using var scope = ScopeFactory.CreateScope();
+
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            var trimmedName = model.Name.Trim();
+
+            if (!isEditMode)
+            {
+                var exists = await roleManager.RoleExistsAsync(trimmedName);
+                if (exists)
                 {
-                    Title =
-                        $"{role.Title} Copy",
+                    Notify("A role with this name already exists.", NotificationSeverity.Error);
+                    return;
+                }
 
-                    Description =
-                        role.Description,
+                var createResult = await roleManager.CreateAsync(new IdentityRole(trimmedName));
+                if (!createResult.Succeeded)
+                {
+                    NotifyIdentityErrors(createResult);
+                    return;
+                }
 
-                    IsActive =
-                        role.IsActive
-                };
+                Notify("Role created");
+            }
+            else
+            {
+                var role = await roleManager.FindByIdAsync(model.Id!);
+                if (role is null)
+                {
+                    Notify("Role not found.", NotificationSeverity.Error);
+                    return;
+                }
 
-            await SharePointService
-                .CreateRoleAsync(clone);
+                if (ProtectedRoleNames.Contains(role.Name ?? string.Empty) &&
+                    !string.Equals(role.Name, trimmedName, StringComparison.OrdinalIgnoreCase))
+                {
+                    Notify("Protected system roles cannot be renamed.", NotificationSeverity.Error);
+                    return;
+                }
 
-            NotificationService.Notify(
-                NotificationSeverity.Success,
-                "Cloned",
-                "Role cloned");
+                var duplicate = await roleManager.FindByNameAsync(trimmedName);
+                if (duplicate is not null &&
+                    !string.Equals(duplicate.Id, role.Id, StringComparison.Ordinal))
+                {
+                    Notify("Another role with this name already exists.", NotificationSeverity.Error);
+                    return;
+                }
 
-            await LoadRolesAsync();
+                role.Name = trimmedName;
+                role.NormalizedName = trimmedName.ToUpperInvariant();
+
+                var updateResult = await roleManager.UpdateAsync(role);
+                if (!updateResult.Succeeded)
+                {
+                    NotifyIdentityErrors(updateResult);
+                    return;
+                }
+
+                Notify("Role updated");
+            }
+
+            showRoleBlade = false;
+
+            await LoadRoles();
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
-            NotificationService.Notify(
-                NotificationSeverity.Error,
-                "Clone Failed",
-                ex.Message);
+            Notify(ex.Message, NotificationSeverity.Error);
+        }
+        finally
+        {
+            busy = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -271,63 +363,135 @@
     // DELETE
     // =====================================================
 
-    private async Task
-        DeleteRole(
-            AppRoleModel role)
+    private async Task AskDeleteRole(RoleRow role)
     {
-        var confirm =
-            await DialogService.Confirm(
-                $"Delete role '{role.Title}' ?",
-                "Confirm Delete");
-
-        if (confirm == true)
+        try
         {
-            await SharePointService
-                .DeleteRoleAsync(role.Id);
+            if (ProtectedRoleNames.Contains(role.Name))
+            {
+                Notify("Protected system roles cannot be deleted.", NotificationSeverity.Error);
+                return;
+            }
 
-            NotificationService.Notify(
-                NotificationSeverity.Success,
-                "Deleted",
-                "Role removed");
+            if (role.UsersCount > 0)
+            {
+                Notify("This role is assigned to users and cannot be deleted.", NotificationSeverity.Error);
+                return;
+            }
 
-            await LoadRolesAsync();
+            var confirmed = await DialogService.Confirm(
+                $"Delete role '{role.Name}'?",
+                "Confirm delete",
+                new ConfirmOptions
+                {
+                    OkButtonText = "Delete",
+                    CancelButtonText = "Cancel"
+                });
+
+            if (confirmed != true)
+            {
+                return;
+            }
+
+            busy = true;
+
+            using var scope = ScopeFactory.CreateScope();
+
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            var dbRole = await roleManager.FindByIdAsync(role.Id);
+            if (dbRole is null)
+            {
+                Notify("Role not found.", NotificationSeverity.Error);
+                return;
+            }
+
+            var deleteResult = await roleManager.DeleteAsync(dbRole);
+            if (!deleteResult.Succeeded)
+            {
+                NotifyIdentityErrors(deleteResult);
+                return;
+            }
+
+            Notify("Role deleted");
+
+            await LoadRoles();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Notify(ex.Message, NotificationSeverity.Error);
+        }
+        finally
+        {
+            busy = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
+
+    // =====================================================
+    // HELPERS
+    // =====================================================
+
+    private string? ValidateModel()
+    {
+        if (string.IsNullOrWhiteSpace(model.Name))
+        {
+            return "Role name is required.";
+        }
+
+        if (model.Name.Trim().Length < 2)
+        {
+            return "Role name must be at least 2 characters.";
+        }
+
+        return null;
+    }
+
+    private void NotifyIdentityErrors(IdentityResult result)
+    {
+        Notify(
+            string.Join(", ", result.Errors.Select(x => x.Description)),
+            NotificationSeverity.Error);
+    }
+
+    private void CloseRoleBlade()
+    {
+        showRoleBlade = false;
+    }
+
+    private void Notify(
+        string message,
+        NotificationSeverity severity = NotificationSeverity.Success)
+    {
+        NotificationService.Notify(new NotificationMessage
+        {
+            Severity = severity,
+            Summary = message,
+            Duration = 3000
+        });
+    }
+
+    // =====================================================
+    // VIEW MODELS
+    // =====================================================
+
+    private sealed class RoleRow
+    {
+        public string Id { get; set; } = string.Empty;
+
+        public string Name { get; set; } = string.Empty;
+
+        public string NormalizedName { get; set; } = string.Empty;
+
+        public int UsersCount { get; set; }
+    }
+
+    private sealed class RoleEditModel
+    {
+        public string? Id { get; set; }
+
+        public string Name { get; set; } = string.Empty;
+    }
 }
-
-<style>
-
-    .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-    }
-
-    .page-title {
-        margin: 0;
-        font-size: 24px;
-        font-weight: 700;
-    }
-
-    .page-subtitle {
-        color: #64748b;
-        font-size: 13px;
-    }
-
-    .main-card {
-        border-radius: 16px;
-        padding: 10px;
-    }
-
-    .role-badge {
-        display: inline-block;
-        padding: 6px 12px;
-        border-radius: 20px;
-        background: #eff6ff;
-        color: #2563eb;
-        font-weight: 600;
-        font-size: 13px;
-    }
-
-</style>
+``

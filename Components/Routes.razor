@@ -4,12 +4,12 @@
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(Program).Assembly">
         <Found Context="routeData">
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Lib_Cont_Layout)" />
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout_No_Left_RightPan)" />
         </Found>
 
         <NotFound>
-            <LayoutView Layout="@typeof(Lib_Cont_Layout)">
-                <p>Page not found</p>
+            <LayoutView Layout="@typeof(MainLayout_No_Left_RightPan)">
+                <p>Page-Not-Found / Not-Authorized</p>
             </LayoutView>
         </NotFound>
     </Router>

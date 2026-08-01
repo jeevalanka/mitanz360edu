@@ -1,5 +1,6 @@
 ﻿@page "/app-nav-cards"
 @layout MainLayout
+@attribute [Authorize(Roles = "Admin,SysAdmin")]
 
 @using MITANZ360Edu.Web.Models
 @using MITANZ360Edu.Web.Services
@@ -295,11 +296,9 @@
     // EDIT
     // =====================================================
 
-    private async Task EditCard(
-        NavigationCardModel item)
+    private async Task EditCard(NavigationCardModel item)
     {
-        var model =
-            new NavigationCardModel
+        var model = new NavigationCardModel
             {
                 Id = item.Id,
                 Title = item.Title,
@@ -315,8 +314,7 @@
                 CardColor = item.CardColor
             };
 
-        var parameters =
-            new Dictionary<string, object>
+        var parameters = new Dictionary<string, object>
             {
                 {
                     "Model",
@@ -324,12 +322,8 @@
                 }
             };
 
-        var result =
-            await DialogService.OpenAsync
-                <NavigationCardForm>(
-                    "Edit Navigation Card",
-                    parameters,
-                    new DialogOptions
+        var result = await DialogService.OpenAsync
+                <NavigationCardForm>("Edit Navigation Card",parameters,new DialogOptions
                     {
                         Width = "900px",
                         Height = "750px",

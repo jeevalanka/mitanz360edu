@@ -22,21 +22,32 @@
                 <div class="card-body">
 
                     <h2 class="fw-bold text-primary mb-2">
-                        MITANZ360Edu AI Chat
+                        AI-Chat vs API-Based {✨🧠 vs ⚙️🔌⏱}
                     </h2>
 
-                    <p class="text-muted mb-0">
-                        # How to Get the Best Results
+                    <div class="text-muted mb-0">
 
-                        * Be clear and specific about what you need.
-                        * Ask direct questions.
-                        * Provide relevant context when helpful.
-                        * Feel free to ask follow-up questions.
-                        * Avoid sharing sensitive personal information.
-                        * Let me know if you'd like more detail or a different approach.
+                        <h6 class="fw-semibold mb-2">💬 AI Chatbot</h6>
+                        <p>
+                            Users ask questions and receive conversational AI responses.
+                            Ideal for learning, support, and Q&A.
+                        </p>
 
-                        I'm ready to help—just ask!
-                    </p>
+                        <h6 class="fw-semibold mt-3 mb-2">⚙️ API-Based AI Integration</h6>
+                        <p>
+                            AI is built into the application to automate tasks, analyze data,
+                            generate content, and enhance workflows without requiring a chat.
+                        </p>
+
+                        <hr />
+
+                        <h6 class="fw-semibold mb-2">📌 In Short</h6>
+                        <ul class="mb-0">
+                            <li><strong>💬 Chatbot</strong> = Ask AI</li>
+                            <li><strong>⚙️ API Integration</strong> = AI Works Inside Your Application</li>
+                        </ul>
+
+                    </div>
 
                 </div>
 
@@ -47,13 +58,51 @@
 
                 <div class="card-header">
 
-                    <h5 class="fw-semibold" >
+                    <h5 class="fw-semibold">
                         Prompt
                     </h5>
 
                 </div>
 
                 <div class="card-body">
+
+                    <!-- PREDEFINED PROMPTS -->
+                    <div class="mb-3">
+
+                        <label class="form-label fw-semibold">
+                            Quick Prompts
+                        </label>
+
+                        <select class="form-select"
+                                value="@SelectedPredefinedPromptKey"
+                                @onchange="OnPredefinedPromptSelectedAsync"
+                                disabled="@IsLoading">
+
+                            <option value="">
+                                -- Select a predefined prompt --
+                            </option>
+
+                            @foreach (var category in PredefinedPrompts)
+                            {
+                                <optgroup label="@category.Key">
+
+                                    @foreach (var prompt in category.Value)
+                                    {
+                                        <option value="@prompt.Key">
+                                            @prompt.Key
+                                        </option>
+                                    }
+
+                                </optgroup>
+                            }
+
+                        </select>
+
+                        <div class="form-text">
+                            Selecting a quick prompt fills the prompt box and runs it automatically.
+                        </div>
+
+                    </div>
 
                     <textarea class="form-control ai-textarea"
                               rows="2"
@@ -204,6 +253,94 @@
     private AiOutputMode SelectedOutputMode { get; set; } =
         AiOutputMode.Text;
 
+    private string SelectedPredefinedPromptKey { get; set; } =
+        string.Empty;
+
+    // Sample predefined prompts, grouped by category.
+    // Replace / extend these with real prompts relevant to MITANZ360Edu.
+    private readonly Dictionary<string, Dictionary<string, string>> PredefinedPrompts =
+        new()
+        {
+            ["Teaching & Lesson Support"] = new()
+            {
+                ["Create a Lesson Plan"] =
+                    "Create a 45-minute lesson plan for teaching fractions to Grade 5 students, including objectives, activities, and assessment.",
+
+                ["Explain a Concept Simply"] =
+                    "Explain the concept of photosynthesis in simple terms suitable for a high school student.",
+
+                ["Differentiated Instruction Ideas"] =
+                    "Suggest 3 differentiated instruction strategies for teaching the water cycle to a mixed-ability Grade 6 class.",
+            },
+
+            ["Assessment & Quizzes"] = new()
+            {
+                ["Generate Quiz Questions"] =
+                    "Generate 5 multiple-choice quiz questions about World War II, including the correct answers.",
+
+                ["Create a Rubric"] =
+                    "Create a grading rubric for a Grade 8 persuasive essay assignment, covering structure, argument, and grammar.",
+
+                ["Short Answer Questions"] =
+                    "Write 5 short-answer exam questions covering Newton's three laws of motion.",
+            },
+
+            ["Student Support"] = new()
+            {
+                ["Study Tips"] =
+                    "Give me 5 effective study tips for exam preparation for a high school student.",
+
+                ["Summarize a Topic"] =
+                    "Summarize the key events and causes of the French Revolution in under 200 words.",
+
+                ["Explain Like I'm 10"] =
+                    "Explain how the human digestive system works, in language a 10-year-old would understand.",
+            },
+
+            ["Administrative"] = new()
+            {
+                ["Parent Email Draft"] =
+                    "Draft a polite email to parents informing them about an upcoming school field trip, including date, purpose, and required permission slip.",
+
+                ["Meeting Agenda"] =
+                    "Create a meeting agenda for a 30-minute staff meeting about updating the school's homework policy.",
+            },
+        };
+
+    private async Task OnPredefinedPromptSelectedAsync(ChangeEventArgs e)
+    {
+        var selectedKey =
+            e.Value?.ToString() ??
+            string.Empty;
+
+        SelectedPredefinedPromptKey = selectedKey;
+
+        if (string.IsNullOrWhiteSpace(selectedKey))
+        {
+            return;
+        }
+
+        var promptText =
+            PredefinedPrompts
+                .SelectMany(category => category.Value)
+                .FirstOrDefault(p => p.Key == selectedKey)
+                .Value;
+
+        if (string.IsNullOrWhiteSpace(promptText))
+        {
+            Logger.LogWarning(
+                "Selected predefined prompt key '{Key}' was not found.",
+                selectedKey);
+
+            return;
+        }
+
+        Prompt = promptText;
+
+        // Run the same pipeline used by the Send button.
+        await ExecuteAsync();
+    }
+
     private async Task ExecuteAsync()
     {
         try
@@ -213,6 +350,9 @@
             Response = string.Empty;
 
             IsLoading = true;
+
+            // Update UI immediately so the spinner shows before the await.
+            StateHasChanged();
 
             Logger.LogInformation(
                 "AI chat execution started.");
@@ -325,11 +465,11 @@
     }
 
     /* =========================
-           GLASS CARDS
-        ========================== */
+               GLASS CARDS
+            ========================== */
 
     .card {
-        background:lightblue;
+        background: lightblue;
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid var(--ms-border);
@@ -358,8 +498,8 @@
     }
 
     /* =========================
-           INPUT AREA
-        ========================== */
+               INPUT AREA
+            ========================== */
 
     .ai-textarea {
         resize: vertical;
@@ -382,8 +522,8 @@
         }
 
     /* =========================
-           BUTTONS
-        ========================== */
+               BUTTONS
+            ========================== */
 
     .btn-primary {
         background: linear-gradient( 135deg, #2563eb, #1d4ed8);
@@ -401,8 +541,8 @@
         }
 
     /* =========================
-           RESPONSE CONTAINER
-        ========================== */
+               RESPONSE CONTAINER
+            ========================== */
 
     .ai-response-container {
         background: rgba(255,255,255,0.55);
@@ -422,8 +562,8 @@
     }
 
     /* =========================
-           HTML RENDERING
-        ========================== */
+               HTML RENDERING
+            ========================== */
 
     .ai-html-response {
         background: rgba(255,255,255,0.72);
@@ -437,8 +577,8 @@
     }
 
         /* =========================
-           HEADINGS
-        ========================== */
+               HEADINGS
+            ========================== */
 
         .ai-html-response h1 {
             font-size: 2rem;
@@ -469,8 +609,8 @@
         }
 
         /* =========================
-           TABLES
-        ========================== */
+               TABLES
+            ========================== */
 
         .ai-html-response table {
             width: 100%;
@@ -500,8 +640,8 @@
             }
 
         /* =========================
-           NESTED CARDS
-        ========================== */
+               NESTED CARDS
+            ========================== */
 
         .ai-html-response .card {
             background: rgba(255,255,255,0.6);
@@ -512,8 +652,8 @@
         }
 
         /* =========================
-           ALERTS
-        ========================== */
+               ALERTS
+            ========================== */
 
         .ai-html-response .alert {
             border: none;
@@ -544,8 +684,8 @@
         }
 
         /* =========================
-           CODE BLOCKS
-        ========================== */
+               CODE BLOCKS
+            ========================== */
 
         .ai-html-response pre {
             background: rgba(15,23,42,0.95);
@@ -565,8 +705,8 @@
         }
 
     /* =========================
-           SCROLLBAR
-        ========================== */
+               SCROLLBAR
+            ========================== */
 
     ::-webkit-scrollbar {
         width: 10px;
@@ -581,5 +721,4 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(100,116,139,0.55);
         }
-
 </style>

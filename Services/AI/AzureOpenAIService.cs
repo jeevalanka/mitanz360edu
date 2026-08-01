@@ -9,9 +9,7 @@ namespace MITANZ360Edu.Web.Services.AI;
 public sealed class AzureOpenAIService : IAiProvider
 {
     private readonly HttpClient _httpClient;
-
     private readonly IConfiguration _configuration;
-
     private readonly ILogger<AzureOpenAIService> _logger;
 
     public AiProviderType ProviderType =>
@@ -23,9 +21,7 @@ public sealed class AzureOpenAIService : IAiProvider
         ILogger<AzureOpenAIService> logger)
     {
         _httpClient = httpClient;
-
         _configuration = configuration;
-
         _logger = logger;
     }
 
@@ -34,8 +30,7 @@ public sealed class AzureOpenAIService : IAiProvider
         AiModelConfig modelConfig,
         CancellationToken cancellationToken = default)
     {
-        var stopwatch =
-            Stopwatch.StartNew();
+        var stopwatch = Stopwatch.StartNew();
 
         try
         {
@@ -80,17 +75,14 @@ public sealed class AzureOpenAIService : IAiProvider
                     new
                     {
                         role = "system",
-
                         content =
                             request.SystemPrompt ??
-                            GetSystemPrompt(
-                                request.OutputMode)
+                            GetSystemPrompt(request.OutputMode)
                     },
 
                     new
                     {
                         role = "user",
-
                         content = request.Prompt
                     }
                 },
@@ -100,8 +92,43 @@ public sealed class AzureOpenAIService : IAiProvider
                 max_tokens = request.MaxTokens
             };
 
+            _logger.LogWarning(
+                "================================================");
+
+            _logger.LogWarning(
+                "SYSTEM PROMPT:\n{SystemPrompt}",
+                request.SystemPrompt ??
+                GetSystemPrompt(request.OutputMode));
+
+            _logger.LogWarning(
+                "USER PROMPT:\n{UserPrompt}",
+                request.Prompt);
+
+            _logger.LogWarning(
+                "OUTPUT MODE: {OutputMode}",
+                request.OutputMode);
+
+            _logger.LogWarning(
+                "TEMPERATURE: {Temperature}",
+                request.Temperature);
+
+            _logger.LogWarning(
+                "MAX TOKENS: {MaxTokens}",
+                request.MaxTokens);
+
+            _logger.LogWarning(
+                "PROMPT LENGTH: {Length}",
+                request.Prompt?.Length ?? 0);
+
+            _logger.LogWarning(
+                "================================================");
+
             var json =
                 JsonSerializer.Serialize(payload);
+
+            _logger.LogWarning(
+                "REQUEST JSON:\n{Json}",
+                json);
 
             using var requestMessage =
                 new HttpRequestMessage(
@@ -127,6 +154,14 @@ public sealed class AzureOpenAIService : IAiProvider
                 await response.Content.ReadAsStringAsync(
                     cancellationToken);
 
+            _logger.LogWarning(
+                "OPENAI STATUS: {Status}",
+                response.StatusCode);
+
+            _logger.LogWarning(
+                "OPENAI RESPONSE: {Response}",
+                rawResponse);
+
             stopwatch.Stop();
 
             if (!response.IsSuccessStatusCode)
@@ -138,24 +173,18 @@ public sealed class AzureOpenAIService : IAiProvider
                 return new AiWorkflowResult
                 {
                     Success = false,
-
                     Provider = ProviderType,
-
                     Model = deployment,
-
                     RawResponse = rawResponse,
-
                     Errors = new List<AiError>
                     {
                         new AiError
                         {
-                            Code = "PROVIDER_NOT_FOUND",
-                            Message = $"Provider not registered: {modelConfig.Provider}"
+                            Code = "OPENAI_ERROR",
+                            Message = rawResponse
                         }
                     },
-
-                    DurationMs =
-                        stopwatch.ElapsedMilliseconds
+                    DurationMs = stopwatch.ElapsedMilliseconds
                 };
             }
 
@@ -165,15 +194,10 @@ public sealed class AzureOpenAIService : IAiProvider
             return new AiWorkflowResult
             {
                 Success = true,
-
                 Provider = ProviderType,
-
                 Model = deployment,
-
                 RawResponse = rawResponse,
-
-                DurationMs =
-                    stopwatch.ElapsedMilliseconds
+                DurationMs = stopwatch.ElapsedMilliseconds
             };
         }
         catch (Exception ex)
@@ -187,81 +211,33 @@ public sealed class AzureOpenAIService : IAiProvider
             return new AiWorkflowResult
             {
                 Success = false,
-
                 Provider = ProviderType,
-
                 Model = modelConfig.Model,
-
                 Errors = new List<AiError>
+                {
+                    new AiError
                     {
-                        new AiError
-                        {
-                            Code = "EXCEPTION",
-                            Message = ex.Message
-                        }
-                    },
-
-                DurationMs =
-                    stopwatch.ElapsedMilliseconds
+                        Code = "EXCEPTION",
+                        Message = ex.ToString()
+                    }
+                },
+                DurationMs = stopwatch.ElapsedMilliseconds
             };
         }
     }
 
-    private static string GetSystemPrompt(
-        AiOutputMode outputMode)
+    private static string GetSystemPrompt(AiOutputMode outputMode)
     {
-        return outputMode switch
-        {
-            AiOutputMode.Text =>
-                """
-                You are a professional AI assistant for MITANZ360Edu.
+        return """
+    You are a professional AI assistant for MITANZ360Edu.
 
-                Respond ONLY in clean readable plain text.
-
-                DO NOT return:
-                - JSON
-                - HTML
-                - Markdown
-                - code blocks
-
-                Use human-friendly educational explanations.
-                """,
-
-            AiOutputMode.Html =>
-                """
-                Return clean Bootstrap-compatible HTML only.
-
-                Do not return markdown.
-
-                Use proper Bootstrap cards, tables, alerts, and headings.
-                """,
-
-            AiOutputMode.Markdown =>
-                """
-                Return professional markdown formatting.
-                """,
-
-            AiOutputMode.JsonOnly =>
-                """
-                Return ONLY valid JSON.
-
-                Do not return explanations.
-                """,
-
-            AiOutputMode.FileUpdate =>
-                """
-                Return updated file content only.
-                """,
-
-            AiOutputMode.GeneratedTemplate =>
-                """
-                Generate professional enterprise HTML template output.
-                """,
-
-            _ =>
-                """
-                Respond in clean readable text.
-                """
-        };
+    Core Rules:
+    - Follow the user's instructions exactly.
+    - Respect the user's requested output format.
+    - Respect the user's requested layout, design, styling, structure, and presentation requirements.
+    - Do not add explanations outside the requested output.
+    - If no format is specified, return clean professional plain text.
+    - Be accurate, professional, and complete.
+    """;
     }
 }

@@ -1,5 +1,6 @@
 ﻿@page "/lms-library-CRUD"
 @layout MainLayout_NoRightPan
+@attribute [Authorize(Roles = "Admin,SysAdmin")]
 
 @using System.IO
 @using Microsoft.AspNetCore.Components.Forms

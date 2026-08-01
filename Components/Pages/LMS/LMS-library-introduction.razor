@@ -1,472 +1,1540 @@
 ﻿@page "/lms-library-introduction"
 @layout Lib_Cont_Layout
+@attribute [Authorize(Roles = "Admin,SysAdmin,Trainer")]
 
-<PageTitle>LMS Library Viewer Introduction</PageTitle>
+@using Microsoft.AspNetCore.Components
+@using Radzen.Blazor
 
-<div class="lms-intro-page">
+<PageTitle>MITANZ360Edu AI Learning Hub | LMS Library Viewer</PageTitle>
 
-    <!-- HERO -->
-    <div class="lms-hero-card glass-card">
+@code {
+    private readonly IReadOnlyList<ActionLink> QuickActions =
+    [
+        new("Browse Library", "fa-solid fa-table-cells-large", "#overview"),
+        new("Search Content", "fa-solid fa-magnifying-glass", "#guide"),
+        new("Recent Documents", "fa-solid fa-file-lines", "#quick-start"),
+        new("AI Assistant", "fa-solid fa-brain", "#ai-features")
+    ];
 
-        <div class="hero-left">
+    private readonly IReadOnlyList<MetricCard> HeroMetrics =
+    [
+        new("Knowledge Assets", "12,480+", "fa-solid fa-book-open-reader", "Course notes, job aids, guides, decks, media, and governed learning references."),
+        new("Active Learning Paths", "320", "fa-solid fa-folder-tree", "Structured journeys grouped by academy, course, module, and lesson."),
+        new("AI Guided Search", "24/7", "fa-solid fa-brain", "Semantic search, summaries, related material, and contextual learning suggestions."),
+        new("Secure Role Model", "RBAC", "fa-solid fa-shield-halved", "System administration, trainers, students, and guest access with traceable governance.")
+    ];
 
-            <div class="hero-badge">
-                Microsoft Enterprise Learning Experience
+    private readonly IReadOnlyList<MiniInsight> RightRailInsights =
+    [
+        new("Preview-first learning", "Open Word, Excel, PowerPoint, PDF, video, images, Markdown, code, and packaged resources before downloading.", "fa-solid fa-eye"),
+        new("SharePoint-aligned storage", "Use enterprise document libraries, metadata, approvals, versions, and governed lifecycle management.", "fa-solid fa-cloud"),
+        new("Microsoft Graph context", "Bring profile-aware discovery, connected search, and Microsoft 365-aligned intelligence into the experience.", "fa-solid fa-sitemap")
+    ];
+
+    private readonly IReadOnlyList<SectionCard> Capabilities =
+    [
+        new("Learning Resources", "fa-solid fa-book", "Present curated notes, guides, references, templates, and multimedia aligned to each learning outcome."),
+        new("Course Libraries", "fa-solid fa-folder-tree", "Organize content using consistent academy, course, module, and lesson-level information architecture."),
+        new("AI Generated Content", "fa-solid fa-brain", "Surface summaries, note extraction, related resources, and context-aware study suggestions."),
+        new("Assessments", "fa-solid fa-clipboard-check", "Link the library to quizzes, evaluations, skill checks, and evidence-based learning activities."),
+        new("Videos & Labs", "fa-solid fa-video", "Support recordings, demos, lab guides, and practical activity instructions inside the same learning workspace."),
+        new("Trainer Resources", "fa-solid fa-user-tie", "Provide facilitation packs, answer guides, delivery decks, and teaching assets with controlled access."),
+        new("Student Resources", "fa-solid fa-user-graduate", "Publish learner-ready material, revision packs, FAQs, and supporting resources for self-study."),
+        new("Reports & Analytics", "fa-solid fa-chart-line", "Track what is viewed, searched, reused, or trending to improve the quality of learning content."),
+        new("Enterprise Security", "fa-solid fa-shield-halved", "Preserve governance using role-based permissions, retention-aware deletion, and audit-ready operations."),
+        new("Metadata & Versioning", "fa-solid fa-tags", "Maintain categories, tags, ownership, current versions, history, and search relevance across content."),
+        new("Favorites & Recent", "fa-solid fa-star", "Allow quick return to the resources learners and trainers use most frequently."),
+        new("Cloud Storage", "fa-solid fa-cloud-arrow-up", "Use scalable, secure storage patterns with responsive access across enterprise devices." )
+    ];
+
+    private readonly IReadOnlyList<TimelineStep> Journey =
+    [
+        new("01", "Browse Library", "Start with the main landing experience to see featured courses, learning paths, and newly published resources."),
+        new("02", "Expand Folder", "Move through academy, department, course, module, and lesson folders using the structured content tree."),
+        new("03", "Choose Module", "Select the exact module or learning unit that supports the immediate learning objective."),
+        new("04", "Open Document", "Launch a note, presentation, spreadsheet, PDF, video, image, or code sample from the library."),
+        new("05", "Preview Content", "Confirm relevance by previewing the file, reading metadata, and identifying the latest approved version."),
+        new("06", "Study & Practice", "Read, watch, practice, review, and download approved supporting resources where policy allows."),
+        new("07", "Complete Activity", "Follow linked labs, assignments, assessments, or practical tasks tied to the selected module."),
+        new("08", "Continue Learning", "Resume from recent files, favorites, or the next recommended module in the path." )
+    ];
+
+    private readonly IReadOnlyList<GuideBlock> GuideBlocks =
+    [
+        new("Browse Content", "fa-solid fa-folder-open",
+            [
+                "Use the folder tree to navigate from academy to program, course, module, and lesson in a logical sequence.",
+                "Follow breadcrumbs to understand where you are in the library and return to broader course areas quickly.",
+                "Recognize file icons, learning type badges, and metadata chips to identify the right asset faster.",
+                "Use categorized landing cards for all resources, favorites, recent files, and role-relevant recommendations."
+            ]),
+        new("Search Experience", "fa-solid fa-magnifying-glass",
+            [
+                "Use keyword search for titles, document names, module names, and indexed content within files where available.",
+                "Use metadata search when you know the course, owner, topic, delivery type, category, approval state, or tag.",
+                "Use AI-assisted semantic search to retrieve conceptually related results even when exact wording differs.",
+                "Filter by file type to find only Word, Excel, PowerPoint, PDF, image, video, Markdown, code, or archive files."
+            ]),
+        new("Open, Preview, and Download", "fa-solid fa-file-lines",
+            [
+                "Use preview mode to inspect Office files, PDFs, images, media, and other supported learning resources before opening.",
+                "Review metadata such as owner, audience, category, version, tags, module, and approval state before reuse.",
+                "Check version history when a document has changed or when a newer release may have replaced previous guidance.",
+                "Download files only where access policy, learning workflow, and document classification permit local copies."
+            ]),
+        new("Learning Workflow", "fa-solid fa-graduation-cap",
+            [
+                "Read the core document set first to understand concepts, language, outcomes, and required knowledge.",
+                "Watch demonstrations and complete labs to reinforce theory with practical application.",
+                "Use AI-generated notes and recommendations to accelerate revision and identify the next best study action.",
+                "Finish assignments or assessments and review trainer or AI guidance before progressing to the next module."
+            ])
+    ];
+
+    private readonly IReadOnlyList<CrudPanel> CrudPanels =
+    [
+        new("Create", "fa-solid fa-circle-plus",
+            [
+                "Create folders using approved academy, course, module, and lesson naming conventions.",
+                "Upload learning assets such as notes, decks, spreadsheets, PDFs, videos, images, code, and reference packages.",
+                "Add metadata, tags, category, learning type, audience, visibility, and ownership at upload time.",
+                "Create module or course resource collections aligned to outcomes and delivery structure."
+            ]),
+        new("Read", "fa-solid fa-eye",
+            [
+                "Browse structured folders or search by keyword, tag, owner, topic, or learning type.",
+                "Preview supported files inside the platform before download or open-in-native-client actions.",
+                "Inspect metadata, document history, and approval status before relying on the file for teaching or study.",
+                "Use favorites and recent files to return to frequently used course resources quickly."
+            ]),
+        new("Update", "fa-solid fa-pen-to-square",
+            [
+                "Rename or move folders and documents when content architecture changes.",
+                "Replace outdated resources while preserving history and documenting the version update clearly.",
+                "Edit metadata, tags, category, learning outcomes, intended audience, and visibility where appropriate.",
+                "Maintain clear ownership and current-state accuracy so search results remain trustworthy."
+            ]),
+        new("Delete", "fa-solid fa-trash-can",
+            [
+                "Remove duplicate, obsolete, or incorrectly published items only when policy and ownership allow.",
+                "Use recoverable delete and recycle patterns rather than permanent destruction wherever governance requires restoration.",
+                "Review dependencies before deletion when a file is linked to assessments, labs, or active modules.",
+                "Ensure audit, permissions, and security warnings are observed before destructive operations."
+            ])
+    ];
+
+    private readonly IReadOnlyList<RoleMatrix> Roles =
+    [
+        new("System Administrator", "Full platform access, permission control, restorations, audit review, and governance.", true, true, true, true),
+        new("Administrator", "Department or platform administration with managed content oversight.", true, true, true, false),
+        new("Trainer", "Own course content creation and maintenance within assigned teaching scope.", true, true, true, false),
+        new("Student", "Read-only access to assigned and approved learning materials.", false, true, false, false),
+        new("Guest", "Restricted visibility to explicitly shared resources only.", false, true, false, false)
+    ];
+
+    private readonly IReadOnlyList<SectionCard> ContentTypes =
+    [
+        new("Word", "fa-solid fa-file-word", "Lecture notes, handbooks, policies, study guides, and trainer instructions."),
+        new("Excel", "fa-solid fa-file-excel", "Trackers, datasets, mark sheets, calculators, and practical workbook files."),
+        new("PowerPoint", "fa-solid fa-file-powerpoint", "Presentation decks, visual briefings, and learning slide packs."),
+        new("PDF", "fa-solid fa-file-pdf", "Published references, controlled course packs, and read-only guidance."),
+        new("Images", "fa-solid fa-image", "Screenshots, diagrams, posters, infographics, and visual learning aids."),
+        new("Videos", "fa-solid fa-video", "Recorded sessions, walkthroughs, demonstrations, and explainer content."),
+        new("ZIP / RAR", "fa-solid fa-file-zipper", "Bundled labs, solution packs, project files, and archive transfers."),
+        new("Code & Markdown", "fa-solid fa-code", "Code samples, snippets, scripts, Markdown notes, and technical assets."),
+        new("Data Formats", "fa-solid fa-table", "CSV, JSON, XML, and structured files used in labs and integration exercises."),
+        new("Microsoft Formats", "fa-solid fa-book", "Visio, Project, OneNote, and related Microsoft productivity assets." )
+    ];
+
+    private readonly IReadOnlyList<SectionCard> Integrations =
+    [
+        new("SharePoint Online", "fa-solid fa-cloud", "Document libraries, metadata, permissions, retention, and versioning as the backbone of the content estate."),
+        new("Microsoft Graph", "fa-solid fa-sitemap", "Search enrichment, profile context, file access, and Microsoft 365 connected intelligence."),
+        new("Entra ID", "fa-solid fa-id-card", "Secure identity, role-aware access, tenant control, and authentication alignment."),
+        new("Azure", "fa-solid fa-server", "Support scalable application services, AI integrations, secure hosting, and enterprise analytics."),
+        new("OneDrive", "fa-solid fa-hard-drive", "Governed integration for personal productivity, draft preparation, and controlled collaboration."),
+        new("Copilot Ready", "fa-solid fa-lightbulb", "Content structure and metadata that prepare resources for AI grounding and natural-language discovery." )
+    ];
+
+    private readonly IReadOnlyList<SectionCard> AiFeatures =
+    [
+        new("AI Summary", "fa-solid fa-file-lines", "Condense long resources into concise study-ready summaries for faster understanding."),
+        new("Learning Recommendations", "fa-solid fa-route", "Suggest next modules, supporting documents, and prerequisite resources based on context."),
+        new("Automatic Metadata", "fa-solid fa-tags", "Extract suggested labels, categories, and topic metadata from uploaded content."),
+        new("Content Classification", "fa-solid fa-layer-group", "Improve consistency by identifying file type, audience, purpose, and sensitivity."),
+        new("Semantic Search", "fa-solid fa-magnifying-glass", "Find conceptually relevant files beyond exact keyword matching."),
+        new("AI Translation", "fa-solid fa-language", "Support multilingual understanding where language assistance is enabled." )
+    ];
+
+    private readonly IReadOnlyList<string> BestPractices =
+    [
+        "Use course and module naming standards consistently across the library.",
+        "Maintain complete metadata to improve discovery, governance, and reporting.",
+        "Version resources instead of replacing files with no traceable history.",
+        "Archive outdated packs so learners are not exposed to superseded guidance.",
+        "Avoid duplicate uploads that create conflicting sources of truth.",
+        "Review permissions regularly to prevent overexposure or content lockout.",
+        "Use AI-driven search and summaries to improve content reuse and study efficiency.",
+        "Keep learning material current and aligned to outcomes, assessments, and delivery expectations."
+    ];
+
+    private readonly IReadOnlyList<MiniInsight> QuickStart =
+    [
+        new("01 • Browse Course", "Open the correct course collection and start from the approved learning path.", "fa-solid fa-table-cells-large"),
+        new("02 • Open Module", "Select the current lesson or module tied to your study objective.", "fa-solid fa-folder-open"),
+        new("03 • View Resources", "Review notes, videos, guides, templates, and related files together.", "fa-solid fa-book"),
+        new("04 • Complete Labs", "Work through task-based activities and practical exercises.", "fa-solid fa-flask"),
+        new("05 • Read Notes", "Use study documents and summaries to consolidate understanding.", "fa-solid fa-file-lines"),
+        new("06 • Take Assessment", "Complete quizzes or evidence tasks linked to the module.", "fa-solid fa-clipboard-check"),
+        new("07 • Review Feedback", "Use feedback and AI suggestions to improve before moving on.", "fa-solid fa-comments"),
+        new("08 • Continue Learning", "Move forward using recent files, favorites, and next-step recommendations.", "fa-solid fa-arrow-right" )
+    ];
+
+    private readonly IReadOnlyList<FaqItem> Faqs =
+    [
+        new("How do I upload learning resources?", "Authorized contributors upload to the correct course or module location, add metadata and tags, set permissions, and publish into the governed library structure."),
+        new("Who can edit content?", "Edit rights are role-based. Administrators and System Administrators manage broad scope, while Trainers typically manage content they own or are assigned to maintain."),
+        new("How do permissions work?", "Permissions follow role-aware access patterns and can be applied at library, folder, or resource level depending on the governance model."),
+        new("Can I preview Office documents before downloading?", "Yes. Supported file types such as Word, Excel, PowerPoint, and PDF can be previewed directly to confirm relevance before action."),
+        new("Can deleted files be restored?", "Authorized administrative roles can restore recoverable items where retention and recycle patterns have been configured."),
+        new("How does AI help inside the library?", "AI improves search, summarizes long content, recommends related material, suggests metadata, and helps guide study progression." )
+    ];
+
+    private record ActionLink(string Title, string Icon, string Target);
+    private record MetricCard(string Title, string Value, string Icon, string Description);
+    private record MiniInsight(string Title, string Description, string Icon);
+    private record SectionCard(string Title, string Icon, string Description);
+    private record TimelineStep(string Number, string Title, string Description);
+    private record GuideBlock(string Title, string Icon, IReadOnlyList<string> Items);
+    private record CrudPanel(string Title, string Icon, IReadOnlyList<string> Items);
+    private record RoleMatrix(string Role, string Scope, bool Create, bool Read, bool Update, bool Delete);
+    private record FaqItem(string Question, string Answer);
+}
+
+<div class="library-shell">
+    <header class="page-header-block">
+        <div class="container-xxl py-4 py-lg-5">
+            <div class="toolbar-surface">
+                <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+                    <div>
+                        <nav aria-label="Breadcrumb" class="mb-2">
+                            <ol class="breadcrumb app-breadcrumb mb-0">
+                                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                                <li class="breadcrumb-item"><a href="/lms-library">Library</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Introduction</li>
+                            </ol>
+                        </nav>
+                        <div class="d-flex align-items-center gap-3 flex-wrap">
+                            <div class="app-mark">
+                                <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+                            </div>
+                            <div>
+                                <h1 class="page-title mb-1">MITANZ360Edu AI Learning Hub</h1>
+                                <p class="page-subtitle mb-0">Microsoft-style enterprise introduction and dashboard for the LMS Library Viewer.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="toolbar-actions">
+                        <a href="#overview" class="top-link"><i class="fa-solid fa-compass me-2"></i>Overview</a>
+                        <a href="#journey" class="top-link"><i class="fa-solid fa-route me-2"></i>How to Use</a>
+                        <a href="#permissions" class="top-link"><i class="fa-solid fa-shield-halved me-2"></i>Permissions</a>
+                    </div>
+                </div>
             </div>
-
-            <h1 class="hero-title">
-                LMS Library Viewer
-            </h1>
-
-            <div class="hero-subtitle">
-                Modern SharePoint-powered enterprise content navigation,
-                learning resource management, and intelligent academic
-                content exploration platform.
-            </div>
-
         </div>
+    </header>
 
-        <div class="hero-right">
-            📚
+    <main>
+        <section class="hero-section">
+            <div class="container-xxl">
+                <div class="row g-4 align-items-stretch">
+                    <div class="col-12 col-xl-8">
+                        <div class="hero-panel h-100">
+                            <div class="hero-badges mb-3">
+                                <span class="f-badge primary"><i class="fa-solid fa-brain me-2"></i>AI Powered</span>
+                                <span class="f-badge subtle"><i class="fa-solid fa-cloud me-2"></i>Microsoft Native</span>
+                            </div>
+                            <div class="row g-4 align-items-center">
+                                <div class="col-lg-7">
+                                    <h2 class="hero-title">A premium, role-aware learning library designed like a modern Microsoft product</h2>
+                                    <p class="hero-copy">
+                                        Discover course resources, preview knowledge assets, explore module-based learning paths, and use AI-assisted search,
+                                        metadata, and governance patterns in one clean enterprise workspace.
+                                    </p>
+                                    <div class="action-grid">
+                                        @foreach (var action in QuickActions)
+                                        {
+                                            <a href="@action.Target" class="action-tile" aria-label="@action.Title">
+                                                <span class="action-icon"><i class="@action.Icon" aria-hidden="true"></i></span>
+                                                <span>@action.Title</span>
+                                            </a>
+                                        }
+                                    </div>
+                                    <div class="welcome-callout mt-4">
+                                        <div class="callout-icon"><i class="fa-solid fa-circle-info" aria-hidden="true"></i></div>
+                                        <div>
+                                            <h3 class="h5 mb-2">Welcome to intelligent enterprise learning</h3>
+                                            <p class="mb-0">Use the library to browse course structures, search knowledge, open governed learning assets, and continue progress across recent and favorite resources.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-5">
+                                    <div class="hero-illustration" aria-hidden="true">
+                                        <div class="surface-shell">
+                                            <div class="surface-top">
+                                                <span></span><span></span><span></span>
+                                            </div>
+                                            <div class="surface-main">
+                                                <div class="surface-left">
+                                                    <div class="tiny-pill active"></div>
+                                                    <div class="tiny-pill"></div>
+                                                    <div class="tiny-pill"></div>
+                                                    <div class="tiny-pill"></div>
+                                                </div>
+                                                <div class="surface-right">
+                                                    <div class="bar-row"></div>
+                                                    <div class="graph-card"></div>
+                                                    <div class="tile-grid">
+                                                        <div></div><div></div><div class="wide"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="float-pill blue"><i class="fa-solid fa-book-open-reader"></i> Library</div>
+                                        <div class="float-pill gold"><i class="fa-solid fa-brain"></i> AI</div>
+                                        <div class="float-pill green"><i class="fa-solid fa-chart-line"></i> Insights</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-xl-4">
+                        <div class="right-rail h-100">
+                            <h2 class="surface-title">Workspace snapshot</h2>
+                            <div class="row g-3 mb-3">
+                                @foreach (var metric in HeroMetrics)
+                                {
+                                    <div class="col-12 col-sm-6 col-xl-12">
+                                        <RadzenCard class="rz-surface-card metric-card h-100">
+                                            <div class="d-flex gap-3 align-items-start">
+                                                <div class="metric-icon"><i class="@metric.Icon" aria-hidden="true"></i></div>
+                                                <div>
+                                                    <div class="metric-value">@metric.Value</div>
+                                                    <h3 class="metric-title">@metric.Title</h3>
+                                                    <p class="metric-copy mb-0">@metric.Description</p>
+                                                </div>
+                                            </div>
+                                        </RadzenCard>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="overview" class="section-gap">
+            <div class="container-xxl">
+                <div class="section-heading">
+                    <span class="eyebrow">Enterprise Overview</span>
+                    <h2 class="section-title">What the LMS Library Viewer is built to do</h2>
+                    <p class="section-copy">This experience is not a simple landing page. It is a structured enterprise dashboard for library discovery, knowledge access, document preview, AI assistance, and governed learning content operations.</p>
+                </div>
+                <div class="row g-4 align-items-stretch">
+                    <div class="col-12 col-lg-8">
+                        <RadzenCard class="rz-surface-card feature-hero h-100">
+                            <div class="feature-panel-header">
+                                <div>
+                                    <h3 class="panel-title">LMS Library Viewer</h3>
+                                    <p class="panel-copy mb-0">A course-aware, SharePoint-aligned, Microsoft Graph-ready content experience for students, trainers, and administrators.</p>
+                                </div>
+                                <span class="micro-tag">Knowledge Platform</span>
+                            </div>
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    <div class="mini-surface">
+                                        <h4><i class="fa-solid fa-cloud me-2"></i>SharePoint document libraries</h4>
+                                        <p class="mb-0">Use modern document libraries for structured storage, metadata, controlled sharing, and version history.</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mini-surface">
+                                        <h4><i class="fa-solid fa-sitemap me-2"></i>Microsoft Graph context</h4>
+                                        <p class="mb-0">Enable connected experiences, profile-aware content relevance, and Microsoft 365-aligned discovery workflows.</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mini-surface">
+                                        <h4><i class="fa-solid fa-brain me-2"></i>AI knowledge acceleration</h4>
+                                        <p class="mb-0">Support summaries, semantic search, recommendations, content notes, and metadata assistance in a governed way.</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mini-surface">
+                                        <h4><i class="fa-solid fa-shield-halved me-2"></i>Role-based enterprise security</h4>
+                                        <p class="mb-0">Separate administration, trainer ownership, learner read access, and guest restrictions safely and clearly.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </RadzenCard>
+                    </div>
+                    <div class="col-12 col-lg-4">
+                        <div class="d-grid gap-3 h-100">
+                            @foreach (var item in RightRailInsights)
+                            {
+                                <RadzenCard class="rz-surface-card side-insight h-100">
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <div class="info-icon"><i class="@item.Icon" aria-hidden="true"></i></div>
+                                        <div>
+                                            <h3 class="h6 mb-2">@item.Title</h3>
+                                            <p class="mb-0 small-panel-copy">@item.Description</p>
+                                        </div>
+                                    </div>
+                                </RadzenCard>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-gap section-muted">
+            <div class="container-xxl">
+                <div class="section-heading text-center">
+                    <span class="eyebrow">Platform Capabilities</span>
+                    <h2 class="section-title">Organized, premium, and enterprise-ready</h2>
+                    <p class="section-copy mx-auto">Capability cards use Radzen card surfaces for clean grouping, while the overall visual pattern follows Microsoft Fluent 2 hierarchy, spacing, and focus principles. </p>
+                </div>
+                <div class="row g-4">
+                    @foreach (var card in Capabilities)
+                    {
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <RadzenCard class="rz-surface-card capability-card h-100">
+                                <div class="cap-icon"><i class="@card.Icon" aria-hidden="true"></i></div>
+                                <h3 class="cap-title">@card.Title</h3>
+                                <p class="cap-copy mb-0">@card.Description</p>
+                            </RadzenCard>
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <section id="journey" class="section-gap">
+            <div class="container-xxl">
+                <div class="section-heading">
+                    <span class="eyebrow">How to Use</span>
+                    <h2 class="section-title">Microsoft-style guided learning journey</h2>
+                    <p class="section-copy">The timeline below uses generous whitespace and a clean vertical rhythm so the page feels intentional instead of crowded, which is central to Fluent 2 layout guidance. </p>
+                </div>
+                <div class="journey-panel">
+                    <div class="timeline-track"></div>
+                    @foreach (var step in Journey)
+                    {
+                        <article class="timeline-item">
+                            <div class="timeline-dot">@step.Number</div>
+                            <div class="timeline-card">
+                                <h3 class="h5 mb-2">@step.Title</h3>
+                                <p class="mb-0">@step.Description</p>
+                            </div>
+                        </article>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <section id="guide" class="section-gap section-muted">
+            <div class="container-xxl">
+                <div class="section-heading">
+                    <span class="eyebrow">Content Library User Guide</span>
+                    <h2 class="section-title">Detailed instructions for browsing, searching, opening, and studying content</h2>
+                    <p class="section-copy">The library experience should teach users how to navigate content, understand metadata, use preview-first workflows, and complete the learning journey confidently.</p>
+                </div>
+                <div class="row g-4">
+                    @foreach (var block in GuideBlocks)
+                    {
+                        <div class="col-12 col-xl-6">
+                            <RadzenCard class="rz-surface-card guide-card h-100">
+                                <div class="d-flex gap-3 align-items-center mb-3">
+                                    <div class="cap-icon compact"><i class="@block.Icon" aria-hidden="true"></i></div>
+                                    <h3 class="h4 mb-0">@block.Title</h3>
+                                </div>
+                                <ul class="guide-list mb-0">
+                                    @foreach (var item in block.Items)
+                                    {
+                                        <li>@item</li>
+                                    }
+                                </ul>
+                            </RadzenCard>
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <section class="section-gap">
+            <div class="container-xxl">
+                <div class="section-heading">
+                    <span class="eyebrow">CRUD Guide</span>
+                    <h2 class="section-title">Governed content operations for enterprise learning management</h2>
+                    <p class="section-copy">These instruction panels describe how to create, read, update, and delete content safely while preserving structure, search quality, and compliance.</p>
+                </div>
+                <div class="row g-4">
+                    @foreach (var panel in CrudPanels)
+                    {
+                        <div class="col-12 col-xl-6">
+                            <RadzenCard class="rz-surface-card crud-card h-100">
+                                <div class="d-flex gap-3 align-items-center mb-3">
+                                    <div class="cap-icon compact"><i class="@panel.Icon" aria-hidden="true"></i></div>
+                                    <h3 class="h4 mb-0">@panel.Title</h3>
+                                </div>
+                                <ul class="guide-list mb-0">
+                                    @foreach (var item in panel.Items)
+                                    {
+                                        <li>@item</li>
+                                    }
+                                </ul>
+                            </RadzenCard>
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <section id="permissions" class="section-gap section-muted">
+            <div class="container-xxl">
+                <div class="section-heading">
+                    <span class="eyebrow">Permission Guide</span>
+                    <h2 class="section-title">Who can perform CRUD actions</h2>
+                    <p class="section-copy">The matrix communicates role expectations clearly and reinforces safe operational behavior for destructive and administrative actions.</p>
+                </div>
+                <div class="permission-shell">
+                    <div class="table-responsive">
+                        <table class="table permission-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Role</th>
+                                    <th>Scope</th>
+                                    <th class="text-center">Create</th>
+                                    <th class="text-center">Read</th>
+                                    <th class="text-center">Update</th>
+                                    <th class="text-center">Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var role in Roles)
+                                {
+                                    <tr>
+                                        <th>@role.Role</th>
+                                        <td>@role.Scope</td>
+                                        <td class="text-center"><span class="perm @(role.Create ? "yes" : "no")">@(role.Create ? "✓" : "—")</span></td>
+                                        <td class="text-center"><span class="perm @(role.Read ? "yes" : "no")">@(role.Read ? "✓" : "—")</span></td>
+                                        <td class="text-center"><span class="perm @(role.Update ? "yes" : "no")">@(role.Update ? "✓" : "—")</span></td>
+                                        <td class="text-center"><span class="perm @(role.Delete ? "yes" : "no")">@(role.Delete ? "✓" : "—")</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-gap">
+            <div class="container-xxl">
+                <div class="row g-4 align-items-stretch">
+                    <div class="col-12 col-lg-6">
+                        <div class="section-heading mb-3">
+                            <span class="eyebrow">Supported Content Types</span>
+                            <h2 class="section-title">Rich file support for the learning estate</h2>
+                        </div>
+                        <div class="row g-3">
+                            @foreach (var item in ContentTypes)
+                            {
+                                <div class="col-12 col-sm-6">
+                                    <RadzenCard class="rz-surface-card compact-card h-100">
+                                        <div class="d-flex gap-3 align-items-start">
+                                            <div class="cap-icon compact"><i class="@item.Icon" aria-hidden="true"></i></div>
+                                            <div>
+                                                <h3 class="h6 mb-1">@item.Title</h3>
+                                                <p class="mb-0 small-panel-copy">@item.Description</p>
+                                            </div>
+                                        </div>
+                                    </RadzenCard>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-6">
+                        <div class="section-heading mb-3">
+                            <span class="eyebrow">Microsoft Integration</span>
+                            <h2 class="section-title">Aligned to the approved MITANZ360Edu stack</h2>
+                        </div>
+                        <div class="row g-3">
+                            @foreach (var item in Integrations)
+                            {
+                                <div class="col-12 col-sm-6">
+                                    <RadzenCard class="rz-surface-card compact-card h-100">
+                                        <div class="d-flex gap-3 align-items-start">
+                                            <div class="cap-icon compact"><i class="@item.Icon" aria-hidden="true"></i></div>
+                                            <div>
+                                                <h3 class="h6 mb-1">@item.Title</h3>
+                                                <p class="mb-0 small-panel-copy">@item.Description</p>
+                                            </div>
+                                        </div>
+                                    </RadzenCard>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="ai-features" class="section-gap section-muted">
+            <div class="container-xxl">
+                <div class="section-heading">
+                    <span class="eyebrow">AI Features</span>
+                    <h2 class="section-title">Intelligence that improves discovery and study flow</h2>
+                    <p class="section-copy">AI functionality should add clarity and speed, not clutter. The cards below remain concise while preserving enterprise tone and Microsoft-style restraint.</p>
+                </div>
+                <div class="row g-4">
+                    @foreach (var item in AiFeatures)
+                    {
+                        <div class="col-12 col-sm-6 col-xl-4">
+                            <RadzenCard class="rz-surface-card capability-card h-100">
+                                <div class="cap-icon"><i class="@item.Icon" aria-hidden="true"></i></div>
+                                <h3 class="cap-title">@item.Title</h3>
+                                <p class="cap-copy mb-0">@item.Description</p>
+                            </RadzenCard>
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <section class="section-gap">
+            <div class="container-xxl">
+                <div class="row g-4 align-items-stretch">
+                    <div class="col-12 col-lg-6">
+                        <RadzenCard class="rz-surface-card list-panel h-100">
+                            <span class="eyebrow">Best Practices</span>
+                            <h2 class="section-title small-title">Operational checklist</h2>
+                            <ul class="practice-list mb-0">
+                                @foreach (var bp in BestPractices)
+                                {
+                                    <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span>@bp</span></li>
+                                }
+                            </ul>
+                        </RadzenCard>
+                    </div>
+                    <div id="quick-start" class="col-12 col-lg-6">
+                        <RadzenCard class="rz-surface-card list-panel h-100">
+                            <span class="eyebrow">Quick Start</span>
+                            <h2 class="section-title small-title">Eight actions to start productively</h2>
+                            <div class="row g-3">
+                                @foreach (var step in QuickStart)
+                                {
+                                    <div class="col-12 col-sm-6">
+                                        <div class="quick-card h-100">
+                                            <div class="d-flex gap-3 align-items-start">
+                                                <div class="info-icon compact"><i class="@step.Icon" aria-hidden="true"></i></div>
+                                                <div>
+                                                    <h3 class="h6 mb-1">@step.Title</h3>
+                                                    <p class="mb-0 small-panel-copy">@step.Description</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </RadzenCard>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-gap section-muted">
+            <div class="container-xxl">
+                <div class="section-heading">
+                    <span class="eyebrow">Frequently Asked Questions</span>
+                    <h2 class="section-title">Professional answers for common library questions</h2>
+                    <p class="section-copy">The FAQ uses native HTML disclosure patterns for accessibility and no JavaScript dependency.</p>
+                </div>
+                <div class="faq-grid">
+                    @foreach (var faq in Faqs)
+                    {
+                        <details class="faq-item">
+                            <summary>
+                                <span>@faq.Question</span>
+                                <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                            </summary>
+                            <div class="faq-body">@faq.Answer</div>
+                        </details>
+                    }
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="page-footer">
+        <div class="container-xxl pb-5">
+            <div class="footer-panel">
+                <div class="row g-4 align-items-center">
+                    <div class="col-lg-8">
+                        <div class="d-flex gap-3 align-items-start">
+                            <div class="app-mark"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></div>
+                            <div>
+                                <h2 class="h4 mb-2">MITANZ360Edu AI Learning Hub</h2>
+                                <p class="mb-1">Powered by Microsoft Graph • SharePoint-aligned enterprise learning content • Enterprise AI Education Framework</p>
+                                <p class="mb-0">Version 2.0 • @DateTime.UtcNow.Year MITANZ360Edu. All rights reserved.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <div class="footer-links">
+                            <span><i class="fa-solid fa-cloud me-2"></i>Microsoft SharePoint</span>
+                            <span><i class="fa-solid fa-sitemap me-2"></i>Microsoft Graph</span>
+                            <span><i class="fa-solid fa-brain me-2"></i>Copilot Ready Knowledge</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-
-    </div>
-
-    <!-- INTRO GRID -->
-
-    <div class="intro-grid">
-
-        <!-- CARD 1 -->
-
-        <div class="intro-card glass-card">
-
-            <div class="card-icon">
-                📂
-            </div>
-
-            <div class="card-title">
-                Browse Learning Libraries
-            </div>
-
-            <div class="card-description">
-
-                Navigate through enterprise learning folders,
-                training resources, modules, assessments,
-                videos, PowerPoint presentations, lab guides,
-                and Microsoft learning content using the
-                intelligent hierarchical navigation system.
-
-            </div>
-
-        </div>
-
-        <!-- CARD 2 -->
-
-        <div class="intro-card glass-card">
-
-            <div class="card-icon">
-                🔍
-            </div>
-
-            <div class="card-title">
-                Intelligent Navigation
-            </div>
-
-            <div class="card-description">
-
-                Select folders to expand learning structures and
-                access organized educational resources.
-                Selecting documents automatically opens the
-                detailed library viewer experience for content review.
-
-            </div>
-
-        </div>
-
-        <!-- CARD 3 -->
-
-        <div class="intro-card glass-card">
-
-            <div class="card-icon">
-                ☁️
-            </div>
-
-            <div class="card-title">
-                Microsoft SharePoint Integration
-            </div>
-
-            <div class="card-description">
-
-                The LMS Library Viewer integrates directly with
-                Microsoft SharePoint document libraries using
-                Microsoft Graph APIs to provide enterprise-grade
-                secure learning content management.
-
-            </div>
-
-        </div>
-
-        <!-- CARD 4 -->
-
-        <div class="intro-card glass-card">
-
-            <div class="card-icon">
-                🧠
-            </div>
-
-            <div class="card-title">
-                Knowledge-Centric Design
-            </div>
-
-            <div class="card-description">
-
-                Designed for modern institutions, academic delivery,
-                enterprise learning environments, and Microsoft
-                ecosystem-based educational infrastructures.
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- HOW TO USE -->
-
-    <div class="howto-card glass-card">
-
-        <div class="section-title">
-            🚀 How To Use LMS Library Viewer
-        </div>
-
-        <div class="steps-grid">
-
-            <div class="step-card">
-
-                <div class="step-number">
-                    01
-                </div>
-
-                <div class="step-title">
-                    Open Navigation Library
-                </div>
-
-                <div class="step-description">
-                    Use the left-side enterprise navigation panel
-                    to access available learning categories,
-                    course folders, and document structures.
-                </div>
-
-            </div>
-
-            <div class="step-card">
-
-                <div class="step-number">
-                    02
-                </div>
-
-                <div class="step-title">
-                    Expand Folders
-                </div>
-
-                <div class="step-description">
-                    Select folders to expand and explore nested
-                    learning resources, labs, presentations,
-                    and structured learning materials.
-                </div>
-
-            </div>
-
-            <div class="step-card">
-
-                <div class="step-number">
-                    03
-                </div>
-
-                <div class="step-title">
-                    Open Learning Content
-                </div>
-
-                <div class="step-description">
-                    Select a document item to open the advanced
-                    LMS Library Viewer interface with metadata,
-                    previews, and learning information.
-                </div>
-
-            </div>
-
-            <div class="step-card">
-
-                <div class="step-number">
-                    04
-                </div>
-
-                <div class="step-title">
-                    Review & Learn
-                </div>
-
-                <div class="step-description">
-                    Access enterprise learning resources,
-                    SharePoint-hosted content, Microsoft files,
-                    PDFs, and structured academic documentation.
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- FEATURES -->
-
-    <div class="features-card glass-card">
-
-        <div class="section-title">
-            ⭐ Enterprise Features
-        </div>
-
-        <div class="feature-list">
-
-            <div class="feature-item">
-                ✅ Microsoft SharePoint Online Integration
-            </div>
-
-            <div class="feature-item">
-                ✅ Microsoft Graph API Architecture
-            </div>
-
-            <div class="feature-item">
-                ✅ Enterprise LMS Navigation System
-            </div>
-
-            <div class="feature-item">
-                ✅ Modern Glassmorphism UI/UX
-            </div>
-
-            <div class="feature-item">
-                ✅ Responsive Microsoft-style Layout
-            </div>
-
-            <div class="feature-item">
-                ✅ Academic Resource Organization
-            </div>
-
-            <div class="feature-item">
-                ✅ Secure Enterprise File Access
-            </div>
-
-            <div class="feature-item">
-                ✅ Structured Knowledge Explorer
-            </div>
-
-        </div>
-
-    </div>
-
+    </footer>
 </div>
 
 <style>
-
-    * {
-        box-sizing: border-box;
+    :root {
+        --ms-blue: #0078D4;
+        --ms-orange: #FFB900;
+        --ms-green: #107C10;
+        --page-bg: #F5F7FA;
+        --text-strong: #1B1B1B;
+        --text-soft: #616161;
+        --card-fill: rgba(255,255,255,.92);
+        --card-border: rgba(255,255,255,.35);
+        --shadow-soft: 0 15px 45px rgba(0,0,0,.08);
+        --shadow-hover: 0 20px 55px rgba(0,0,0,.12);
+        --radius-xl: 26px;
+        --radius-lg: 22px;
+        --radius-md: 18px;
+        --radius-sm: 14px;
     }
 
-    body {
-        margin: 0;
-        font-family: "Segoe UI", sans-serif;
-        background: #f3f6fb;
+    .library-shell {
+        background: radial-gradient(circle at top left, rgba(0,120,212,.12), transparent 28%), radial-gradient(circle at top right, rgba(255,185,0,.10), transparent 18%), linear-gradient(180deg, #f8fbff 0%, var(--page-bg) 22%, var(--page-bg) 100%);
+        color: var(--text-strong);
+        font-family: 'Segoe UI Variable', 'Segoe UI', Arial, sans-serif;
+        min-height: 100vh;
     }
 
-    .lms-intro-page {
-        padding: 28px;
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
+    .app-breadcrumb a,
+    .app-breadcrumb,
+    .page-subtitle,
+    .panel-copy,
+    .section-copy,
+    .cap-copy,
+    .metric-copy,
+    .small-panel-copy,
+    .timeline-card p,
+    .guide-list li,
+    .faq-body,
+    .page-footer p,
+    .footer-links {
+        color: var(--text-soft);
     }
 
-    /* =========================================
-           GLASS CARD
-        ========================================= */
-
-    .glass-card {
-        background: rgba(255,255,255,0.72);
+    .toolbar-surface,
+    .hero-panel,
+    .right-rail,
+    .journey-panel,
+    .permission-shell,
+    .footer-panel,
+    .rz-surface-card {
+        background: var(--card-fill);
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius-xl);
         backdrop-filter: blur(18px);
         -webkit-backdrop-filter: blur(18px);
-        border: 1px solid rgba(255,255,255,0.3);
-        box-shadow: 0 8px 32px rgba(15,23,42,0.08);
-        border-radius: 28px;
+        box-shadow: var(--shadow-soft);
     }
 
-    /* =========================================
-           HERO
-        ========================================= */
+    .toolbar-surface,
+    .hero-panel,
+    .right-rail,
+    .journey-panel,
+    .permission-shell,
+    .footer-panel {
+        padding: 1.4rem;
+    }
 
-    .lms-hero-card {
-        display: flex;
-        justify-content: space-between;
+    .section-gap {
+        padding: 4.5rem 0;
+    }
+
+    .section-muted {
+        background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.45) 100%);
+    }
+
+    .app-mark,
+    .metric-icon,
+    .cap-icon,
+    .info-icon,
+    .callout-icon,
+    .action-icon {
+        display: inline-flex;
         align-items: center;
-        padding: 40px;
+        justify-content: center;
+        flex-shrink: 0;
     }
 
-    .hero-left {
-        max-width: 760px;
+    .app-mark {
+        width: 3.5rem;
+        height: 3.5rem;
+        border-radius: 18px;
+        color: white;
+        background: linear-gradient(135deg, var(--ms-blue), #39A0EF);
+        box-shadow: 0 12px 32px rgba(0,120,212,.30);
+        font-size: 1.2rem;
     }
 
-    .hero-badge {
-        display: inline-block;
-        padding: 8px 16px;
+    .page-title {
+        font-size: clamp(2rem, 2.4vw, 2.7rem);
+        font-weight: 650;
+        letter-spacing: -.02em;
+    }
+
+    .toolbar-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem;
+    }
+
+    .top-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: .78rem 1rem;
         border-radius: 999px;
-        background: rgba(0,120,212,0.12);
-        color: #0078d4;
-        font-size: 12px;
-        font-weight: 700;
-        margin-bottom: 18px;
+        background: rgba(255,255,255,.82);
+        border: 1px solid rgba(0,120,212,.08);
+        color: var(--text-strong);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all .2s ease;
     }
+
+        .top-link:hover,
+        .top-link:focus-visible,
+        .action-tile:hover,
+        .action-tile:focus-visible,
+        .rz-surface-card:hover,
+        .timeline-card:hover,
+        .faq-item:hover,
+        .quick-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+    .hero-panel {
+        position: relative;
+        overflow: hidden;
+        padding: 2rem;
+    }
+
+        .hero-panel::before,
+        .right-rail::before,
+        .footer-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,.2), rgba(255,255,255,.02));
+            pointer-events: none;
+        }
 
     .hero-title {
-        margin: 0;
-        font-size: 42px;
+        font-size: clamp(2rem, 2.5vw, 3rem);
+        font-weight: 680;
+        line-height: 1.12;
+        letter-spacing: -.03em;
+        margin-bottom: 1rem;
+        max-width: 26rem;
+    }
+
+    .hero-copy {
+        max-width: 39rem;
+        font-size: 1.03rem;
+        color: var(--text-soft);
+        line-height: 1.75;
+    }
+
+    .hero-badges {
+        display: flex;
+        gap: .75rem;
+        flex-wrap: wrap;
+    }
+
+    .f-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: .55rem .9rem;
+        border-radius: 999px;
         font-weight: 700;
-        color: #0f172a;
+        font-size: .86rem;
     }
 
-    .hero-subtitle {
-        margin-top: 18px;
-        font-size: 17px;
-        line-height: 1.7;
-        color: #475569;
-    }
+        .f-badge.primary {
+            background: rgba(0,120,212,.12);
+            color: var(--ms-blue);
+            border: 1px solid rgba(0,120,212,.16);
+        }
 
-    .hero-right {
-        font-size: 100px;
-    }
+        .f-badge.subtle {
+            background: rgba(16,124,16,.10);
+            color: var(--ms-green);
+            border: 1px solid rgba(16,124,16,.16);
+        }
 
-    /* =========================================
-           INTRO GRID
-        ========================================= */
-
-    .intro-grid {
+    .action-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 22px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+        max-width: 36rem;
     }
 
-    .intro-card {
-        padding: 28px;
+    .action-tile {
+        min-height: 96px;
+        display: flex;
+        align-items: center;
+        gap: .9rem;
+        padding: 1rem 1.1rem;
+        border-radius: 20px;
+        background: rgba(255,255,255,.88);
+        border: 1px solid rgba(0,120,212,.08);
+        text-decoration: none;
+        color: var(--text-strong);
+        font-weight: 650;
+        transition: all .2s ease;
     }
 
-    .card-icon {
-        font-size: 42px;
-        margin-bottom: 18px;
+    .action-icon,
+    .callout-icon,
+    .metric-icon,
+    .cap-icon,
+    .info-icon {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(0,120,212,.12), rgba(255,255,255,.95));
+        border: 1px solid rgba(0,120,212,.12);
+        color: var(--ms-blue);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+        font-size: 1rem;
     }
 
-    .card-title {
-        font-size: 20px;
+        .cap-icon.compact,
+        .info-icon.compact {
+            width: 2.65rem;
+            height: 2.65rem;
+            border-radius: 12px;
+        }
+
+    .welcome-callout {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.25rem 1.3rem;
+        border-radius: var(--radius-lg);
+        background: linear-gradient(135deg, rgba(0,120,212,.08), rgba(255,255,255,.78));
+        border: 1px solid rgba(0,120,212,.08);
+    }
+
+    .hero-illustration {
+        position: relative;
+        min-height: 21rem;
+    }
+
+    .surface-shell {
+        position: relative;
+        height: 100%;
+        background: linear-gradient(160deg, rgba(255,255,255,.97), rgba(247,250,253,.92));
+        border: 1px solid rgba(0,0,0,.05);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 16px 40px rgba(0,0,0,.10);
+    }
+
+    .surface-top {
+        padding: .85rem 1rem;
+        display: flex;
+        gap: .45rem;
+        background: rgba(245,247,250,.9);
+        border-bottom: 1px solid rgba(0,0,0,.05);
+    }
+
+        .surface-top span {
+            width: .7rem;
+            height: .7rem;
+            border-radius: 50%;
+            background: rgba(0,0,0,.15);
+        }
+
+            .surface-top span:nth-child(1) {
+                background: rgba(255,185,0,.95);
+            }
+
+            .surface-top span:nth-child(2) {
+                background: rgba(0,120,212,.95);
+            }
+
+            .surface-top span:nth-child(3) {
+                background: rgba(16,124,16,.95);
+            }
+
+    .surface-main {
+        display: grid;
+        grid-template-columns: 92px 1fr;
+        min-height: 18rem;
+    }
+
+    .surface-left {
+        padding: 1rem;
+        background: rgba(245,247,250,.75);
+        border-right: 1px solid rgba(0,0,0,.05);
+        display: grid;
+        gap: .8rem;
+    }
+
+    .tiny-pill {
+        height: 2rem;
+        border-radius: 14px;
+        background: rgba(0,120,212,.08);
+        border: 1px solid rgba(0,120,212,.08);
+    }
+
+        .tiny-pill.active {
+            background: rgba(0,120,212,.16);
+        }
+
+    .surface-right {
+        padding: 1rem;
+        display: grid;
+        gap: .9rem;
+    }
+
+    .bar-row, .graph-card, .tile-grid > div {
+        border-radius: 16px;
+        background: linear-gradient(135deg, rgba(0,120,212,.10), rgba(255,255,255,.92));
+        border: 1px solid rgba(0,120,212,.09);
+    }
+
+    .bar-row {
+        height: 2.2rem;
+    }
+
+    .graph-card {
+        height: 6.3rem;
+    }
+
+    .tile-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0,1fr));
+        gap: .85rem;
+    }
+
+        .tile-grid > div {
+            min-height: 4.8rem;
+        }
+
+            .tile-grid > div.wide {
+                grid-column: 1 / -1;
+            }
+
+    .float-pill {
+        position: absolute;
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        padding: .55rem .85rem;
+        border-radius: 999px;
+        font-size: .86rem;
         font-weight: 700;
-        color: #0f172a;
-        margin-bottom: 14px;
+        box-shadow: var(--shadow-soft);
+        border: 1px solid rgba(255,255,255,.55);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
     }
 
-    .card-description {
-        font-size: 14px;
-        line-height: 1.8;
-        color: #475569;
+        .float-pill.blue {
+            top: .75rem;
+            right: 1rem;
+            background: rgba(236,245,255,.95);
+            color: var(--ms-blue);
+        }
+
+        .float-pill.gold {
+            left: -.3rem;
+            bottom: 3.5rem;
+            background: rgba(255,247,219,.96);
+            color: #8e6800;
+        }
+
+        .float-pill.green {
+            right: 1.5rem;
+            bottom: .8rem;
+            background: rgba(236,252,236,.95);
+            color: var(--ms-green);
+        }
+
+    .right-rail {
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
     }
 
-    /* =========================================
-           HOW TO
-        ========================================= */
+    .surface-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
 
-    .howto-card {
-        padding: 30px;
+    .rz-surface-card {
+        padding: 1.25rem !important;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .metric-value {
+        font-size: 1.55rem;
+        line-height: 1.1;
+        font-weight: 750;
+        margin-bottom: .3rem;
+    }
+
+    .metric-title, .cap-title {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: .45rem;
+    }
+
+    .section-heading {
+        margin-bottom: 2rem;
+    }
+
+    .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        text-transform: uppercase;
+        letter-spacing: .12em;
+        font-size: .8rem;
+        font-weight: 750;
+        color: var(--ms-blue);
+        margin-bottom: .75rem;
     }
 
     .section-title {
-        font-size: 26px;
-        font-weight: 700;
-        color: #0f172a;
-        margin-bottom: 24px;
+        font-size: clamp(1.85rem, 2.2vw, 2.55rem);
+        font-weight: 660;
+        letter-spacing: -.025em;
+        margin-bottom: .8rem;
     }
 
-    .steps-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 18px;
-    }
-
-    .step-card {
-        background: rgba(255,255,255,0.55);
-        border: 1px solid rgba(255,255,255,0.4);
-        border-radius: 22px;
-        padding: 24px;
-    }
-
-    .step-number {
-        font-size: 34px;
-        font-weight: 800;
-        color: #0078d4;
-        margin-bottom: 14px;
-    }
-
-    .step-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: #0f172a;
-        margin-bottom: 12px;
-    }
-
-    .step-description {
-        font-size: 14px;
-        line-height: 1.7;
-        color: #475569;
-    }
-
-    /* =========================================
-           FEATURES
-        ========================================= */
-
-    .features-card {
-        padding: 30px;
-    }
-
-    .feature-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 14px;
-    }
-
-    .feature-item {
-        background: rgba(255,255,255,0.55);
-        border: 1px solid rgba(255,255,255,0.35);
-        border-radius: 18px;
-        padding: 18px;
-        font-size: 14px;
-        font-weight: 600;
-        color: #0f172a;
-    }
-
-    /* =========================================
-           RESPONSIVE
-        ========================================= */
-
-    @@media (max-width: 900px) {
-
-        .lms-intro-page {
-            padding: 18px;
+        .section-title.small-title {
+            font-size: 1.65rem;
         }
 
-        .lms-hero-card {
+    .feature-hero {
+        padding: 1.6rem !important;
+    }
+
+    .feature-panel-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .panel-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin-bottom: .35rem;
+    }
+
+    .micro-tag {
+        white-space: nowrap;
+        padding: .45rem .8rem;
+        border-radius: 999px;
+        background: rgba(255,185,0,.14);
+        color: #8e6800;
+        border: 1px solid rgba(255,185,0,.18);
+        font-size: .83rem;
+        font-weight: 700;
+    }
+
+    .mini-surface {
+        background: linear-gradient(135deg, rgba(0,120,212,.07), rgba(255,255,255,.9));
+        border: 1px solid rgba(0,120,212,.08);
+        border-radius: 18px;
+        padding: 1rem 1rem 1.05rem;
+        height: 100%;
+    }
+
+        .mini-surface h4 {
+            font-size: .98rem;
+            font-weight: 700;
+            margin-bottom: .55rem;
+        }
+
+        .mini-surface p {
+            margin: 0;
+            color: var(--text-soft);
+            line-height: 1.7;
+        }
+
+    .capability-card {
+        min-height: 100%;
+    }
+
+        .capability-card .cap-icon {
+            margin-bottom: 1rem;
+        }
+
+    .journey-panel {
+        position: relative;
+        padding: 1.7rem 1.5rem;
+    }
+
+    .timeline-track {
+        position: absolute;
+        top: 2.2rem;
+        left: 2.65rem;
+        width: 2px;
+        height: calc(100% - 4.4rem);
+        background: linear-gradient(180deg, rgba(0,120,212,.24), rgba(16,124,16,.18));
+    }
+
+    .timeline-item {
+        position: relative;
+        display: grid;
+        grid-template-columns: 62px 1fr;
+        gap: 1.3rem;
+        align-items: start;
+    }
+
+        .timeline-item + .timeline-item {
+            margin-top: 1.1rem;
+        }
+
+    .timeline-dot {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        background: linear-gradient(135deg, var(--ms-blue), #36A0F2);
+        box-shadow: 0 10px 26px rgba(0,120,212,.24);
+        font-weight: 750;
+        font-size: .82rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .timeline-card {
+        padding: 1rem 1.15rem;
+        border-radius: var(--radius-lg);
+        background: rgba(255,255,255,.82);
+        border: 1px solid rgba(255,255,255,.4);
+        transition: all .2s ease;
+    }
+
+    .guide-list,
+    .practice-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+        .guide-list li {
+            position: relative;
+            padding-left: 1.15rem;
+            line-height: 1.75;
+        }
+
+            .guide-list li + li,
+            .practice-list li + li {
+                margin-top: .85rem;
+            }
+
+            .guide-list li::before {
+                content: "";
+                position: absolute;
+                left: 0;
+                top: .7rem;
+                width: .45rem;
+                height: .45rem;
+                border-radius: 50%;
+                background: linear-gradient(135deg, var(--ms-blue), var(--ms-green));
+                box-shadow: 0 0 0 4px rgba(0,120,212,.08);
+            }
+
+    .permission-shell {
+        padding: .65rem;
+    }
+
+    .permission-table {
+        --bs-table-bg: transparent;
+        --bs-table-color: var(--text-strong);
+    }
+
+        .permission-table thead th {
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            font-size: .82rem;
+            color: var(--text-soft);
+            border-bottom-color: rgba(0,0,0,.05);
+            padding: 1rem .9rem;
+        }
+
+        .permission-table tbody td,
+        .permission-table tbody th {
+            padding: 1rem .9rem;
+            border-color: rgba(0,0,0,.05);
+            vertical-align: middle;
+        }
+
+    .perm {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 750;
+    }
+
+        .perm.yes {
+            background: rgba(16,124,16,.12);
+            color: var(--ms-green);
+        }
+
+        .perm.no {
+            background: rgba(128,128,128,.12);
+            color: #808080;
+        }
+
+    .practice-list li {
+        display: flex;
+        gap: .8rem;
+        align-items: flex-start;
+        line-height: 1.7;
+    }
+
+    .practice-list i {
+        color: var(--ms-green);
+        margin-top: .15rem;
+    }
+
+    .compact-card,
+    .list-panel {
+        padding: 1.35rem !important;
+    }
+
+    .quick-card {
+        background: rgba(255,255,255,.72);
+        border: 1px solid rgba(0,120,212,.08);
+        border-radius: 18px;
+        padding: 1rem;
+        transition: all .2s ease;
+    }
+
+    .faq-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .faq-item {
+        background: var(--card-fill);
+        border: 1px solid var(--card-border);
+        border-radius: 20px;
+        box-shadow: var(--shadow-soft);
+        padding: 1.2rem 1.3rem;
+        transition: all .2s ease;
+    }
+
+        .faq-item summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            list-style: none;
+            cursor: pointer;
+            gap: 1rem;
+            font-weight: 700;
+        }
+
+            .faq-item summary::-webkit-details-marker {
+                display: none;
+            }
+
+            .faq-item summary i {
+                color: var(--ms-blue);
+                transition: transform .2s ease;
+            }
+
+        .faq-item[open] summary i {
+            transform: rotate(180deg);
+        }
+
+    .faq-body {
+        padding-top: 1rem;
+        line-height: 1.75;
+    }
+
+    .page-footer {
+        padding-top: 1rem;
+    }
+
+    .footer-panel {
+        padding: 1.45rem 1.6rem;
+    }
+
+    .footer-links {
+        display: flex;
+        flex-direction: column;
+        gap: .65rem;
+    }
+
+    a:focus-visible,
+    summary:focus-visible,
+    .rz-surface-card:focus-visible,
+    .timeline-card:focus-visible,
+    .quick-card:focus-visible {
+        outline: 3px solid rgba(0,120,212,.30);
+        outline-offset: 3px;
+    }
+
+    @@media (max-width: 1399.98px) {
+        .action-grid {
+            max-width: unset;
+        }
+    }
+
+   @@media (max-width: 1199.98px) {
+        .timeline-track {
+            left: 2.35rem;
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .section-gap {
+            padding: 3.6rem 0;
+        }
+
+        .hero-panel {
+            padding: 1.55rem;
+        }
+
+        .feature-panel-header {
             flex-direction: column;
             align-items: flex-start;
-            gap: 24px;
-        }
-
-        .hero-title {
-            font-size: 34px;
-        }
-
-        .hero-right {
-            font-size: 72px;
         }
     }
 
+    @@media (max-width: 767.98px) {
+        .toolbar-actions {
+            width: 100%;
+        }
+
+        .top-link {
+            flex: 1 1 calc(50% - .75rem);
+        }
+
+        .surface-main {
+            grid-template-columns: 1fr;
+        }
+
+        .surface-left {
+            display: grid;
+            grid-template-columns: repeat(4,1fr);
+            border-right: 0;
+            border-bottom: 1px solid rgba(0,0,0,.05);
+        }
+
+        .action-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .timeline-track {
+            left: 1.9rem;
+        }
+
+        .timeline-item {
+            grid-template-columns: 46px 1fr;
+            gap: 1rem;
+        }
+
+        .timeline-dot {
+            width: 42px;
+            height: 42px;
+            font-size: .72rem;
+        }
+
+        .hero-illustration {
+            min-height: 18rem;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .section-gap {
+            padding: 3rem 0;
+        }
+
+        .toolbar-surface, .hero-panel, .right-rail, .journey-panel, .permission-shell, .footer-panel {
+            padding: 1rem;
+        }
+
+        .float-pill {
+            position: static;
+            display: inline-flex;
+            margin-top: .7rem;
+        }
+
+        .hero-illustration {
+            display: grid;
+            gap: .7rem;
+        }
+
+        .top-link {
+            flex: 1 1 100%;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: .01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: .01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+
+    @@media (forced-colors: active) {
+        .toolbar-surface,
+        .hero-panel,
+        .right-rail,
+        .journey-panel,
+        .permission-shell,
+        .footer-panel,
+        .rz-surface-card,
+        .faq-item,
+        .timeline-card,
+        .quick-card {
+            border: 1px solid CanvasText;
+            box-shadow: none;
+        }
+    }
 </style>

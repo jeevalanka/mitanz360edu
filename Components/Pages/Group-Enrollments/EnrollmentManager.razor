@@ -1,0 +1,531 @@
+﻿@page "/admin/enrollments"
+
+@using MITANZ360Edu.Web.Models
+@using MITANZ360Edu.Web.Services
+@using Radzen
+@using Radzen.Blazor
+
+@using Group = MITANZ360Edu.Web.Models.Group
+@using Student = MITANZ360Edu.Web.Models.StudentProfile
+
+@inject IEnrollmentService EnrollmentService
+@inject IGroupService GroupService
+@inject IStudentService StudentService
+@inject NotificationService NotificationService
+@inject DialogService DialogService
+@inject ILogger<EnrollmentManager> Logger
+
+<PageTitle>Enrollments</PageTitle>
+
+<div class="container-fluid">
+
+    <!-- HEADER -->
+    <div class="card mb-3"style="background-color:blanchedalmond">
+        <div class="card-body d-flex justify-content-between">
+            <div>
+                <h4 style="color:orangered">Enrollments</h4>
+                <small class="text-muted">Manage student enrollments</small>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+
+                <!-- ✅ GROUP FILTER -->
+                <RadzenDropDown Data="@_groups"
+                                TextProperty="GroupName"
+                                ValueProperty="GroupId"
+                                Placeholder="Filter by group..."
+                                Style="width:400px"
+                                @bind-Value="_filterGroupId"
+                                Change="OnFilterGroupChanged" />
+
+                <!-- ✅ ACTION BUTTONS -->
+                <RadzenButton Text="New" Click="@New" Style="margin-left:10px" />
+                <RadzenButton Text="Refresh" Click="@Load" />
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- GRID -->
+    <div class="card">
+        <div class="card-body">
+
+            <RadzenDataGrid Data="@GetFilteredEnrollments()"
+                            TItem="Enrollment"
+                            AllowPaging="true" PageSize="10">
+
+                <Columns>
+                    <RadzenDataGridColumn Property="EnrollmentNo" Title="No" />
+                    <RadzenDataGridColumn Property="StudentName" Title="Student" />
+                    <RadzenDataGridColumn Property="GroupName" Title="Group" />
+                    <RadzenDataGridColumn Property="CourseCode" Title="Course Code" />
+                    <RadzenDataGridColumn Property="CourseName" Title="Course" />
+
+                    <RadzenDataGridColumn Title="Actions">
+                        <Template Context="e">
+                            <RadzenButton Icon="edit" Size="ButtonSize.Small"
+                                          Click="@(() => Edit(e))" />
+
+                            <RadzenButton Icon="delete" Size="ButtonSize.Small"
+                                          ButtonStyle="ButtonStyle.Danger"
+                                          Click="@(() => Delete(e))" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+
+            </RadzenDataGrid>
+
+        </div>
+    </div>
+
+</div>
+
+@if (_panelOpen)
+{
+    <div class="offcanvas-backdrop fade show"></div>
+
+    <div class="offcanvas show offcanvas-end d-flex flex-column"
+         style="width:600px;">
+
+        <div class="offcanvas-header">
+            <h5>@(_isEdit ? "Edit Enrollment -  : " : "New Enrollment")</h5>
+
+            <div class="d-flex gap-2">
+                <RadzenButton Text="Save" Click="@Save" />
+                <RadzenButton Text="Close" Click="@Close" />
+            </div>
+        </div>
+
+        <div class="offcanvas-body">
+
+            @if (!_isEdit)
+            {
+                <!-- SEARCH -->
+                <RadzenTextBox Value="@_studentSearch"
+                               Placeholder="Search students..."
+                               Change="@(args => OnSearchChanged(args?.ToString()))"
+                               Style="width:100%" />
+
+                <!-- STUDENTS -->
+                <div class="border rounded p-2 mt-2"
+                     style="max-height:400px; overflow-y:auto;">
+
+                    @foreach (var s in GetFilteredStudents())
+                    {
+                        var disabled = IsAlreadyEnrolled(s.StudentNumber);
+
+                        <div class="form-check">
+                            <input type="checkbox"
+                                   checked="@_selectedStudents.Contains(s.StudentNumber)"
+                                   disabled="@disabled"
+                                   @onchange="@(e => OnStudentChecked(s.StudentNumber, e.Value))" />
+
+                            <label>
+                                @s.FullName (@s.StudentNumber)
+
+                                @if (disabled)
+                                {
+                                    <span class="text-muted">(Already Enrolled)</span>
+                                }
+                            </label>
+                        </div>
+                    }
+
+                </div>
+
+                <!-- GROUP -->
+                <div class="mt-3">
+                    <label>Group</label>
+
+                    <RadzenDropDown Data="@_groups"
+                                    TextProperty="GroupName"
+                                    ValueProperty="GroupId"
+                                    @bind-Value="_selectedGroup"
+                                    Change="OnGroupChanged"
+                                    Style="width:100%" />
+                </div>
+
+                <!-- PREVIEW -->
+                @if (!string.IsNullOrWhiteSpace(_previewGroup))
+                {
+                    <div class="border p-2 mt-2">
+                        <div><b>Group:</b> @_previewGroup</div>
+                        <div><b>Course:</b> @_previewCourse</div>
+                        <div><b>Intake:</b> @_previewIntake</div>
+                        <div><b>Campus:</b> @_previewCampus</div>
+                    </div>
+                }
+            }
+
+            @if (_isEdit)
+            {
+                <EditForm Model="@_edit" OnValidSubmit="Save">
+
+                    <RadzenTabs>
+                        <Tabs>
+
+                            <RadzenTabsItem Text="General">
+                                <RadzenTextBox @bind-Value="_edit.EnrollmentNo" Class="w-100" />
+                                <RadzenTextBox @bind-Value="_edit.Status" Class="w-100" />
+                            </RadzenTabsItem>
+
+                            <RadzenTabsItem Text="Student">
+                                <RadzenTextBox Value="@_edit.StudentName" Disabled="true" />
+                            </RadzenTabsItem>
+
+                            <RadzenTabsItem Text="Dates">
+                                <RadzenDatePicker @bind-Value="_edit.EnrollmentDate" />
+                            </RadzenTabsItem>
+
+                        </Tabs>
+                    </RadzenTabs>
+
+                </EditForm>
+            }
+
+        </div>
+    </div>
+}
+
+
+@code {
+    private string _filterGroupId = "";
+
+    private List<Enrollment> _items = new();
+    private List<Group> _groups = new();
+    private List<Student> _students = new();
+
+    private List<string> _selectedStudents = new();
+    private string _selectedGroup = "";
+
+    private Enrollment _edit = new();
+
+    private bool _panelOpen;
+    private bool _isEdit;
+
+    private string _studentSearch = "";
+    private string _debouncedSearch = "";
+
+    private CancellationTokenSource _cts = new();
+
+    private string _previewGroup;
+    private string _previewCourse;
+    private string _previewIntake;
+    private string _previewCampus;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        _items = await EnrollmentService.GetEnrollmentsAsync();
+        _groups = await GroupService.GetGroupsAsync();
+        _students = await StudentService.GetStudentsAsync();
+    }
+
+    private void New()
+    {
+        _isEdit = false;
+        _selectedStudents.Clear();
+        _selectedGroup = "";
+        _panelOpen = true;
+    }
+
+    private void Edit(Enrollment e)
+    {
+        _isEdit = true;
+        _edit = e;
+        _panelOpen = true;
+    }
+
+    private void Close() => _panelOpen = false;
+
+    private async Task Save()
+    {
+        if (_isEdit)
+        {
+            await EnrollmentService.UpdateEnrollmentAsync(_edit);
+            await Load();
+            Close();
+            return;
+        }
+
+        if (!_selectedStudents.Any())
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "Select students");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_selectedGroup))
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "Select group");
+            return;
+        }
+
+        var group = _groups.First(g => g.GroupId == _selectedGroup);
+
+        foreach (var sid in _selectedStudents)
+        {
+            if (IsAlreadyEnrolled(sid))
+                continue;
+
+            var student = _students.FirstOrDefault(s => s.StudentNumber == sid);
+            if (student == null) continue;
+
+            var e = new Enrollment
+            {
+                Title = student.FullName,
+
+                EnrollmentNo = await EnrollmentService.GenerateTempEnrollmentNumberAsync(),
+                EnrollmentId = await EnrollmentService.GenerateTempEnrollmentNumberAsync(),
+
+                StudentNumber = student.StudentNumber,
+                StudentName = student.FullName,
+                Email = student.Email,
+                Mobile = student.Phone,
+
+                GroupId = group.GroupId,
+                GroupName = group.GroupName,
+                GroupCode = group.GroupCode,
+
+                CourseCode = group.CourseCode,
+                CourseName = group.CourseName,
+                IntakeName = group.IntakeName,
+                CampusName = group.CampusName,
+
+                StartDate = group.StartDate,
+                EndDate = group.EndDate,
+
+                Status = "Active",
+                EnrollmentDate = DateTime.UtcNow
+            };
+
+            await EnrollmentService.CreateEnrollmentAsync(e);
+        }
+
+        await Load();
+        Close();
+
+        NotificationService.Notify(NotificationSeverity.Success, "Success", "Enrollments created");
+    }
+
+    private async Task Delete(Enrollment e)
+    {
+        if (await DialogService.Confirm("Delete?") == true)
+        {
+            await EnrollmentService.DeleteEnrollmentAsync(e.Id);
+            await Load();
+        }
+    }
+
+    private bool IsAlreadyEnrolled(string sid)
+    {
+        if (string.IsNullOrWhiteSpace(_selectedGroup))
+            return false;
+
+        return _items.Any(x =>
+            x.StudentNumber == sid &&
+            x.GroupId == _selectedGroup);
+    }
+
+    private void OnStudentChecked(string studentNumber, object? value)
+    {
+        if ((bool)(value ?? false))
+        {
+            if (!_selectedStudents.Contains(studentNumber))
+                _selectedStudents.Add(studentNumber);
+        }
+        else
+        {
+            _selectedStudents.Remove(studentNumber);
+        }
+    }
+
+    private void OnGroupChanged(object value)
+    {
+        _selectedGroup = value?.ToString();
+
+        var g = _groups.FirstOrDefault(x => x.GroupId == _selectedGroup);
+        if (g == null) return;
+
+        _previewGroup = g.GroupName;
+        _previewCourse = g.CourseName;
+        _previewIntake = g.IntakeName;
+        _previewCampus = g.CampusName;
+    }
+
+    private IEnumerable<Student> GetFilteredStudents()
+    {
+        if (string.IsNullOrWhiteSpace(_debouncedSearch))
+            return _students;
+
+        return _students.Where(s =>
+            (s.FullName?.Contains(_debouncedSearch, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (s.StudentNumber?.Contains(_debouncedSearch, StringComparison.OrdinalIgnoreCase) ?? false));
+    }
+
+    private async Task OnSearchChanged(string value)
+    {
+        _studentSearch = value;
+
+        _cts.Cancel();
+        _cts = new CancellationTokenSource();
+
+        try
+        {
+            await Task.Delay(500, _cts.Token);
+            _debouncedSearch = _studentSearch;
+            StateHasChanged();
+        }
+        catch { }
+    }
+
+    private IEnumerable<Enrollment> GetFilteredEnrollments()
+    {
+        if (string.IsNullOrWhiteSpace(_filterGroupId))
+            return _items;
+
+        return _items.Where(e => e.GroupId == _filterGroupId);
+    }
+    private void OnFilterGroupChanged(object value)
+    {
+        _filterGroupId = value?.ToString();
+    }
+}
+
+<style>
+    /* =========================
+       GLOBAL (Fluent Base)
+    ========================= */
+    body {
+        background-color: #f5f6f8;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* =========================
+       HEADER CARD
+    ========================= */
+    .card {
+        border: none;
+        border-radius: 8px;
+        background-color: #ffffff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    /* =========================
+       PAGE HEADER
+    ========================= */
+    .card-body h4 {
+        font-weight: 600;
+        font-size: 20px;
+    }
+
+    .card-body small {
+        color: #6b7280;
+    }
+
+    /* =========================
+       BUTTONS (Fluent Style)
+    ========================= */
+    .rz-button {
+        border-radius: 4px !important;
+        font-weight: 500;
+        padding: 6px 14px;
+    }
+
+        .rz-button.rz-primary {
+            background-color: #0078d4;
+            border-color: #0078d4;
+        }
+
+            .rz-button.rz-primary:hover {
+                background-color: #106ebe;
+            }
+
+    /* =========================
+       GRID STYLE
+    ========================= */
+    .rz-datatable {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .rz-datatable-header {
+        background-color: #ffffff;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .rz-datatable-data tr {
+        border-bottom: 1px solid #f1f1f1;
+    }
+
+        .rz-datatable-data tr:hover {
+            background-color: #f3f4f6;
+        }
+
+    /* =========================
+       ACTION BUTTONS
+    ========================= */
+    .rz-button.rz-secondary {
+        background-color: transparent;
+        color: #444;
+    }
+
+    .rz-button.rz-danger {
+        background-color: transparent;
+        color: #d13438;
+    }
+
+    /* =========================
+       PANEL (RIGHT DRAWER)
+    ========================= */
+    .offcanvas {
+        background-color: #ffffff;
+        border-left: 1px solid #e5e7eb;
+    }
+
+    .offcanvas-header {
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    /* =========================
+       INPUTS
+    ========================= */
+    input, .rz-inputtext {
+        border-radius: 4px !important;
+        border: 1px solid #d1d5db;
+    }
+
+        input:focus, .rz-inputtext:focus {
+            border-color: #0078d4;
+            box-shadow: 0 0 0 1px #0078d4;
+        }
+
+    /* =========================
+       CHECKBOX LIST
+    ========================= */
+    .form-check {
+        padding: 6px 0;
+    }
+
+    .form-check-input {
+        margin-right: 8px;
+    }
+
+    /* =========================
+       GROUP PREVIEW BOX
+    ========================= */
+    .border.p-2 {
+        border-radius: 6px !important;
+        background-color: #f9fafb;
+    }
+
+    /* =========================
+       SEARCH BOX
+    ========================= */
+    .rz-textbox {
+        border-radius: 6px !important;
+    }
+</style>

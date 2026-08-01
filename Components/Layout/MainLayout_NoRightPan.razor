@@ -76,14 +76,10 @@
                         </div>
 
                         <div class="top-icons">
-                            <button class="top-icon-btn">
-                                <i class="bi bi-bell"></i>
+                            <button class="top-icon-btn"
+                                    @onclick='() => Navigation.NavigateTo("/")'>
+                                <i class="bi bi-house"></i>
                             </button>
-
-                            <button class="top-icon-btn">
-                                <i class="bi bi-gear"></i>
-                            </button>
-
                             <AuthorizeView>
                                 <Authorized>
                                     <button class="top-icon-btn" @onclick="Logout">

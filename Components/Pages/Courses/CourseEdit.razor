@@ -1,5 +1,6 @@
 ﻿@page "/courses/edit/{Id:int?}"
 @layout MainLayout
+@attribute [Authorize(Roles = "Admin,SysAdmin")]
 
 
 @using MITANZ360Edu.Web.Models

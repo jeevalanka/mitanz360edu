@@ -5,9 +5,6 @@ namespace MITANZ360Edu.Web.Services;
 
 public partial class SharePointService
 {
-    // ======================================================
-    // IN-MEMORY CACHE (THREAD SAFE)
-    // ======================================================
     private static readonly ConcurrentDictionary<string, CacheEntry> _choiceCache = new();
     private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(30);
 
@@ -17,18 +14,9 @@ public partial class SharePointService
         public DateTime CachedAtUtc { get; init; }
     }
 
-    // ======================================================
-    // CHOICES : GET VALUES FOR LIST COLUMN (CACHED)
-    // ======================================================
     public async Task<IReadOnlyList<string>> GetChoiceValuesAsync(string listName, string columnName)
     {
-        if (string.IsNullOrWhiteSpace(listName))
-            throw new ArgumentException("List name is required", nameof(listName));
-
-        if (string.IsNullOrWhiteSpace(columnName))
-            throw new ArgumentException("Column name is required", nameof(columnName));
-
-        var cacheKey = $"{listName}\n{columnName}".ToLowerInvariant();
+        var cacheKey = $"{listName}|{columnName}".ToLowerInvariant();
 
         if (_choiceCache.TryGetValue(cacheKey, out var cached)
             && DateTime.UtcNow - cached.CachedAtUtc < CacheTtl)
@@ -39,7 +27,7 @@ public partial class SharePointService
         try
         {
             var columns = await _graphClient
-                .Sites[SiteId]
+                .Sites[SitePath] // ✅ FIXED
                 .Lists[listName]
                 .Columns
                 .GetAsync();
@@ -60,18 +48,12 @@ public partial class SharePointService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load choices for list {List} column {Column}", listName, columnName);
-
-            if (cached != null)
-                return cached.Values;
+            _logger.LogError(ex, "Choice load failed");
 
             return Array.Empty<string>();
         }
     }
 
-    // ======================================================
-    // ADMIN : CLEAR CACHE
-    // ======================================================
     public void ClearChoiceCache()
     {
         _choiceCache.Clear();

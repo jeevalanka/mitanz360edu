@@ -1,5 +1,6 @@
 ﻿@page "/course-builder"
 @layout MainLayout_NoRightPan
+@attribute [Authorize(Roles = "Admin,SysAdmin")]
 
 @using System.Text.Json.Nodes
 @using System.Text

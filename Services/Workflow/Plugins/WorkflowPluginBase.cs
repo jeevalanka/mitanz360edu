@@ -1,5 +1,6 @@
-﻿using MITANZ360Edu.Web.Models.Workflow;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
+using MITANZ360Edu.Web.Models.Workflow;
+using System.Text.Json;
 
 namespace MITANZ360Edu.Web.Services.Workflow.Plugins;
 
@@ -10,7 +11,7 @@ public abstract class WorkflowPluginBase : IWorkflowPlugin
 {
     protected WorkflowPluginBase(ILogger logger)
     {
-        Logger = logger;
+        Logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <summary>
@@ -36,12 +37,29 @@ public abstract class WorkflowPluginBase : IWorkflowPlugin
     /// </summary>
     protected T? GetSetting<T>(WorkflowStep step, string key)
     {
-        if (step.Settings.TryGetValue(key, out var value) &&
-            value is T result)
+        if (!step.Settings.TryGetValue(key, out var value) || value is null)
         {
-            return result;
+            return default;
         }
 
-        return default;
+        try
+        {
+            if (value is JsonElement jsonElement)
+            {
+                return JsonSerializer.Deserialize<T>(
+                    jsonElement.GetRawText());
+            }
+
+            if (value is T typedValue)
+            {
+                return typedValue;
+            }
+
+            return (T?)Convert.ChangeType(value, typeof(T));
+        }
+        catch
+        {
+            return default;
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿@page "/reference-data/{Module}"
 @layout MainLayout_NoRightPan
+@attribute [Authorize(Roles = "Admin,SysAdmin")]
 
 @using MITANZ360Edu.Web.Services
 @using Radzen

@@ -10,9 +10,7 @@ public class UserSessionInitializer
 
     private readonly UserSessionService _userSession;
 
-    public UserSessionInitializer(
-        AuthenticationStateProvider authProvider,
-        UserSessionService userSession)
+    public UserSessionInitializer(AuthenticationStateProvider authProvider,UserSessionService userSession)
     {
         _authProvider = authProvider;
         _userSession = userSession;
@@ -20,9 +18,7 @@ public class UserSessionInitializer
 
     public async Task InitializeAsync()
     {
-        var authState =
-            await _authProvider
-                .GetAuthenticationStateAsync();
+        var authState = await _authProvider.GetAuthenticationStateAsync();
 
         var user = authState.User;
 
@@ -33,16 +29,17 @@ public class UserSessionInitializer
 
         _userSession.SetUser(new UserSessionModel
         {
-            FullName =
-                user.Identity?.Name ?? "",
+            FullName = user.Identity?.Name ?? "",
 
-            Email =
-                user.FindFirst(ClaimTypes.Email)?.Value
-                ?? "",
+            Email = user.FindFirst("preferred_username")?.Value
+                    ?? user.FindFirst("email")?.Value
+                    ?? user.FindFirst(ClaimTypes.Email)?.Value
+                    ?? user.Identity?.Name
+                    ?? "",
 
-            Role =
-                user.FindFirst(ClaimTypes.Role)?.Value
-                ?? "Student",
+            Role = user.FindFirst("roles")?.Value ??
+                    user.FindFirst(ClaimTypes.Role)?.Value ??
+                    "Student",
 
             IsAuthenticated = true
         });

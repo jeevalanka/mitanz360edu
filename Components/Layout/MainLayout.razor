@@ -76,17 +76,32 @@
                         </div>
 
                         <div class="top-icons">
-                            <button class="top-icon-btn">
+                            <button class="top-icon-btn"
+                                    title="Help Documents"
+                                    @onclick='() => Navigation.NavigateTo("/help-documents")'>
+                                <i class="bi bi-book"></i>
+                            </button>
+
+                            <button class="top-icon-btn"
+                                    title="AI Workflow"
+                                    @onclick='() => Navigation.NavigateTo("/ai-workflow-studio")'>
+                                <i class="bi bi-diagram-3"></i>
+                            </button>
+
+                            <button class="top-icon-btn"
+                                    title="Msg" >
                                 <i class="bi bi-bell"></i>
                             </button>
 
-                            <button class="top-icon-btn">
+                            <button class="top-icon-btn"
+                                    title="System Settings"
+                                    @onclick='() => Navigation.NavigateTo("/admin/system-settings")'>
                                 <i class="bi bi-gear"></i>
                             </button>
 
                             <AuthorizeView>
                                 <Authorized>
-                                    <button class="top-icon-btn" @onclick="Logout">
+                                    <button class="top-icon-btn" title="Logout" @onclick="Logout">
                                         <i class="bi bi-box-arrow-right"></i>
                                     </button>
                                 </Authorized>
@@ -107,7 +122,7 @@
 
                     <!-- ✅ RIGHT PANEL (FIXED BEHAVIOR) -->
                     <aside class="right-panel-container @(sidebarCollapsed ? "show-panel" : "hide-panel")">
-                        <RightPanel />
+                        <RightPanel/>
                     </aside>
 
                 </div>

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MITANZ360Edu.Web.Models.Workflow;
+using MITANZ360Edu.Web.Services.AI;
 
 namespace MITANZ360Edu.Web.Services.Workflow.Plugins;
 
@@ -10,13 +11,15 @@ namespace MITANZ360Edu.Web.Services.Workflow.Plugins;
 public sealed class AiPlugin : WorkflowPluginBase
 {
     private readonly IConfiguration _configuration;
-
+    private readonly AiWorkflowEngine _aiWorkflowEngine;
     public AiPlugin(
-        IConfiguration configuration,
-        ILogger<AiPlugin> logger)
-        : base(logger)
+    IConfiguration configuration,
+    AiWorkflowEngine aiWorkflowEngine,
+    ILogger<AiPlugin> logger)
+    : base(logger)
     {
         _configuration = configuration;
+        _aiWorkflowEngine = aiWorkflowEngine;
     }
 
     public override string Type => "ai";
@@ -39,17 +42,48 @@ public sealed class AiPlugin : WorkflowPluginBase
         // Submit prompt
         // Store response
 
-        var result = new
+        foreach (var variable in context.Variables)
         {
-            Provider = provider,
-            Model = model,
+            prompt = prompt.Replace(
+                $"{{{{{variable.Key}}}}}",
+                variable.Value?.ToString() ?? string.Empty);
+        }
+
+        var request = new AiWorkflowRequest
+        {
+            TaskType = AiTaskType.ReportGeneration,
             Prompt = prompt,
-            Status = "Pending",
-            ExecutedOn = DateTime.UtcNow
+            OutputMode = AiOutputMode.Text,
+            StrictJsonResponse = false,
+            Temperature = 0.2,
+            MaxTokens = 4000
         };
 
-        context.Set(step.Output, result);
+        var result =await _aiWorkflowEngine.ExecuteAsync(request,cancellationToken);
 
-        await Task.CompletedTask;
+        if (!result.Success)
+        {
+            var errors =string.Join(Environment.NewLine,result.Errors.Select(x => x.Message));
+            throw new InvalidOperationException($"AI execution failed: {errors}");
+        }
+        context.Set( step.Output, ExtractContent(result.RawResponse));
+    }
+    private static string ExtractContent(string response)
+    {
+        try
+        {
+            using var document = System.Text.Json.JsonDocument.Parse(response);
+
+            return document.RootElement
+                .GetProperty("choices")[0]
+                .GetProperty("message")
+                .GetProperty("content")
+                .GetString()
+                ?? response;
+        }
+        catch
+        {
+            return response;
+        }
     }
 }

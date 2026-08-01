@@ -1,0 +1,759 @@
+﻿@page "/lms-trainer-cont-viewer"
+@layout MainLayout_No_Left_RightPan
+@attribute [Authorize(Roles = "Admin,Trainer")]
+
+@using MITANZ360Edu.Web.Services
+@using Microsoft.JSInterop
+@using System.Security.Claims
+
+@inject SharePointService _spService
+@inject IJSRuntime JS
+@inject AuthenticationStateProvider AuthState
+
+<PageTitle>Student Document Viewer</PageTitle>
+
+<style>
+    .info-title {
+        color: #2563eb;
+        text-align: right; /* ✅ simplest */
+    }
+
+    .layout {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        height: 100vh;
+        background: #F8FAFC;
+    }
+
+    /* left */
+    .left-panel {
+        background: #fff;
+        border-right: 1px solid #e2e8f0;
+        padding: 12px;
+        border-radius: 15px;
+    }
+
+    /* right */
+    .right-panel {
+        padding: 12px;
+    }
+
+    .folder-item {
+        padding: 6px;
+        cursor: pointer;
+        border-radius: 6px;
+    }
+
+        .folder-item:hover {
+            background: #eff6ff;
+        }
+
+    /* files */
+    .file-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .file-name {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .file-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: nowrap;
+    }
+
+        .file-actions .btn {
+            padding: 3px 8px;
+            font-size: 13px;
+            line-height: 1.2;
+        }
+
+    /* Status button fixed width */
+    .status-btn {
+        min-width: 95px;
+        justify-content: center;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .btn-view {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 6px;
+    }
+
+    .btn-secondary {
+        background: #e2e8f0;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 6px;
+    }
+
+        /* ✅ hover effect */
+        .btn-view:hover,
+        .btn-secondary:hover {
+            background: orange; /* unified hover */
+            color: #fff;
+        }
+
+        /* ✅ fix click feel (no jump) */
+        .btn-view:active,
+        .btn-secondary:active {
+            transform: scale(0.98);
+        }
+
+
+    /* breadcrumb ✅ improved */
+    .breadcrumb {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+    .breadcrumb-item {
+        cursor: pointer;
+        color: #2563eb;
+    }
+
+        .breadcrumb-item:last-child {
+            color: #000;
+            cursor: default;
+            font-weight: 600;
+        }
+
+    /* popup */
+    .popup-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .popup-card {
+        background: white;
+        padding: 15px;
+        border-radius: 15px;
+        width: 500px;
+    }
+
+    .tree-header {
+        font-weight: 600;
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+
+    /* tree item */
+    .tree-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        color: #334155;
+    }
+
+        /* hover */
+        .tree-item:hover {
+            background: #eff6ff;
+        }
+
+        /* selected */
+        .tree-item.active {
+            background: #dbeafe;
+            color: green;
+            font-weight: 600;
+        }
+
+        /* icons */
+        .tree-item i {
+            font-size: 18px;
+            width: 18px;
+            text-align: center;
+        }
+
+        /* hierarchy emphasis */
+        .tree-item:nth-child(1) {
+            font-weight: 600;
+        }
+
+        /* LEVEL 1 → Course / Structure */
+        .tree-item.level-0 i {
+            color: blue
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        /* LEVEL 2 → Category */
+        .tree-item.level-1 i {
+            color: #0ea5e9; /* lighter blue */
+        }
+
+        /* LEVEL 3+ → Folder */
+        .tree-item.level-2 i {
+            color: orange
+        }
+
+</style>
+
+<div class="layout">
+
+    <!-- LEFT -->
+    <div class="left-panel">
+
+        @if (isAdmin)
+        {
+            <div style="font-weight:600; margin-bottom:10px;">
+                Content (Admin View)
+            </div>
+        }
+        else if (isTrainer)
+        {
+            <div style="font-weight:600; margin-bottom:10px;">
+                Content (Trainer View)
+            </div>
+        }
+
+        @if (RootFolders == null)
+        {
+            <div>Loading...</div>
+        }
+        else
+        {
+            @foreach (var folder in RootFolders)
+            {
+                if (!IsFolderVisibleForRole(folder))
+                    continue;
+
+                @RenderTree(folder, 0)
+            }
+
+        }
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-panel">
+
+        @if (Files == null)
+        {
+            <div>Select folder</div>
+        }
+        else
+        {
+            @foreach (var file in Files)
+            {
+                <div class="file-row">
+
+                    <div class="file-name">
+                        @((MarkupString)GetFileIcon(file.ContentType))
+                        @System.IO.Path.GetFileNameWithoutExtension(file.Name)                        
+                    </div>
+                    <div class="file-actions">
+
+                        <button class="btn btn-primary btn-sm"
+                                @onclick="() => ViewFile(file.Id)">
+                            <i class="bi bi-eye"></i> View
+                        </button>
+
+                        <button class="btn btn-secondary btn-sm"
+                                @onclick="() => ShowInfo(file)">
+                            <i class="bi bi-info-circle"></i> Info
+                        </button>
+
+                        @if (isAdmin || isTrainer)
+                        {
+                            <button class="btn btn-sm @(HasAssessment(file) ? "btn-primary" : "btn-secondary")"
+                                    @onclick="() => ShowAssessment(file)"
+                                    disabled="@(!HasAssessment(file))">
+                                Assess
+                            </button>
+                        }
+
+                        <!-- ✅ STATUS TOGGLE -->
+                        @if (isAdmin || isTrainer)
+                        {
+                            <button class="btn btn-sm status-btn @GetStatusClass(file)"
+                                    @onclick="() => ToggleFileStatus(file)">
+                                <i class="@GetStatusIcon(file)"></i>
+                                @GetStatusText(file)
+                            </button>
+                        }
+                        
+                    </div>
+                </div>
+            }
+        }
+
+    </div>
+
+</div>
+
+<!-- INFO POPUP -->
+@if (ShowInfoCard && SelectedItem != null)
+{
+    <div class="popup-overlay">
+        <div class="popup-card">
+
+            <h4 class="info-title">Information</h4>
+
+            <div style="display:flex; flex-direction:column; gap:6px; font-size:13px;">
+
+                <div style="color:darkorange"><strong>Title:</strong> @SelectedItem.Title</div>
+
+                <div><strong>File:</strong>
+                    @SelectedItem.Name
+                </div>
+
+                <div><strong>Content ID:</strong> @SelectedItem.ContentId</div>
+                <hr />
+
+                <div><strong>Course:</strong> @SelectedItem.CourseId | <strong>Course Model:</strong> @SelectedItem.CourseModelCode
+                | <strong>Content Type:</strong> @SelectedItem.ContentTypeCode</div>
+
+                <hr />
+
+                <div style="color:darkorange"><strong>Description:</strong> @SelectedItem.Description</div>
+
+                <hr />
+
+                <div><strong>Published:</strong> @(SelectedItem.IsPublished ? "Yes" : "No")
+                | <strong>Archived:</strong> @(SelectedItem.IsArchived ? "Yes" : "No")
+                | <strong>Source:</strong> @SelectedItem.Source</div>
+
+                <hr />
+
+                <div><strong>Last Modified:</strong>
+                    @(SelectedItem.LastModified?.ToString("dd MMM yyyy HH:mm"))
+                </div>
+
+            </div>
+
+            <div style="margin-top:12px;">
+                <button class="btn-view" @onclick="ClosePopup">Close</button>
+            </div>
+
+        </div>
+    </div>
+}
+
+
+<!-- ASSESSMENT POPUP -->
+@if (ShowAssessmentCard && SelectedItem != null)
+{
+    <div class="popup-overlay">
+        <div class="popup-card">
+
+            <h4 class="info-title">
+                <i class="bi bi-clipboard-check"></i> Assessment Task
+            </h4>
+
+            <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
+
+                <div>
+                    <strong><i class="bi bi-file-text"></i> Title:</strong>
+                    @SelectedItem.Title
+                </div>
+
+                <div>
+                    <strong><i class="bi bi-tag"></i> Type:</strong>
+                    @ActMeta?.Type
+                 | 
+                    <strong><i class="bi bi-clock"></i> Duration:</strong>
+                    @ActMeta?.DurationMinutes min
+                 | 
+                    <strong><i class="bi bi-patch-check"></i> Mandatory:</strong>
+                    @(ActMeta?.IsMandatory == true ? "Yes" : "No")
+                </div>
+
+                <hr />
+
+                @if (!string.IsNullOrEmpty(ActMeta?.Description))
+                {
+                    <div>
+                        <strong><i class="bi bi-info-circle"></i> Description:</strong>
+                        <div style="margin-top:4px;">
+                            @ActMeta.Description
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(ActMeta?.Url))
+                {
+                    <div style="margin-top:10px;">
+                        <a href="@ActMeta.Url"
+                           target="_blank"
+                           class="btn-view"
+                           style="display:inline-flex; align-items:center; gap:6px;">
+                            <i class="bi bi-box-arrow-up-right"></i>
+                            Open Assessment
+                        </a>
+                    </div>
+                }
+
+            </div>
+
+            <div style="margin-top:14px; text-align:right;">
+                <button class="btn-secondary" @onclick="ClosePopup">
+                    Close
+                </button>
+            </div>
+
+        </div>
+    </div>
+}
+
+
+@code {
+
+    private ClaimsPrincipal? user;
+    private bool isAdmin;
+    private bool isTrainer;
+
+    private List<LibraryItem>? RootFolders;
+    private Dictionary<string, List<LibraryItem>> FolderTree = new();
+    private List<LibraryItem>? Files;
+
+    private List<LibraryItem> Breadcrumbs = new();
+    private string DriveId = "";
+
+    private bool ShowInfoCard = false;
+    private bool ShowAssessmentCard = false;
+
+    private LibraryItem? SelectedItem;
+    private ActMetadata? ActMeta;
+
+    private HashSet<string> Expanded = new();
+    private string SelectedFolderId = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        DriveId = await _spService.GetLmsDriveIdAsync();
+
+        var items = await _spService.GetLibraryFolderChildrenAsync(DriveId, "root");
+
+        RootFolders = items.Where(x => x.IsFolder).ToList();
+        FolderTree["root"] = items;
+
+        Breadcrumbs = new List<LibraryItem>
+        {
+            new LibraryItem { Id = "root", Name = "Root" }
+        };
+
+        var authState = await AuthState.GetAuthenticationStateAsync();
+        user = authState.User;
+
+        isAdmin = user?.IsInRole("Admin") ?? false;
+        isTrainer = user?.IsInRole("Trainer") ?? false;
+
+    }
+
+    private async Task ExpandFolder(string id)
+    {
+        if (!FolderTree.ContainsKey(id))
+        {
+            FolderTree[id] = await _spService.GetLibraryFolderChildrenAsync(DriveId, id);
+        }
+    }
+
+    private async Task LoadFolder(string id)
+    {
+        var items = await _spService.GetLibraryFolderChildrenAsync(DriveId, id);
+
+        Files = items.Where(x => !x.IsFolder).ToList();
+
+        // ✅ prevent duplicate breadcrumb
+        var exists = Breadcrumbs.Any(x => x.Id == id);
+        if (!exists)
+        {
+            var folderName = FolderTree.ContainsKey(id)
+                ? FolderTree[id].FirstOrDefault()?.Name ?? "Folder"
+                : "Folder";
+
+            Breadcrumbs.Add(new LibraryItem
+            {
+                Id = id,
+                Name = folderName
+            });
+        }
+    }
+
+    private async Task NavigateBreadcrumb(string id)
+    {
+        var index = Breadcrumbs.FindIndex(x => x.Id == id);
+        Breadcrumbs = Breadcrumbs.Take(index + 1).ToList();
+
+        await LoadFolder(id);
+    }
+
+    private async Task ViewFile(string id)
+    {
+        await JS.InvokeVoidAsync("open", $"/api/files/{id}", "_blank");
+    }
+
+    private void ShowInfo(LibraryItem item)
+    {
+        SelectedItem = item;
+        ShowInfoCard = true;
+    }
+
+    private void ShowAssessment(LibraryItem item)
+    {
+        SelectedItem = item;
+
+        if (!string.IsNullOrEmpty(item.ACTMetaJson))
+        {
+            try
+            {
+                ActMeta = System.Text.Json.JsonSerializer.Deserialize<ActMetadata>(item.ACTMetaJson);
+            }
+            catch
+            {
+                ActMeta = null;
+            }
+        }
+
+        ShowAssessmentCard = true;
+    }
+
+    private void ClosePopup()
+    {
+        ShowInfoCard = false;
+        ShowAssessmentCard = false;
+    }
+
+    private RenderFragment RenderTree(LibraryItem folder, int level) => builder =>
+    {
+        int seq = 0;
+
+        bool isExpanded = Expanded.Contains(folder.Id);
+        bool isSelected = SelectedFolderId == folder.Id;
+
+        var icon = level switch
+        {
+            0 => "bi-diagram-3",
+            1 => "bi-collection",
+            _ => "bi-folder"
+        };
+
+        builder.OpenElement(seq++, "div");
+        builder.AddAttribute(seq++, "class",
+            $"tree-item level-{level} {(isSelected ? "active" : "")}");
+        builder.AddAttribute(seq++, "style", $"padding-left:{level * 16}px");
+
+        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, async () =>
+        {
+            SelectedFolderId = folder.Id;
+
+            if (isExpanded)
+                Expanded.Remove(folder.Id);
+            else
+            {
+                Expanded.Add(folder.Id);
+                await ExpandFolder(folder.Id);
+            }
+
+            await LoadFolder(folder.Id);
+        }));
+
+        builder.AddMarkupContent(seq++, $@"
+            <i class='bi {icon}'></i>
+            <span>{folder.Name}</span>
+        ");
+
+        builder.CloseElement();
+
+        if (isExpanded && FolderTree.ContainsKey(folder.Id))
+        {
+            foreach (var child in FolderTree[folder.Id].Where(x => x.IsFolder))
+            {
+                builder.AddContent(seq++, RenderTree(child, level + 1));
+            }
+        }
+    };
+
+    private string GetFileIcon(string? contentType)
+    {
+        if (string.IsNullOrEmpty(contentType))
+            return "<i class='bi bi-file-earmark'></i>";
+
+        var m = contentType.ToLowerInvariant();
+
+        // Documents
+        if (m.Contains("pdf")) return "<i class='bi bi-file-earmark-pdf'></i>";
+        if (m.Contains("word")) return "<i class='bi bi-file-earmark-word'></i>";
+        if (m.Contains("excel")) return "<i class='bi bi-file-earmark-excel'></i>";
+
+        // Web / HTML
+        if (m.Contains("html") || m.Contains("htm"))
+            return "<i class='bi bi-filetype-html'></i>";
+
+        // Presentations
+        if (m.Contains("presentation") || m.Contains("powerpoint") || m.Contains("ppt"))
+            return "<i class='bi bi-file-earmark-ppt'></i>";
+
+        // ✅ Images (JPEG added here)
+        if (m.StartsWith("image/") ||
+            m.Contains("jpeg") ||
+            m.Contains("jpg") ||
+            m.Contains("png") ||
+            m.Contains("gif") ||
+            m.Contains("bmp") ||
+            m.Contains("webp"))
+            return "<i class='bi bi-file-earmark-image'></i>";
+
+        // ✅ Video
+        if (m.StartsWith("video/") ||
+            m.Contains("mp4") ||
+            m.Contains("webm") ||
+            m.Contains("avi") ||
+            m.Contains("mov") ||
+            m.Contains("mkv") ||
+            m.Contains("mpeg") ||
+            m.Contains("wmv"))
+            return "<i class='bi bi-file-earmark-play'></i>";
+
+        return "<i class='bi bi-file-earmark'></i>";
+    }
+
+    private bool HasAssessment(LibraryItem item)
+    {
+        if (string.IsNullOrEmpty(item.ACTMetaJson))
+            return false;
+
+        try
+        {
+            var meta = System.Text.Json.JsonSerializer.Deserialize<ActMetadata>(item.ACTMetaJson);
+            return !string.IsNullOrEmpty(meta?.Url);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private string GetStatusText(dynamic file)
+    {
+        if (file.IsArchived) return "Archived";
+        if (file.IsPublished) return "Published";
+        return "Draft";
+    }
+
+    private string GetStatusIcon(dynamic file)
+    {
+        if (file.IsArchived) return "bi bi-archive";
+        if (file.IsPublished) return "bi bi-upload";
+        return "bi bi-file-earmark";
+    }
+
+    private string GetStatusClass(dynamic file)
+    {
+        if (file.IsArchived) return "btn-warning";
+        if (file.IsPublished) return "btn-success";
+        return "btn-secondary";
+    }
+
+    private async Task ToggleFileStatus(dynamic file)
+    {
+        // ✅ CASE 1: Draft → Publish
+        if (!file.IsPublished && !file.IsArchived)
+        {
+            file.IsPublished = true;
+            file.IsArchived = false;
+        }
+
+        // ✅ CASE 2: Published → Archive
+        else if (file.IsPublished)
+        {
+            bool confirm = await JS.InvokeAsync<bool>(
+                "confirm",
+                "Are you sure you want to archive this file?"
+            );
+
+            if (!confirm) return;
+
+            file.IsPublished = false;
+            file.IsArchived = true;
+        }
+
+        // ✅ CASE 3: Archived → Draft
+        else if (file.IsArchived)
+        {
+            file.IsPublished = false;
+            file.IsArchived = false;
+        }
+
+        try
+        {
+            await _spService.UpdateStatus(
+                file.DriveId,
+                file.Id,
+                file.IsPublished,
+                file.IsArchived
+            );
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving status: {ex.Message}");
+
+            // Optional: revert UI if save fails
+            // (very important for consistency)
+        }
+    }
+
+    private bool IsFolderVisibleForRole(LibraryItem folder)
+    {
+        if (folder == null || string.IsNullOrEmpty(folder.Name))
+            return false;
+
+        // ✅ ADMIN RULE
+        if (isAdmin)
+        {
+            var adminAllowed = new[]
+            {
+            "All-Staff",
+            "AI-Generated-Reports",
+            "Group-Administrators",
+            "Group-Marketing",
+            "Group-Students",
+            "Group-Trainers"
+            };
+
+            return adminAllowed.Contains(folder.Name);
+        }
+
+        // ✅ TRAINER RULE
+        if (isTrainer)
+        {
+            var trainerAllowed = new[]
+            {
+            "Courses",
+            "All-Staff",
+            "AI-Generated-Reports",
+            "Group-Trainers"
+            };
+
+            return trainerAllowed.Contains(folder.Name);
+        }
+
+        // ✅ DEFAULT (safe)
+        return false;
+    }
+
+}

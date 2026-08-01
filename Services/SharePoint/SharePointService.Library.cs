@@ -3,51 +3,26 @@ using Microsoft.Graph.Models;
 
 namespace MITANZ360Edu.Web.Services;
 
-/// <summary>
-/// ============================================================
-/// ✅ SHAREPOINT LIBRARY OPERATIONS
-/// ============================================================
-///
-/// Responsibilities:
-/// - Library browsing
-/// - Folder navigation
-/// - File upload
-/// - Rename
-/// - Delete
-/// - Download
-/// - LMS metadata extraction
-/// - SharePoint Drive CRUD
-///
-/// ============================================================
-/// </summary>
+// ============================================================
+// ✅ LIBRARY ITEM
+// ============================================================
 public class LibraryItem
 {
-    // =====================================================
-    // GRAPH IDENTIFIERS
-    // =====================================================
     public string Id { get; set; } = string.Empty;
     public string DriveId { get; set; } = string.Empty;
     public string ParentFolderId { get; set; } = string.Empty;
 
-    // =====================================================
-    // FILE / FOLDER
-    // =====================================================
+    public string AllowedRoles { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public bool IsFolder { get; set; }
 
     public long Size { get; set; }
     public DateTimeOffset? LastModified { get; set; }
-
-    // ✅ USE THIS ONLY
     public string? ContentType { get; set; }
 
-    // OPTIONAL
     public string WebUrl { get; set; } = string.Empty;
     public string DownloadUrl { get; set; } = string.Empty;
 
-    // =====================================================
-    // LMS METADATA (KEEP AS IS ✅)
-    // =====================================================
     public string? Title { get; set; }
     public string ContentTypeCode { get; set; } = string.Empty;
     public string Source { get; set; } = string.Empty;
@@ -64,616 +39,338 @@ public class LibraryItem
     public string ACTMetaJson { get; set; } = string.Empty;
 }
 
+// ============================================================
+// ✅ ACT METADATA
+// ============================================================
 public class ActMetadata
 {
     public string? Title { get; set; }
-
-    // reading | video | quiz | group | lab | assignment
     public string? Type { get; set; }
-
     public string? Description { get; set; }
-
-    // External content (MS Learn, Video, Quiz link, Lab portal)
     public string? Url { get; set; }
-
-    // Only relevant for quiz
     public int PassingScore { get; set; }
-
     public int DurationMinutes { get; set; }
-
     public bool IsMandatory { get; set; }
 }
 
+// ============================================================
+// ✅ SHAREPOINT SERVICE
+// ============================================================
 public partial class SharePointService
 {
-    // =====================================================
-    // ROOT LIBRARY
-    // =====================================================
-
-    public async Task<List<LibraryItem>>
-        GetLibraryRootAsync()
-        {
-            try
-            {
-                var driveId =
-                    await GetLmsDriveIdAsync();
-
-                return await GetLibraryFolderChildrenAsync(
-                    driveId,
-                    "root");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "Failed loading LMS library root.");
-
-                throw;
-            }
-        }
-
-    // =====================================================
-    // GET FOLDER CHILDREN
-    // =====================================================
-
-    public async Task<List<LibraryItem>>
-        GetLibraryFolderChildrenAsync(
-            string driveId,
-            string folderId)
+    // ================= ROOT =================
+    public async Task<List<LibraryItem>> GetLibraryRootAsync()
     {
-        try
-        {
-            // =============================================
-            // VALIDATION
-            // =============================================
-
-            if (string.IsNullOrWhiteSpace(driveId))
-            {
-                throw new InvalidOperationException(
-                    "DriveId is required.");
-            }
-
-            if (string.IsNullOrWhiteSpace(folderId))
-            {
-                throw new InvalidOperationException(
-                    "FolderId is required.");
-            }
-
-            // =============================================
-            // LOGGING
-            // =============================================
-
-            _logger.LogInformation(
-                "Loading folder items. DriveId={DriveId}, FolderId={FolderId}",
-                driveId,
-                folderId);
-
-            // =============================================
-            // GRAPH QUERY
-            // =============================================
-
-            var response =
-                await _graphClient
-                    .Drives[driveId]
-                    .Items[folderId]
-                    .Children
-                    .GetAsync(req =>
-                    {
-                        req.QueryParameters.Expand =
-                        [
-                            "listItem($expand=fields)"
-                        ];
-                    });
-
-            var results =
-                new List<LibraryItem>();
-
-            // =============================================
-            // EMPTY RESULT
-            // =============================================
-
-            if (response?.Value == null)
-            {
-                return results;
-            }
-
-            // =============================================
-            // MAP RESULTS
-            // =============================================
-
-            foreach (var item in response.Value)
-            {
-                var fields =
-                    item.ListItem?
-                        .Fields?
-                        .AdditionalData;
-
-                results.Add(new LibraryItem
-                {
-                    // =====================================
-                    // CORE
-                    // =====================================
-
-                    Id = item.Id ?? string.Empty,
-                    Name = item.Name ?? "Unnamed",
-                    DriveId = driveId,
-                    ParentFolderId = item.ParentReference?.Id ?? string.Empty,
-                    WebUrl = item.WebUrl ?? string.Empty,
-
-                    DownloadUrl = item.AdditionalData != null && item.AdditionalData.ContainsKey(
-                            "@microsoft.graph.downloadUrl")
-                            ? item.AdditionalData[
-                                "@microsoft.graph.downloadUrl"]
-                                ?.ToString() ?? string.Empty
-                            : string.Empty,
-
-                    IsFolder = item.Folder != null,
-                    Size = item.Size ?? 0,
-                    ContentType = item.File?.MimeType,
-                    LastModified = item.LastModifiedDateTime,
-
-                    // =====================================
-                    // LMS METADATA
-                    // =====================================
-
-                    Title = GetField(fields, "Title"),
-                    Description = GetField(fields, "_ExtendedDescription"),
-                    ContentId = GetField(fields, "COR_ContentId"),
-                    CourseId = GetField(fields, "COR_CourseId"),
-                    CourseModelCode = GetField(fields, "COR_CourseModel"),
-                    ContentTypeCode = GetField(fields, "COR_ContentType"),
-                    IsPublished = GetBoolField( fields, "REL_IsPublished"),
-                    IsArchived = GetBoolField( fields, "ARC_IsArchived"),
-                    Source = GetField(fields, "GOV_Source"),
-                    MetadataJson = GetField(fields, "EXT_Metadata"),
-                    AiFeed = GetField(fields, "AI_Feed"),
-                    ACTMetaJson = GetField(fields, "ACT_Metadata"),
-                });
-            }
-
-            // =============================================
-            // SORT
-            // =============================================
-
-            return results
-                .OrderByDescending(x => x.IsFolder)
-                .ThenBy(x => x.Name)
-                .ToList();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(
-                ex,
-                "Failed loading folder children.");
-
-            throw;
-        }
+        var driveId = await GetLmsDriveIdAsync();
+        return await GetLibraryFolderChildrenAsync(driveId, "root");
     }
 
-    // =====================================================
-    // CREATE FOLDER
-    // =====================================================
-
-    public async Task CreateFolderAsync(
-        string driveId,
-        string parentFolderId,
-        string folderName)
+    // ================= FOLDER =================
+    public async Task<List<LibraryItem>> GetLibraryFolderChildrenAsync(string driveId, string folderId)
     {
-        try
-        {
-            EnsureUserHasPermission(
-                "Library.CreateFolder");
-
-            if (string.IsNullOrWhiteSpace(folderName))
-            {
-                throw new InvalidOperationException(
-                    "Folder name is required.");
-            }
-
-            var folder = new DriveItem
-            {
-                Name = folderName,
-
-                Folder = new Folder(),
-
-                AdditionalData =
-                    new Dictionary<string, object>
-                    {
-                        {
-                            "@microsoft.graph.conflictBehavior",
-                            "rename"
-                        }
-                    }
-            };
-
+        var response =
             await _graphClient
                 .Drives[driveId]
-                .Items[parentFolderId]
+                .Items[folderId]
                 .Children
-                .PostAsync(folder);
+                .GetAsync(req =>
+                {
+                    req.QueryParameters.Expand =
+                    [
+                        "listItem($expand=fields)"
+                    ];
+                });
 
-            _logger.LogInformation(
-                "Folder created successfully: {FolderName}",
-                folderName);
-        }
-        catch (Exception ex)
+        var results = new List<LibraryItem>();
+
+        foreach (var item in response?.Value ?? new())
         {
-            _logger.LogError(
-                ex,
-                "Folder creation failed.");
+            var fields = item.ListItem?.Fields?.AdditionalData;
 
-            throw;
-        }
-    }
-
-    // =====================================================
-    // UPLOAD FILE
-    // =====================================================
-
-    public async Task<DriveItem> UploadFileAsync(
-        string driveId,
-        string folderId,
-        string fileName,
-        Stream stream)
-    {
-        try
-        {
-            EnsureUserHasPermission(
-                "Library.Upload");
-
-            if (string.IsNullOrWhiteSpace(driveId))
+            results.Add(new LibraryItem
             {
-                throw new InvalidOperationException(
-                    "DriveId is required.");
-            }
-
-            if (string.IsNullOrWhiteSpace(folderId))
-            {
-                throw new InvalidOperationException(
-                    "FolderId is required.");
-            }
-
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                throw new InvalidOperationException(
-                    "FileName is required.");
-            }
-
-            if (stream == null)
-            {
-                throw new InvalidOperationException(
-                    "Upload stream is null.");
-            }
-
-            _logger.LogInformation(
-                "Uploading file '{FileName}' to folder '{FolderId}'",
-                fileName,
-                folderId);
-
-            var uploaded =
-                await _graphClient
-                    .Drives[driveId]
-                    .Items[folderId]
-                    .ItemWithPath(fileName)
-                    .Content
-                    .PutAsync(stream);
-
-            if (uploaded == null)
-            {
-                throw new InvalidOperationException(
-                    "SharePoint upload returned null.");
-            }
-
-            _logger.LogInformation(
-                "File uploaded successfully. ItemId={ItemId}",
-                uploaded.Id);
-
-            return uploaded;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(
-                ex,
-                "File upload failed.");
-
-            throw;
-        }
-    }
-
-    // =====================================================
-    // UPDATE LIBRARY ITEM
-    // =====================================================
-
-    public async Task UpdateLibraryItemAsync(
-        string driveId,
-        string itemId,
-        LibraryItem model)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(driveId))
-            {
-                throw new InvalidOperationException(
-                    "DriveId is required.");
-            }
-
-            if (string.IsNullOrWhiteSpace(itemId))
-            {
-                throw new InvalidOperationException(
-                    "ItemId is required.");
-            }
-
-            _logger.LogInformation(
-                "Updating LMS metadata for item {ItemId}",
-                itemId);
-
-            var fieldValues = new FieldValueSet
-            {
-                AdditionalData =
-                    new Dictionary<string, object>
-                    {
-                        ["Title"] = model.Title ?? string.Empty,
-                        ["_ExtendedDescription"] = model.Description ?? string.Empty,
-                        ["COR_ContentId"] = model.ContentId ?? string.Empty,
-                        ["COR_CourseId"] = model.CourseId ?? string.Empty,
-                        ["COR_CourseModel"] = model.CourseModelCode ?? string.Empty,
-                        ["COR_ContentType"] = model.ContentTypeCode ?? string.Empty,
-                        ["COR_ContentTitle"] = model.Title ?? string.Empty,
-                        ["REL_IsPublished"] = model.IsPublished,
-                        ["ARC_IsArchived"] = model.IsArchived,
-                        ["GOV_Source"] = model.Source ?? string.Empty,
-                        ["EXT_Metadata"] = model.MetadataJson ?? string.Empty,
-                        ["AI_Feed"] = model.AiFeed ?? string.Empty,
-                        ["ACT_Metadata"] = model.ACTMetaJson ?? string.Empty,
-                    }
-            };
-
-            var listItem =
-                await _graphClient
-                    .Drives[driveId]
-                    .Items[itemId]
-                    .ListItem
-                    .GetAsync();
-
-            if (listItem?.Id == null)
-            {
-                throw new Exception(
-                    "SharePoint ListItem not found.");
-            }
-
-            if (string.IsNullOrWhiteSpace(
-                LmsLibraryListId))
-            {
-                throw new Exception(
-                    "LMS ListId configuration missing.");
-            }
-
-            await _graphClient
-                .Sites[SiteId]
-                .Lists[LmsLibraryListId]
-                .Items[listItem.Id]
-                .Fields
-                .PatchAsync(fieldValues);
-
-            _logger.LogInformation(
-                "Successfully updated LMS metadata for item {ItemId}",
-                itemId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(
-                ex,
-                "Error updating SharePoint library item {ItemId}",
-                itemId);
-
-            throw;
-        }
-    }
-
-    // =====================================================
-    // GET ITEM
-    // =====================================================
-
-    public async Task<LibraryItem?>
-        GetItemAsync(
-            string driveId,
-            string itemId)
-    {
-        try
-        {
-            var item =
-                await _graphClient
-                    .Drives[driveId]
-                    .Items[itemId]
-                    .GetAsync(req =>
-                    {
-                        req.QueryParameters.Expand =
-                        [
-                            "listItem($expand=fields)"
-                        ];
-                    });
-
-            if (item == null)
-            {
-                return null;
-            }
-
-            var fields =
-                item.ListItem?
-                    .Fields?
-                    .AdditionalData;
-
-            return new LibraryItem
-            {
-                Id = item.Id ?? string.Empty,
-
-                Name = item.Name ?? "Unnamed",
-
+                Id = item.Id ?? "",
                 DriveId = driveId,
-
-                ParentFolderId = item.ParentReference?.Id ?? string.Empty,
-
-                WebUrl = item.WebUrl ?? string.Empty,
-
-                DownloadUrl =
-                    item.AdditionalData != null &&
-                    item.AdditionalData.ContainsKey(
-                        "@microsoft.graph.downloadUrl")
-                        ? item.AdditionalData[
-                            "@microsoft.graph.downloadUrl"]
-                            ?.ToString() ?? string.Empty
-                        : string.Empty,
-
+                Name = item.Name ?? "",
+                ParentFolderId = item.ParentReference?.Id ?? "",
                 IsFolder = item.Folder != null,
-                Size = item.Size ?? 0,
+
                 ContentType = item.File?.MimeType,
+                Size = item.Size ?? 0,
                 LastModified = item.LastModifiedDateTime,
+
                 Title = GetField(fields, "Title"),
                 Description = GetField(fields, "_ExtendedDescription"),
-                ContentId = GetField(fields, "COR_ContentId"),
-                CourseId = GetField(fields, "COR_CourseId"),
-                CourseModelCode = GetField(fields, "COR_CourseModel"),
-                ContentTypeCode = GetField(fields, "COR_ContentType"),
-                IsPublished = GetBoolField( fields, "REL_IsPublished"),
-                IsArchived = GetBoolField( fields, "ARC_IsArchived"),
-                Source = GetField(fields, "GOV_Source"),
-                MetadataJson = GetField(fields, "EXT_Metadata"),
-                AiFeed = GetField(fields, "AI_Feed"),
-                ACTMetaJson = GetField(fields, "ACT_Metadata"),
-            };
+                IsPublished = GetBoolField(fields, "REL_IsPublished"),
+                IsArchived = GetBoolField(fields, "ARC_IsArchived"),
+                ACTMetaJson = GetField(fields, "ACT_Metadata")
+            });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(
-                ex,
-                "Failed loading item.");
 
-            throw;
-        }
+        return results;
     }
 
-    // =====================================================
-    // GET ITEM BY ID (RECURSIVE)
-    // =====================================================
-
-    public async Task<LibraryItem?> GetLibraryItemByIdAsync(
-        string itemId)
+    // ================= ✅ FIXED STATUS UPDATE =================
+    public async Task UpdateStatus(string driveId, string itemId, bool isPublished, bool isArchived)
     {
-        try
-        {
-            var rootItems =
-                await GetLibraryRootAsync();
+        var listItem =
+            await _graphClient
+                .Drives[driveId]
+                .Items[itemId]
+                .ListItem
+                .GetAsync();
 
-            return await FindLibraryItemRecursiveAsync(
-                rootItems,
-                itemId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(
-                ex,
-                "Error loading LMS library item by ID: {ItemId}",
-                itemId);
+        if (listItem?.Id == null)
+            throw new Exception("ListItem not found");
 
-            return null;
-        }
-    }
-
-    private async Task<LibraryItem?> FindLibraryItemRecursiveAsync(
-        IEnumerable<LibraryItem> items,
-        string itemId)
-    {
-        foreach (var item in items)
+        var fieldValues = new FieldValueSet
         {
-            if (item.Id == itemId)
+            AdditionalData = new Dictionary<string, object>
             {
-                return item;
+                ["REL_IsPublished"] = isPublished,
+                ["ARC_IsArchived"] = isArchived
             }
+        };
 
-            if (item.IsFolder)
-            {
-                var children =
-                    await GetLibraryFolderChildrenAsync(
-                        item.DriveId,
-                        item.Id);
-
-                var found =
-                    await FindLibraryItemRecursiveAsync(
-                        children,
-                        itemId);
-
-                if (found != null)
-                {
-                    return found;
-                }
-            }
-        }
-
-        return null;
+        await _graphClient
+            .Sites[SiteId]
+            .Lists[LmsLibraryListId]
+            .Items[listItem.Id]
+            .Fields
+            .PatchAsync(fieldValues);
     }
 
-    // =====================================================
-    // ROOT CONTEXT
-    // =====================================================
-
-    public class LibraryRootContext
+    // ================= UPLOAD =================
+    public async Task<DriveItem> UploadFileAsync(string driveId, string folderId, string fileName, Stream stream)
     {
-        public string DriveId { get; set; } = string.Empty;
-
-        public string FolderId { get; set; } = "root";
-
-        public List<LibraryItem> Items { get; set; } = [];
+        return await _graphClient
+            .Drives[driveId]
+            .Items[folderId]
+            .ItemWithPath(fileName)
+            .Content
+            .PutAsync(stream);
     }
 
-    public async Task<LibraryRootContext>
-        GetRootContextAsync()
+    // ================= UPDATE FULL =================
+    public async Task UpdateLibraryItemAsync(string driveId, string itemId, LibraryItem model)
     {
-        var driveId =
-            await GetLmsDriveIdAsync();
-
-        var items =
-            await GetLibraryFolderChildrenAsync(
-                driveId,
-                "root");
-
-        return new LibraryRootContext
+        var fieldValues = new FieldValueSet
         {
+            AdditionalData = new Dictionary<string, object>
+            {
+                ["REL_IsPublished"] = model.IsPublished,
+                ["ARC_IsArchived"] = model.IsArchived,
+                ["Title"] = model.Title ?? ""
+            }
+        };
+
+        var listItem =
+            await _graphClient
+                .Drives[driveId]
+                .Items[itemId]
+                .ListItem
+                .GetAsync();
+
+        await _graphClient
+            .Sites[SiteId]
+            .Lists[LmsLibraryListId]
+            .Items[listItem.Id]
+            .Fields
+            .PatchAsync(fieldValues);
+    }
+    public async Task UpdateLibraryItemFullAsync(string driveId, string itemId, LibraryItem model)
+    {
+        // ✅ GET list item linked to file
+        var listItem = await _graphClient
+            .Drives[driveId]
+            .Items[itemId]
+            .ListItem
+            .GetAsync();
+
+        if (listItem?.Id == null)
+            throw new Exception("ListItem not found");
+
+        // ✅ FULL FIELD UPDATE (MATCHES YOUR RAZOR PAGE EXACTLY)
+        var fieldValues = new FieldValueSet
+        {
+            AdditionalData = new Dictionary<string, object>
+            {
+                // ✅ GENERAL
+                ["Title"] = model.Title ?? "",
+                ["COR_ContentId"] = model.ContentId ?? "",
+                ["COR_CourseId"] = model.CourseId ?? "",
+                ["_ExtendedDescription"] = model.Description ?? "",
+                ["COR_CourseModel"] = model.CourseModelCode ?? "",
+
+                // ✅ GOVERNANCE
+                ["COR_ContentType"] = model.ContentTypeCode ?? "",
+                ["GOV_Source"] = model.Source ?? "",
+                ["REL_IsPublished"] = model.IsPublished,
+                ["ARC_IsArchived"] = model.IsArchived,
+
+                // ✅ EXTENDED
+                ["EXT_Metadata"] = string.IsNullOrWhiteSpace(model.MetadataJson) ? "{}" : model.MetadataJson,
+
+                // ✅ AI
+                ["AI_Feed"] = model.AiFeed ?? "",
+
+                // ✅ ACT
+                ["ACT_Metadata"] = string.IsNullOrWhiteSpace(model.ACTMetaJson) ? "{}" : model.ACTMetaJson
+            }
+        };
+
+        // ✅ PATCH TO SHAREPOINT LIST ITEM
+        await _graphClient
+            .Sites[SiteId]
+            .Lists[LmsLibraryListId]
+            .Items[listItem.Id]
+            .Fields
+            .PatchAsync(fieldValues);
+    }
+
+    // ================= GET ITEM =================
+    public async Task<LibraryItem?> GetItemAsync(string driveId, string itemId)
+    {
+        var item = await _graphClient
+            .Drives[driveId]
+            .Items[itemId]
+            .GetAsync(req =>
+            {
+                req.QueryParameters.Expand =
+                [
+                    "listItem($expand=fields)"
+                ];
+            });
+
+        if (item == null) return null;
+
+        var fields = item.ListItem?.Fields?.AdditionalData;
+
+        return new LibraryItem
+        {
+            // ✅ SYSTEM
+            Id = item.Id ?? "",
             DriveId = driveId,
-            FolderId = "root",
-            Items = items
+            Name = item.Name ?? "",
+
+            // ✅ FILE INFO (USED IN UI)
+            ContentType = item.File?.MimeType,
+            Size = item.Size ?? 0,
+            LastModified = item.LastModifiedDateTime,
+            WebUrl = item.WebUrl ?? "",
+
+            // ✅ GENERAL
+            Title = GetField(fields, "Title"),
+            ContentId = GetField(fields, "COR_ContentId"),
+            CourseId = GetField(fields, "COR_CourseId"),
+            Description = GetField(fields, "_ExtendedDescription"),
+            CourseModelCode = GetField(fields, "COR_CourseModel"),
+
+            // ✅ METADATA / GOVERNANCE
+            ContentTypeCode = GetField(fields, "COR_ContentType"),
+            Source = GetField(fields, "GOV_Source"),
+
+            // ✅ FLAGS
+            IsPublished = GetBoolField(fields, "REL_IsPublished"),
+            IsArchived = GetBoolField(fields, "ARC_IsArchived"),
+
+            // ✅ EXTENDED
+            MetadataJson = string.IsNullOrWhiteSpace(GetField(fields, "EXT_Metadata"))
+                ? "{}"
+                : GetField(fields, "EXT_Metadata"),
+
+            // ✅ AI
+            AiFeed = GetField(fields, "AI_Feed"),
+
+            // ✅ ACT
+            ACTMetaJson = string.IsNullOrWhiteSpace(GetField(fields, "ACT_Metadata"))
+                ? "{}"
+                : GetField(fields, "ACT_Metadata")
         };
     }
 
-    // =====================================================
-    // DELETE ITEM
-    // =====================================================
-
-    public async Task DeleteItemAsync(
-        string driveId,
-        string itemId)
+    // ================= DELETE =================
+    public async Task<bool> DeleteItemAsync(string driveId, string itemId)
     {
         try
         {
-            EnsureUserHasPermission(
-                "Library.Delete");
-
             await _graphClient
                 .Drives[driveId]
                 .Items[itemId]
                 .DeleteAsync();
 
-            _logger.LogInformation(
-                "Item deleted successfully.");
+            return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Delete failed.");
-
-            throw;
+            _logger.LogError(ex, "Delete failed for DriveId:{driveId} ItemId:{itemId}", driveId, itemId);
+            return false;
         }
     }
 
+    // ================= RECURSIVE FIND =================
+    public async Task<LibraryItem?> GetLibraryItemByIdAsync(string itemId)
+    {
+        var root = await GetLibraryRootAsync();
 
+        foreach (var item in root)
+        {
+            if (item.Id == itemId) return item;
+        }
+
+        return null;
+    }
+
+    // ================= CONTEXT =================
+    public class LibraryRootContext
+    {
+        public string DriveId { get; set; } = "";
+        public string FolderId { get; set; } = "root";
+        public List<LibraryItem> Items { get; set; } = new();
+    }
+
+    public async Task<LibraryRootContext> GetRootContextAsync()
+    {
+        var driveId = await GetLmsDriveIdAsync();
+        var items = await GetLibraryFolderChildrenAsync(driveId, "root");
+
+        return new LibraryRootContext
+        {
+            DriveId = driveId,
+            Items = items
+        };
+    }
+    /// <summary>
+    /// Returns an LMS library item using the configured LMS Drive.
+    /// UI components should use this overload.
+    /// </summary>
+    public async Task<LibraryItem?> GetItemAsync(string itemId)
+    {
+        var driveId = await GetLmsDriveIdAsync();
+
+        return await GetItemAsync(driveId, itemId);
+    }
+
+    /// <summary>
+    /// Staff-only: lists course folders directly under the "Courses" root
+    /// of the LMS library (used by CourseSelector for Tutor/Trainer/Admin,
+    /// who aren't restricted to their own enrollments).
+    /// </summary>
+    public async Task<List<LibraryItem>> GetCourseFoldersAsync()
+    {
+        var root = await GetRootContextAsync();
+
+        var coursesFolder = root.Items.FirstOrDefault(i =>
+            i.IsFolder && string.Equals(
+                string.IsNullOrWhiteSpace(i.Title) ? i.Name : i.Title,
+                "Courses",
+                StringComparison.OrdinalIgnoreCase));
+
+        if (coursesFolder == null)
+            return new();
+
+        var children = await GetLibraryFolderChildrenAsync(root.DriveId, coursesFolder.Id);
+
+        return children.Where(c => c.IsFolder).ToList();
+    }
 }

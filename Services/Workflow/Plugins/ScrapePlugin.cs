@@ -53,7 +53,6 @@ public sealed class ScrapePlugin : WorkflowPluginBase
         {
             Url = url,
             Title = title,
-            Html = html,
             Text = text,
             ScrapedOn = DateTime.UtcNow
         });

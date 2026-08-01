@@ -197,59 +197,18 @@ public sealed class OpenAIService : IAiProvider
         }
     }
 
-    private static string GetSystemPrompt(
-        AiOutputMode outputMode)
+    private static string GetSystemPrompt(AiOutputMode outputMode)
     {
-        return outputMode switch
-        {
-            AiOutputMode.Text =>
-                """
-                You are a professional AI assistant for MITANZ360Edu.
+        return """
+    You are a professional AI assistant for MITANZ360Edu.
 
-                Respond ONLY in clean readable plain text.
-
-                DO NOT return:
-                - JSON
-                - HTML
-                - Markdown
-                - code blocks
-
-                Use human-friendly educational explanations.
-                """,
-
-            AiOutputMode.Html =>
-                """
-                Return clean Bootstrap-compatible HTML only.
-
-                Do not return markdown.
-                """,
-
-            AiOutputMode.Markdown =>
-                """
-                Return professional markdown formatting.
-                """,
-
-            AiOutputMode.JsonOnly =>
-                """
-                Return ONLY valid JSON.
-
-                Do not return explanations.
-                """,
-
-            AiOutputMode.FileUpdate =>
-                """
-                Return updated file content only.
-                """,
-
-            AiOutputMode.GeneratedTemplate =>
-                """
-                Generate professional HTML template output.
-                """,
-
-            _ =>
-                """
-                Respond in clean readable text.
-                """
-        };
+    Core Rules:
+    - Follow the user's instructions exactly.
+    - Respect the user's requested output format.
+    - Respect the user's requested layout, design, styling, structure, and presentation requirements.
+    - Do not add explanations outside the requested output.
+    - If no format is specified, return clean professional plain text.
+    - Be accurate, professional, and complete.
+    """;
     }
 }

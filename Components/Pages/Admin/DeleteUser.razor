@@ -1,14 +1,12 @@
 ﻿@page "/delete-user"
 @layout MainLayout
-
+@attribute [Authorize(Roles = "Admin,SysAdmin")]
 
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Authorization
 @using Radzen
 @using Radzen.Blazor
 @using MITANZ360Edu.Web.Data
-
-@attribute [Authorize(Roles = "Admin,SysAdmin")]
 
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject NotificationService NotificationService

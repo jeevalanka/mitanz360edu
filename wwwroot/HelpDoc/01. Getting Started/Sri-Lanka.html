@@ -1,0 +1,2194 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MITANZ360Edu — AI-Powered Digital Education Operating System for Sri Lanka</title>
+    <meta name="description" content="MITANZ360Edu is the AI-powered Digital Education Operating System built for Sri Lankan universities, PTEs, TVET institutions and corporate training providers. Microsoft-native. AI-first. Enterprise ready.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+             /* ============================================
+        MITANZ360Edu — Enterprise Landing Page
+        Design tokens
+        ============================================ */
+             :root {
+                 --primary: #C2410C;
+                 --primary-dark: #9A3412;
+                 --secondary: #F97316;
+                 --accent: #FB923C;
+                 --success: #22C55E;
+                 --bg: #FFF8F3;
+                 --card: #FFFFFF;
+                 --text: #111827;
+                 --text-muted: #5B6B82;
+                 --text-soft: #8494A8;
+                 --border: #E4EAF2;
+                 --radius-sm: 10px;
+                 --radius-md: 16px;
+                 --radius-lg: 24px;
+                 --shadow-sm: 0 2px 8px rgba(194,65,12,0.06);
+                 --shadow-md: 0 8px 30px rgba(194,65,12,0.10);
+                 --shadow-lg: 0 24px 60px rgba(194,65,12,0.16);
+                 --grad-primary: linear-gradient(135deg,#C2410C 0%, #F97316 55%, #FB923C 100%);
+                 --grad-soft: linear-gradient(135deg, rgba(194,65,12,0.06), rgba(251,146,60,0.06));
+                 --font-display: 'Plus Jakarta Sans', sans-serif;
+                 --font-body: 'Inter', sans-serif;
+                 --font-mono: 'JetBrains Mono', monospace;
+             }
+
+             * {
+                 margin: 0;
+                 padding: 0;
+                 box-sizing: border-box;
+             }
+
+             html {
+                 scroll-behavior: smooth;
+             }
+
+             body {
+                 font-family: var(--font-body);
+                 color: var(--text);
+                 background: var(--bg);
+                 line-height: 1.6;
+                 -webkit-font-smoothing: antialiased;
+                 overflow-x: hidden;
+             }
+
+             img {
+                 max-width: 100%;
+                 display: block;
+             }
+
+             a {
+                 text-decoration: none;
+                 color: inherit;
+             }
+
+             ul {
+                 list-style: none;
+             }
+
+             h1, h2, h3, h4 {
+                 font-family: var(--font-display);
+                 color: var(--text);
+                 line-height: 1.15;
+                 letter-spacing: -0.02em;
+             }
+
+             .container {
+                 max-width: 1240px;
+                 margin: 0 auto;
+                 padding: 0 24px;
+             }
+
+             section {
+                 padding: 110px 0;
+             }
+
+             @media(max-width:768px) {
+                 section {
+                     padding: 70px 0;
+                 }
+             }
+
+             /* Reduced motion */
+             @media (prefers-reduced-motion: reduce) {
+                 * {
+                     animation-duration: 0.001ms !important;
+                     animation-iteration-count: 1 !important;
+                     transition-duration: 0.001ms !important;
+                     scroll-behavior: auto !important;
+                 }
+             }
+
+             /* Focus visibility */
+             a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible {
+                 outline: 3px solid var(--accent);
+                 outline-offset: 2px;
+                 border-radius: 4px;
+             }
+
+             /* Eyebrow / label */
+             .eyebrow {
+                 display: inline-flex;
+                 align-items: center;
+                 gap: 8px;
+                 font-family: var(--font-mono);
+                 font-size: 12.5px;
+                 font-weight: 500;
+                 letter-spacing: 0.08em;
+                 text-transform: uppercase;
+                 color: var(--secondary);
+                 background: rgba(249,115,22,0.08);
+                 border: 1px solid rgba(249,115,22,0.18);
+                 padding: 7px 16px;
+                 border-radius: 100px;
+                 margin-bottom: 20px;
+             }
+
+                 .eyebrow i {
+                     font-size: 11px;
+                 }
+
+             .section-head {
+                 max-width: 680px;
+                 margin: 0 auto 60px;
+                 text-align: center;
+             }
+
+                 .section-head h2 {
+                     font-size: clamp(28px,3.6vw,42px);
+                     margin-bottom: 16px;
+                     font-weight: 800;
+                 }
+
+                 .section-head p {
+                     color: var(--text-muted);
+                     font-size: 17px;
+                 }
+
+                 .section-head.left {
+                     margin: 0 0 56px;
+                     text-align: left;
+                 }
+
+             /* Buttons */
+             .btn {
+                 display: inline-flex;
+                 align-items: center;
+                 justify-content: center;
+                 gap: 10px;
+                 font-family: var(--font-body);
+                 font-weight: 600;
+                 font-size: 15px;
+                 padding: 15px 28px;
+                 border-radius: 12px;
+                 border: none;
+                 cursor: pointer;
+                 transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
+                 white-space: nowrap;
+             }
+
+             .btn-primary {
+                 background: var(--grad-primary);
+                 color: #fff;
+                 box-shadow: 0 10px 30px rgba(194,65,12,0.35);
+             }
+
+                 .btn-primary:hover {
+                     transform: translateY(-3px);
+                     box-shadow: 0 16px 40px rgba(194,65,12,0.45);
+                 }
+
+             .btn-outline {
+                 background: rgba(255,255,255,0.7);
+                 border: 1.5px solid rgba(194,65,12,0.25);
+                 color: var(--primary);
+                 backdrop-filter: blur(10px);
+             }
+
+                 .btn-outline:hover {
+                     background: #fff;
+                     border-color: var(--primary);
+                     transform: translateY(-3px);
+                 }
+
+             .btn-white {
+                 background: #fff;
+                 color: var(--primary);
+                 box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+             }
+
+                 .btn-white:hover {
+                     transform: translateY(-3px);
+                     box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+                 }
+
+             .btn-ghost-light {
+                 background: rgba(255,255,255,0.12);
+                 color: #fff;
+                 border: 1.5px solid rgba(255,255,255,0.4);
+                 backdrop-filter: blur(10px);
+             }
+
+                 .btn-ghost-light:hover {
+                     background: rgba(255,255,255,0.22);
+                     transform: translateY(-3px);
+                 }
+
+             .btn-block {
+                 width: 100%;
+             }
+
+             .btn-sm {
+                 padding: 11px 20px;
+                 font-size: 13.5px;
+                 border-radius: 10px;
+             }
+
+             /* Glass card base */
+             .glass {
+                 background: rgba(255,255,255,0.65);
+                 backdrop-filter: blur(18px) saturate(160%);
+                 -webkit-backdrop-filter: blur(18px) saturate(160%);
+                 border: 1px solid rgba(255,255,255,0.6);
+             }
+
+             .card {
+                 background: var(--card);
+                 border: 1px solid var(--border);
+                 border-radius: var(--radius-md);
+                 box-shadow: var(--shadow-sm);
+                 transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+             }
+
+                 .card:hover {
+                     transform: translateY(-6px);
+                     box-shadow: var(--shadow-md);
+                     border-color: rgba(249,115,22,0.25);
+                 }
+
+             /* Badge */
+             .badge {
+                 display: inline-block;
+                 font-size: 11.5px;
+                 font-weight: 700;
+                 letter-spacing: 0.04em;
+                 text-transform: uppercase;
+                 padding: 6px 14px;
+                 border-radius: 100px;
+             }
+
+             .badge-popular {
+                 background: linear-gradient(135deg,#C2410C,#F97316);
+                 color: #fff;
+             }
+
+             .badge-pro {
+                 background: linear-gradient(135deg,#FB923C,#F97316);
+                 color: #fff;
+             }
+
+             .badge-ent {
+                 background: linear-gradient(135deg,#9A3412,#C2410C);
+                 color: #fff;
+             }
+
+             .badge-soft {
+                 background: rgba(34,197,94,0.12);
+                 color: #15803d;
+             }
+
+             /* ============ NAV ============ */
+             header {
+                 position: fixed;
+                 top: 0;
+                 left: 0;
+                 right: 0;
+                 z-index: 1000;
+                 padding: 16px 0;
+                 transition: padding .3s ease, box-shadow .3s ease, background .3s ease;
+             }
+
+                 header.scrolled {
+                     background: rgba(247,249,252,0.85);
+                     backdrop-filter: blur(16px) saturate(160%);
+                     -webkit-backdrop-filter: blur(16px) saturate(160%);
+                     box-shadow: 0 4px 24px rgba(194,65,12,0.08);
+                     padding: 10px 0;
+                 }
+
+             nav {
+                 display: flex;
+                 align-items: center;
+                 justify-content: space-between;
+             }
+
+             .brand {
+                 display: flex;
+                 align-items: center;
+                 gap: 10px;
+                 font-family: var(--font-display);
+                 font-weight: 800;
+                 font-size: 20px;
+                 color: var(--primary);
+             }
+
+                 .brand .logo-mark {
+                     width: 38px;
+                     height: 38px;
+                     border-radius: 11px;
+                     background: var(--grad-primary);
+                     display: flex;
+                     align-items: center;
+                     justify-content: center;
+                     color: #fff;
+                     font-size: 16px;
+                     box-shadow: 0 6px 16px rgba(194,65,12,0.35);
+                 }
+
+                 .brand span.sub {
+                     color: var(--accent);
+                 }
+
+             .nav-links {
+                 display: flex;
+                 gap: 34px;
+                 align-items: center;
+             }
+
+                 .nav-links a {
+                     font-size: 14.5px;
+                     font-weight: 600;
+                     color: var(--text-muted);
+                     transition: color .2s;
+                 }
+
+                     .nav-links a:hover {
+                         color: var(--primary);
+                     }
+
+             .nav-cta {
+                 display: flex;
+                 gap: 12px;
+                 align-items: center;
+             }
+
+             .nav-toggle {
+                 display: none;
+                 background: none;
+                 border: none;
+                 font-size: 22px;
+                 color: var(--primary);
+                 cursor: pointer;
+             }
+
+             @media(max-width:960px) {
+                 .nav-links {
+                     position: fixed;
+                     top: 70px;
+                     left: 16px;
+                     right: 16px;
+                     background: #fff;
+                     border-radius: 16px;
+                     flex-direction: column;
+                     padding: 20px;
+                     box-shadow: var(--shadow-lg);
+                     gap: 18px;
+                     display: none;
+                     border: 1px solid var(--border);
+                 }
+
+                     .nav-links.open {
+                         display: flex;
+                     }
+
+                 .nav-cta .btn-outline {
+                     display: none;
+                 }
+
+                 .nav-toggle {
+                     display: block;
+                 }
+             }
+
+             /* ============ HERO ============ */
+             .hero {
+                 position: relative;
+                 padding: 180px 0 120px;
+                 background: radial-gradient(ellipse 900px 500px at 15% 0%, rgba(249,115,22,0.14), transparent 60%), radial-gradient(ellipse 800px 600px at 100% 20%, rgba(251,146,60,0.14), transparent 55%), linear-gradient(180deg,#FDECE1 0%, #FFF8F3 55%);
+                 overflow: hidden;
+             }
+
+             .hero-shapes {
+                 position: absolute;
+                 inset: 0;
+                 pointer-events: none;
+                 z-index: 0;
+             }
+
+             .shape {
+                 position: absolute;
+                 border-radius: 50%;
+                 filter: blur(2px);
+                 opacity: 0.5;
+                 animation: float 9s ease-in-out infinite;
+             }
+
+                 .shape.s1 {
+                     width: 120px;
+                     height: 120px;
+                     background: linear-gradient(135deg,var(--secondary),var(--accent));
+                     top: 14%;
+                     left: 6%;
+                     opacity: 0.18;
+                     animation-delay: 0s;
+                 }
+
+                 .shape.s2 {
+                     width: 70px;
+                     height: 70px;
+                     background: var(--accent);
+                     top: 60%;
+                     left: 2%;
+                     opacity: 0.15;
+                     animation-delay: 2s;
+                 }
+
+                 .shape.s3 {
+                     width: 160px;
+                     height: 160px;
+                     background: linear-gradient(135deg,var(--primary),var(--secondary));
+                     top: 8%;
+                     right: 8%;
+                     opacity: 0.14;
+                     animation-delay: 1s;
+                 }
+
+                 .shape.s4 {
+                     width: 90px;
+                     height: 90px;
+                     background: var(--success);
+                     top: 70%;
+                     right: 14%;
+                     opacity: 0.12;
+                     animation-delay: 3s;
+                 }
+
+             @keyframes float {
+                 0%,100% {
+                     transform: translateY(0) translateX(0);
+                 }
+
+                 50% {
+                     transform: translateY(-26px) translateX(14px);
+                 }
+             }
+
+             .hero-grid {
+                 display: grid;
+                 grid-template-columns: 1.05fr 0.95fr;
+                 gap: 60px;
+                 align-items: center;
+                 position: relative;
+                 z-index: 1;
+             }
+
+             @media(max-width:960px) {
+                 .hero-grid {
+                     grid-template-columns: 1fr;
+                 }
+             }
+
+             .hero h1 {
+                 font-size: clamp(34px,4.6vw,58px);
+                 font-weight: 800;
+                 margin-bottom: 22px;
+             }
+
+                 .hero h1 .grad-text {
+                     background: var(--grad-primary);
+                     -webkit-background-clip: text;
+                     background-clip: text;
+                     color: transparent;
+                 }
+
+             .hero p.lead {
+                 font-size: 18.5px;
+                 color: var(--text-muted);
+                 max-width: 560px;
+                 margin-bottom: 34px;
+             }
+
+             .hero-cta {
+                 display: flex;
+                 gap: 14px;
+                 flex-wrap: wrap;
+                 margin-bottom: 44px;
+             }
+
+             .hero-stats {
+                 display: grid;
+                 grid-template-columns: repeat(4,1fr);
+                 gap: 14px;
+             }
+
+             @media(max-width:640px) {
+                 .hero-stats {
+                     grid-template-columns: repeat(2,1fr);
+                 }
+             }
+
+             .stat-chip {
+                 padding: 16px 14px;
+                 border-radius: 14px;
+                 text-align: center;
+             }
+
+                 .stat-chip .num {
+                     font-family: var(--font-display);
+                     font-weight: 800;
+                     font-size: 22px;
+                     color: var(--primary);
+                 }
+
+                 .stat-chip .lbl {
+                     font-size: 12px;
+                     color: var(--text-muted);
+                     font-weight: 600;
+                     margin-top: 2px;
+                 }
+
+             .hero-visual {
+                 position: relative;
+             }
+
+                 .hero-visual img {
+                     border-radius: var(--radius-lg);
+                     box-shadow: var(--shadow-lg);
+                     width: 100%;
+                     aspect-ratio: 4/3.1;
+                     object-fit: cover;
+                 }
+
+             .floating-card {
+                 position: absolute;
+                 padding: 16px 18px;
+                 border-radius: 16px;
+                 box-shadow: var(--shadow-lg);
+                 display: flex;
+                 align-items: center;
+                 gap: 12px;
+                 animation: floatCard 6s ease-in-out infinite;
+             }
+
+             @keyframes floatCard {
+                 0%,100% {
+                     transform: translateY(0);
+                 }
+
+                 50% {
+                     transform: translateY(-12px);
+                 }
+             }
+
+             .floating-card.fc1 {
+                 top: -24px;
+                 left: -30px;
+                 animation-delay: 0.4s;
+             }
+
+             .floating-card.fc2 {
+                 bottom: -22px;
+                 right: -24px;
+                 animation-delay: 1.6s;
+             }
+
+             .floating-card .fc-icon {
+                 width: 42px;
+                 height: 42px;
+                 border-radius: 12px;
+                 display: flex;
+                 align-items: center;
+                 justify-content: center;
+                 background: var(--grad-primary);
+                 color: #fff;
+                 font-size: 17px;
+                 flex-shrink: 0;
+             }
+
+             .floating-card .fc-title {
+                 font-weight: 700;
+                 font-size: 13.5px;
+             }
+
+             .floating-card .fc-sub {
+                 font-size: 11.5px;
+                 color: var(--text-muted);
+             }
+
+             @media(max-width:640px) {
+                 .floating-card {
+                     display: none;
+                 }
+             }
+
+             /* ============ LOGO / TRUST BAR ============ */
+             .trust-bar {
+                 padding: 44px 0;
+                 border-top: 1px solid var(--border);
+                 border-bottom: 1px solid var(--border);
+                 background: #fff;
+             }
+
+                 .trust-bar p {
+                     text-align: center;
+                     font-size: 12.5px;
+                     font-weight: 700;
+                     letter-spacing: 0.1em;
+                     text-transform: uppercase;
+                     color: var(--text-soft);
+                     margin-bottom: 26px;
+                 }
+
+             .logo-row {
+                 display: flex;
+                 justify-content: center;
+                 align-items: center;
+                 gap: 52px;
+                 flex-wrap: wrap;
+                 opacity: 0.55;
+             }
+
+                 .logo-row .lg-item {
+                     font-family: var(--font-display);
+                     font-weight: 700;
+                     font-size: 16px;
+                     color: var(--text-soft);
+                     display: flex;
+                     align-items: center;
+                     gap: 8px;
+                 }
+
+             /* ============ OVERVIEW ============ */
+             .overview-grid {
+                 display: grid;
+                 grid-template-columns: repeat(3,1fr);
+                 gap: 26px;
+             }
+
+             @media(max-width:900px) {
+                 .overview-grid {
+                     grid-template-columns: 1fr;
+                 }
+             }
+
+             .ov-card {
+                 padding: 34px 28px;
+             }
+
+             .ov-icon {
+                 width: 56px;
+                 height: 56px;
+                 border-radius: 14px;
+                 background: var(--grad-soft);
+                 display: flex;
+                 align-items: center;
+                 justify-content: center;
+                 font-size: 22px;
+                 color: var(--primary);
+                 margin-bottom: 20px;
+             }
+
+             .ov-card h3 {
+                 font-size: 19px;
+                 margin-bottom: 10px;
+                 font-weight: 700;
+             }
+
+             .ov-card p {
+                 color: var(--text-muted);
+                 font-size: 14.8px;
+             }
+
+             /* ============ FEATURES ============ */
+             .features-wrap {
+                 background: #fff;
+             }
+
+             .feat-grid {
+                 display: grid;
+                 grid-template-columns: repeat(4,1fr);
+                 gap: 22px;
+             }
+
+             @media(max-width:1080px) {
+                 .feat-grid {
+                     grid-template-columns: repeat(2,1fr);
+                 }
+             }
+
+             @media(max-width:560px) {
+                 .feat-grid {
+                     grid-template-columns: 1fr;
+                 }
+             }
+
+             .feat-card {
+                 padding: 28px 24px;
+                 position: relative;
+                 overflow: hidden;
+             }
+
+                 .feat-card .fi {
+                     width: 50px;
+                     height: 50px;
+                     border-radius: 13px;
+                     background: var(--grad-primary);
+                     color: #fff;
+                     display: flex;
+                     align-items: center;
+                     justify-content: center;
+                     font-size: 19px;
+                     margin-bottom: 18px;
+                     box-shadow: 0 8px 20px rgba(194,65,12,0.25);
+                 }
+
+                 .feat-card h4 {
+                     font-size: 16px;
+                     font-weight: 700;
+                     margin-bottom: 8px;
+                 }
+
+                 .feat-card p {
+                     font-size: 13.6px;
+                     color: var(--text-muted);
+                     margin-bottom: 10px;
+                 }
+
+                 .feat-card .benefit {
+                     font-size: 12.5px;
+                     color: var(--success);
+                     font-weight: 600;
+                     display: flex;
+                     align-items: center;
+                     gap: 6px;
+                 }
+
+             /* ============ WHY SRI LANKA ============ */
+             .sl-section {
+                 background: var(--grad-primary);
+                 color: #fff;
+                 position: relative;
+                 overflow: hidden;
+             }
+
+                 .sl-section::before {
+                     content: "";
+                     position: absolute;
+                     inset: 0;
+                     background: radial-gradient(circle at 80% 20%, rgba(255,255,255,0.12), transparent 55%);
+                 }
+
+             .sl-grid {
+                 display: grid;
+                 grid-template-columns: 1fr 1fr;
+                 gap: 60px;
+                 align-items: center;
+                 position: relative;
+                 z-index: 1;
+             }
+
+             @media(max-width:900px) {
+                 .sl-grid {
+                     grid-template-columns: 1fr;
+                 }
+             }
+
+             .sl-section .section-head {
+                 color: #fff;
+             }
+
+                 .sl-section .section-head p {
+                     color: rgba(255,255,255,0.82);
+                 }
+
+             .sl-img {
+                 border-radius: var(--radius-lg);
+                 box-shadow: 0 30px 70px rgba(0,0,0,0.35);
+                 width: 100%;
+                 aspect-ratio: 4/3.3;
+                 object-fit: cover;
+             }
+
+             .sl-list {
+                 display: grid;
+                 gap: 16px;
+             }
+
+             .sl-item {
+                 display: flex;
+                 gap: 16px;
+                 align-items: flex-start;
+                 background: rgba(255,255,255,0.1);
+                 border: 1px solid rgba(255,255,255,0.18);
+                 padding: 18px 20px;
+                 border-radius: 14px;
+                 backdrop-filter: blur(8px);
+             }
+
+                 .sl-item .si-icon {
+                     width: 38px;
+                     height: 38px;
+                     border-radius: 10px;
+                     background: rgba(255,255,255,0.16);
+                     display: flex;
+                     align-items: center;
+                     justify-content: center;
+                     font-size: 15px;
+                     flex-shrink: 0;
+                 }
+
+                 .sl-item h4 {
+                     font-size: 15px;
+                     margin-bottom: 4px;
+                     font-weight: 700;
+                 }
+
+                 .sl-item p {
+                     font-size: 13.3px;
+                     color: rgba(255,255,255,0.78);
+                 }
+
+             /* ============ WORKFLOW (signature) ============ */
+             .workflow-wrap {
+                 background: #fff;
+             }
+
+             .workflow-rail {
+                 position: relative;
+                 display: flex;
+                 justify-content: space-between;
+                 align-items: flex-start;
+                 gap: 8px;
+                 margin-top: 20px;
+             }
+
+                 .workflow-rail::before {
+                     content: "";
+                     position: absolute;
+                     top: 34px;
+                     left: 34px;
+                     right: 34px;
+                     height: 3px;
+                     background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent), var(--success), var(--secondary), var(--primary));
+                     border-radius: 4px;
+                     background-size: 200% 100%;
+                     animation: railFlow 6s linear infinite;
+                 }
+
+             @keyframes railFlow {
+                 0% {
+                     background-position: 0% 0;
+                 }
+
+                 100% {
+                     background-position: 200% 0;
+                 }
+             }
+
+             .wf-step {
+                 position: relative;
+                 z-index: 1;
+                 flex: 1;
+                 text-align: center;
+                 display: flex;
+                 flex-direction: column;
+                 align-items: center;
+             }
+
+             .wf-node {
+                 width: 68px;
+                 height: 68px;
+                 border-radius: 50%;
+                 background: #fff;
+                 border: 3px solid var(--primary);
+                 display: flex;
+                 align-items: center;
+                 justify-content: center;
+                 font-size: 24px;
+                 color: var(--primary);
+                 box-shadow: var(--shadow-md);
+                 margin-bottom: 16px;
+                 transition: transform .3s ease;
+             }
+
+             .wf-step:hover .wf-node {
+                 transform: scale(1.1);
+                 background: var(--grad-primary);
+                 color: #fff;
+             }
+
+             .wf-step h5 {
+                 font-size: 14.5px;
+                 font-weight: 700;
+                 margin-bottom: 4px;
+             }
+
+             .wf-step p {
+                 font-size: 12px;
+                 color: var(--text-muted);
+                 max-width: 130px;
+             }
+
+             @media(max-width:900px) {
+                 .workflow-rail {
+                     flex-direction: column;
+                     gap: 26px;
+                     align-items: stretch;
+                 }
+
+                     .workflow-rail::before {
+                         display: none;
+                     }
+
+                 .wf-step {
+                     flex-direction: row;
+                     text-align: left;
+                     gap: 16px;
+                 }
+
+                 .wf-node {
+                     margin-bottom: 0;
+                     flex-shrink: 0;
+                 }
+
+                 .wf-step p {
+                     max-width: none;
+                 }
+             }
+
+             /* ============ COMPARISON TABLE ============ */
+             .compare-wrap {
+                 overflow-x: auto;
+                 border-radius: var(--radius-lg);
+                 box-shadow: var(--shadow-md);
+                 border: 1px solid var(--border);
+             }
+
+             table.compare {
+                 width: 100%;
+                 border-collapse: collapse;
+                 background: #fff;
+                 min-width: 720px;
+             }
+
+                 table.compare th, table.compare td {
+                     padding: 16px 18px;
+                     text-align: center;
+                     border-bottom: 1px solid var(--border);
+                     font-size: 13.8px;
+                 }
+
+                 table.compare th {
+                     font-family: var(--font-display);
+                     font-weight: 700;
+                     font-size: 13.5px;
+                     background: #FFF3E9;
+                 }
+
+                     table.compare td:first-child, table.compare th:first-child {
+                         text-align: left;
+                         font-weight: 600;
+                         color: var(--text);
+                     }
+
+                     table.compare th.hero-col {
+                         background: var(--grad-primary);
+                         color: #fff;
+                     }
+
+                 table.compare td.hero-col {
+                     background: rgba(249,115,22,0.05);
+                     font-weight: 700;
+                 }
+
+                 table.compare tr:last-child td {
+                     border-bottom: none;
+                 }
+
+             .tick {
+                 color: var(--success);
+                 font-size: 16px;
+             }
+
+             .cross {
+                 color: #CBD5E1;
+                 font-size: 16px;
+             }
+
+             /* ============ PRICING ============ */
+             .pricing-wrap {
+                 background: #fff;
+             }
+
+             .price-grid {
+                 display: grid;
+                 grid-template-columns: repeat(4,1fr);
+                 gap: 22px;
+                 align-items: stretch;
+             }
+
+             @media(max-width:1080px) {
+                 .price-grid {
+                     grid-template-columns: repeat(2,1fr);
+                 }
+             }
+
+             @media(max-width:640px) {
+                 .price-grid {
+                     grid-template-columns: 1fr;
+                 }
+             }
+
+             .price-card {
+                 padding: 32px 26px;
+                 display: flex;
+                 flex-direction: column;
+                 position: relative;
+             }
+
+                 .price-card.highlight {
+                     border: 2px solid var(--secondary);
+                     box-shadow: 0 20px 50px rgba(249,115,22,0.22);
+                     transform: scale(1.03);
+                 }
+
+             @media(max-width:1080px) {
+                 .price-card.highlight {
+                     transform: none;
+                 }
+             }
+
+             .price-card .p-badge {
+                 position: absolute;
+                 top: -13px;
+                 left: 50%;
+                 transform: translateX(-50%);
+             }
+
+             .price-card h3 {
+                 font-size: 19px;
+                 font-weight: 700;
+                 margin-bottom: 6px;
+             }
+
+             .price-card .p-desc {
+                 font-size: 12.8px;
+                 color: var(--text-muted);
+                 margin-bottom: 20px;
+                 min-height: 32px;
+             }
+
+             .price-card .p-amount {
+                 font-family: var(--font-display);
+                 font-weight: 800;
+                 font-size: 30px;
+                 color: var(--primary);
+                 margin-bottom: 2px;
+             }
+
+                 .price-card .p-amount small {
+                     font-size: 13px;
+                     color: var(--text-muted);
+                     font-weight: 500;
+                 }
+
+             .price-card .p-period {
+                 font-size: 12.5px;
+                 color: var(--text-soft);
+                 margin-bottom: 22px;
+             }
+
+             .price-card ul {
+                 display: grid;
+                 gap: 11px;
+                 margin-bottom: 26px;
+                 flex-grow: 1;
+             }
+
+                 .price-card ul li {
+                     display: flex;
+                     align-items: flex-start;
+                     gap: 9px;
+                     font-size: 13.4px;
+                     color: var(--text);
+                 }
+
+                     .price-card ul li i {
+                         color: var(--success);
+                         margin-top: 3px;
+                         font-size: 12px;
+                     }
+
+             /* ============ BENEFITS ============ */
+             .benefits-wrap {
+                 background: linear-gradient(180deg,#FFF8F3,#FDECE1);
+             }
+
+             .benefits-grid {
+                 display: grid;
+                 grid-template-columns: repeat(4,1fr);
+                 gap: 20px;
+             }
+
+             @media(max-width:900px) {
+                 .benefits-grid {
+                     grid-template-columns: repeat(2,1fr);
+                 }
+             }
+
+             @media(max-width:520px) {
+                 .benefits-grid {
+                     grid-template-columns: 1fr;
+                 }
+             }
+
+             .benefit-card {
+                 padding: 26px 22px;
+                 text-align: center;
+             }
+
+                 .benefit-card .b-num {
+                     font-family: var(--font-display);
+                     font-weight: 800;
+                     font-size: 32px;
+                     background: var(--grad-primary);
+                     -webkit-background-clip: text;
+                     background-clip: text;
+                     color: transparent;
+                     margin-bottom: 6px;
+                 }
+
+                 .benefit-card .b-label {
+                     font-size: 13.5px;
+                     font-weight: 600;
+                     color: var(--text-muted);
+                 }
+
+             .progress-track {
+                 height: 8px;
+                 border-radius: 6px;
+                 background: var(--border);
+                 overflow: hidden;
+                 margin-top: 12px;
+             }
+
+             .progress-fill {
+                 height: 100%;
+                 border-radius: 6px;
+                 background: var(--grad-primary);
+                 width: 0;
+                 transition: width 1.4s ease;
+             }
+
+             /* ============ CUSTOMER TYPES ============ */
+             .cust-grid {
+                 display: grid;
+                 grid-template-columns: repeat(3,1fr);
+                 gap: 22px;
+             }
+
+             @media(max-width:900px) {
+                 .cust-grid {
+                     grid-template-columns: repeat(2,1fr);
+                 }
+             }
+
+             @media(max-width:560px) {
+                 .cust-grid {
+                     grid-template-columns: 1fr;
+                 }
+             }
+
+             .cust-card {
+                 padding: 0;
+                 overflow: hidden;
+             }
+
+                 .cust-card img {
+                     width: 100%;
+                     height: 150px;
+                     object-fit: cover;
+                 }
+
+             .cust-body {
+                 padding: 20px 22px;
+             }
+
+                 .cust-body .ci {
+                     width: 40px;
+                     height: 40px;
+                     border-radius: 10px;
+                     background: var(--grad-soft);
+                     color: var(--primary);
+                     display: flex;
+                     align-items: center;
+                     justify-content: center;
+                     font-size: 16px;
+                     margin-bottom: 12px;
+                 }
+
+                 .cust-body h4 {
+                     font-size: 15.5px;
+                     font-weight: 700;
+                     margin-bottom: 6px;
+                 }
+
+                 .cust-body p {
+                     font-size: 12.8px;
+                     color: var(--text-muted);
+                 }
+
+             /* ============ SECURITY ============ */
+             .security-wrap {
+                 background: #241206;
+                 color: #fff;
+                 position: relative;
+                 overflow: hidden;
+             }
+
+                 .security-wrap::before {
+                     content: "";
+                     position: absolute;
+                     inset: 0;
+                     background: radial-gradient(circle at 10% 90%, rgba(251,146,60,0.14), transparent 55%);
+                 }
+
+                 .security-wrap .section-head {
+                     color: #fff;
+                     position: relative;
+                     z-index: 1;
+                 }
+
+                     .security-wrap .section-head p {
+                         color: rgba(255,255,255,0.65);
+                     }
+
+             .sec-grid {
+                 display: grid;
+                 grid-template-columns: repeat(5,1fr);
+                 gap: 18px;
+                 position: relative;
+                 z-index: 1;
+             }
+
+             @media(max-width:900px) {
+                 .sec-grid {
+                     grid-template-columns: repeat(2,1fr);
+                 }
+             }
+
+             @media(max-width:520px) {
+                 .sec-grid {
+                     grid-template-columns: 1fr;
+                 }
+             }
+
+             .sec-card {
+                 background: rgba(255,255,255,0.05);
+                 border: 1px solid rgba(255,255,255,0.12);
+                 border-radius: 16px;
+                 padding: 24px 18px;
+                 text-align: center;
+                 backdrop-filter: blur(6px);
+                 transition: transform .3s ease, background .3s ease;
+             }
+
+                 .sec-card:hover {
+                     transform: translateY(-6px);
+                     background: rgba(255,255,255,0.09);
+                 }
+
+                 .sec-card i {
+                     font-size: 26px;
+                     color: var(--accent);
+                     margin-bottom: 14px;
+                 }
+
+                 .sec-card h5 {
+                     font-size: 13.8px;
+                     font-weight: 700;
+                     margin-bottom: 6px;
+                 }
+
+                 .sec-card p {
+                     font-size: 12px;
+                     color: rgba(255,255,255,0.6);
+                 }
+
+             /* ============ TESTIMONIALS (placeholder) ============ */
+             .testi-grid {
+                 display: grid;
+                 grid-template-columns: repeat(3,1fr);
+                 gap: 24px;
+             }
+
+             @media(max-width:900px) {
+                 .testi-grid {
+                     grid-template-columns: 1fr;
+                 }
+             }
+
+             .testi-card {
+                 padding: 30px 26px;
+             }
+
+                 .testi-card .stars {
+                     color: #F6B93B;
+                     font-size: 13px;
+                     margin-bottom: 14px;
+                 }
+
+                 .testi-card p.quote {
+                     font-size: 14.5px;
+                     color: var(--text);
+                     margin-bottom: 20px;
+                     font-style: italic;
+                 }
+
+             .testi-person {
+                 display: flex;
+                 align-items: center;
+                 gap: 12px;
+             }
+
+                 .testi-person img {
+                     width: 44px;
+                     height: 44px;
+                     border-radius: 50%;
+                     object-fit: cover;
+                 }
+
+                 .testi-person h6 {
+                     font-size: 13.5px;
+                     font-weight: 700;
+                 }
+
+                 .testi-person span {
+                     font-size: 11.8px;
+                     color: var(--text-muted);
+                 }
+
+             /* Partner logos */
+             .partner-strip {
+                 display: flex;
+                 justify-content: center;
+                 gap: 60px;
+                 flex-wrap: wrap;
+                 align-items: center;
+                 opacity: 0.5;
+                 margin-top: 10px;
+             }
+
+                 .partner-strip .p-item {
+                     font-family: var(--font-display);
+                     font-weight: 700;
+                     font-size: 15px;
+                     color: var(--text-soft);
+                     display: flex;
+                     gap: 8px;
+                     align-items: center;
+                 }
+
+             /* ============ FAQ ============ */
+             .faq-wrap {
+                 background: #fff;
+             }
+
+             .faq-list {
+                 max-width: 820px;
+                 margin: 0 auto;
+                 display: grid;
+                 gap: 14px;
+             }
+
+             .faq-item {
+                 border: 1px solid var(--border);
+                 border-radius: 14px;
+                 overflow: hidden;
+                 background: var(--card);
+             }
+
+                 .faq-item summary {
+                     cursor: pointer;
+                     list-style: none;
+                     padding: 20px 24px;
+                     font-weight: 700;
+                     font-size: 15px;
+                     display: flex;
+                     justify-content: space-between;
+                     align-items: center;
+                     gap: 16px;
+                 }
+
+                     .faq-item summary::-webkit-details-marker {
+                         display: none;
+                     }
+
+                     .faq-item summary::after {
+                         content: "\f078";
+                         font-family: "Font Awesome 6 Free";
+                         font-weight: 900;
+                         font-size: 12px;
+                         color: var(--secondary);
+                         transition: transform .25s ease;
+                         flex-shrink: 0;
+                     }
+
+                 .faq-item[open] summary::after {
+                     transform: rotate(180deg);
+                 }
+
+                 .faq-item .faq-a {
+                     padding: 0 24px 20px;
+                     color: var(--text-muted);
+                     font-size: 14px;
+                 }
+
+             /* ============ CTA ============ */
+             .cta-final {
+                 background: var(--grad-primary);
+                 color: #fff;
+                 text-align: center;
+                 position: relative;
+                 overflow: hidden;
+             }
+
+                 .cta-final::before {
+                     content: "";
+                     position: absolute;
+                     inset: 0;
+                     background: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.18), transparent 60%);
+                 }
+
+                 .cta-final .container {
+                     position: relative;
+                     z-index: 1;
+                 }
+
+                 .cta-final h2 {
+                     font-size: clamp(28px,4vw,44px);
+                     margin-bottom: 16px;
+                 }
+
+                 .cta-final p {
+                     font-size: 17px;
+                     color: rgba(255,255,255,0.85);
+                     max-width: 600px;
+                     margin: 0 auto 36px;
+                 }
+
+             .cta-buttons {
+                 display: flex;
+                 gap: 16px;
+                 justify-content: center;
+                 flex-wrap: wrap;
+                 margin-bottom: 40px;
+             }
+
+             .contact-row {
+                 display: flex;
+                 gap: 36px;
+                 justify-content: center;
+                 flex-wrap: wrap;
+                 font-size: 14.5px;
+                 font-weight: 600;
+             }
+
+                 .contact-row a {
+                     display: flex;
+                     align-items: center;
+                     gap: 8px;
+                 }
+
+                 .contact-row i {
+                     font-size: 16px;
+                 }
+
+             /* ============ FOOTER ============ */
+             footer {
+                 background: #081625;
+                 color: rgba(255,255,255,0.7);
+                 padding: 70px 0 26px;
+             }
+
+             .footer-grid {
+                 display: grid;
+                 grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr;
+                 gap: 36px;
+                 margin-bottom: 50px;
+             }
+
+             @media(max-width:900px) {
+                 .footer-grid {
+                     grid-template-columns: repeat(2,1fr);
+                 }
+             }
+
+             @media(max-width:560px) {
+                 .footer-grid {
+                     grid-template-columns: 1fr;
+                 }
+             }
+
+             .footer-grid h6 {
+                 color: #fff;
+                 font-size: 13.5px;
+                 font-weight: 700;
+                 margin-bottom: 18px;
+                 letter-spacing: 0.03em;
+                 text-transform: uppercase;
+             }
+
+             .footer-grid ul {
+                 display: grid;
+                 gap: 11px;
+             }
+
+                 .footer-grid ul a {
+                     font-size: 13.6px;
+                     color: rgba(255,255,255,0.6);
+                     transition: color .2s;
+                 }
+
+                     .footer-grid ul a:hover {
+                         color: var(--accent);
+                     }
+
+             .footer-brand .brand {
+                 color: #fff;
+                 margin-bottom: 14px;
+             }
+
+             .footer-brand p {
+                 font-size: 13.5px;
+                 color: rgba(255,255,255,0.55);
+                 max-width: 280px;
+                 margin-bottom: 18px;
+             }
+
+             .social-row {
+                 display: flex;
+                 gap: 10px;
+             }
+
+                 .social-row a {
+                     width: 36px;
+                     height: 36px;
+                     border-radius: 9px;
+                     background: rgba(255,255,255,0.08);
+                     display: flex;
+                     align-items: center;
+                     justify-content: center;
+                     font-size: 14px;
+                     color: #fff;
+                     transition: background .2s, transform .2s;
+                 }
+
+                     .social-row a:hover {
+                         background: var(--secondary);
+                         transform: translateY(-3px);
+                     }
+
+             .footer-bottom {
+                 border-top: 1px solid rgba(255,255,255,0.1);
+                 padding-top: 24px;
+                 display: flex;
+                 justify-content: space-between;
+                 flex-wrap: wrap;
+                 gap: 12px;
+                 font-size: 12.5px;
+                 color: rgba(255,255,255,0.45);
+             }
+
+             /* Utility: fade-in-up on scroll */
+             .reveal {
+                 opacity: 0;
+                 transform: translateY(26px);
+                 transition: opacity .7s ease, transform .7s ease;
+             }
+
+                 .reveal.in {
+                     opacity: 1;
+                     transform: translateY(0);
+                 }
+
+             /* Skip link */
+             .skip-link {
+                 position: absolute;
+                 left: -999px;
+                 top: 0;
+                 background: #fff;
+                 color: var(--primary);
+                 padding: 12px 20px;
+                 z-index: 2000;
+                 border-radius: 0 0 10px 0;
+                 font-weight: 700;
+             }
+
+                 .skip-link:focus {
+                     left: 0;
+                 }
+    </style>
+</head>
+<body>
+
+    <a href="#main" class="skip-link">Skip to main content</a>
+
+    <!-- ============ HEADER ============ -->
+    <header id="siteHeader">
+        <div class="container">
+            <nav aria-label="Primary">
+                <a href="#top" class="brand"><span class="logo-mark"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></span>MITANZ<span class="sub">360</span>Edu</a>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="#features">Platform</a></li>
+                    <li><a href="#why-sl">Why Sri Lanka</a></li>
+                    <li><a href="#compare">Compare</a></li>
+                    <li><a href="#pricing">Pricing</a></li>
+                    <li><a href="#security">Security</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                </ul>
+                <div class="nav-cta">
+                    <a href="#contact" class="btn btn-outline btn-sm"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact Sales</a>
+                    <a href="#contact" class="btn btn-primary btn-sm">Book Live Demo</a>
+                    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main">
+        <div id="top"></div>
+
+        <!-- ============ HERO ============ -->
+        <section class="hero">
+            <div class="hero-shapes" aria-hidden="true">
+                <div class="shape s1"></div><div class="shape s2"></div><div class="shape s3"></div><div class="shape s4"></div>
+            </div>
+            <div class="container">
+                <div class="hero-grid">
+                    <div class="hero-copy">
+                        <span class="eyebrow"><i class="fa-solid fa-microchip" aria-hidden="true"></i> AI-Powered Digital Education Operating System</span>
+                        <h1>The AI campus platform built for <span class="grad-text">Sri Lankan education</span>, powered by Microsoft</h1>
+                        <p class="lead">MITANZ360Edu unifies AI teaching, assessment, analytics and Microsoft 365 into one enterprise platform — purpose-built for universities, PTEs, TVET institutes and corporate training providers.</p>
+                        <div class="hero-cta">
+                            <a href="#contact" class="btn btn-primary"><i class="fa-solid fa-calendar-check"></i> Book Live Demo</a>
+                            <a href="#contact" class="btn btn-outline"><i class="fa-solid fa-file-lines"></i> Request Proposal</a>
+                            <a href="#workflow" class="btn btn-outline"><i class="fa-solid fa-circle-play"></i> Watch Platform Demo</a>
+                        </div>
+                        <div class="hero-stats">
+                            <div class="stat-chip glass"><div class="num" data-count="100">0</div><div class="lbl">% AI Native</div></div>
+                            <div class="stat-chip glass"><div class="num">Cloud</div><div class="lbl">Microsoft-Based</div></div>
+                            <div class="stat-chip glass"><div class="num">🇱🇰 LK</div><div class="lbl">Built for Sri Lanka</div></div>
+                            <div class="stat-chip glass"><div class="num">Ent.</div><div class="lbl">Enterprise Ready</div></div>
+                        </div>
+                    </div>
+                    <div class="hero-visual reveal">
+                        <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1200&auto=format&fit=crop" alt="Sri Lankan university students collaborating in a modern digital classroom">
+                        <div class="floating-card glass fc1">
+                            <div class="fc-icon"><i class="fa-solid fa-robot"></i></div>
+                            <div><div class="fc-title">AI Assistant Active</div><div class="fc-sub">Generating assessment...</div></div>
+                        </div>
+                        <div class="floating-card glass fc2">
+                            <div class="fc-icon" style="background:linear-gradient(135deg,#22C55E,#FB923C);"><i class="fa-solid fa-chart-line"></i></div>
+                            <div><div class="fc-title">Engagement +38%</div><div class="fc-sub">Across all campuses</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ TRUST BAR ============ -->
+        <div class="trust-bar">
+            <div class="container">
+                <p>Built on the technologies education leaders already trust</p>
+                <div class="logo-row">
+                    <div class="lg-item"><i class="fa-brands fa-microsoft"></i> Microsoft 365</div>
+                    <div class="lg-item"><i class="fa-solid fa-cloud"></i> Azure OpenAI</div>
+                    <div class="lg-item"><i class="fa-brands fa-windows"></i> SharePoint Online</div>
+                    <div class="lg-item"><i class="fa-solid fa-diagram-project"></i> Power Platform</div>
+                    <div class="lg-item"><i class="fa-solid fa-shield-halved"></i> Microsoft Entra ID</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ PRODUCT OVERVIEW ============ -->
+        <section id="overview">
+            <div class="container">
+                <div class="section-head reveal">
+                    <span class="eyebrow"><i class="fa-solid fa-circle-info"></i> Product Overview</span>
+                    <h2>Not another LMS. An AI-powered Education Operating System.</h2>
+                    <p>MITANZ360Edu combines AI teaching, institutional workflow automation and the Microsoft ecosystem your staff already use — into a single platform your institution actually owns.</p>
+                </div>
+                <div class="overview-grid">
+                    <div class="card ov-card reveal">
+                        <div class="ov-icon"><i class="fa-solid fa-brain"></i></div>
+                        <h3>What is MITANZ360Edu?</h3>
+                        <p>A unified digital campus that combines an AI tutor, course builder, assessment engine, analytics and institutional administration — deployed on Microsoft-native infrastructure your IT team already understands.</p>
+                    </div>
+                    <div class="card ov-card reveal">
+                        <div class="ov-icon"><i class="fa-solid fa-bolt"></i></div>
+                        <h3>Why is it different?</h3>
+                        <p>MITANZ360Edu was designed AI-first, not bolted on. SharePoint, Microsoft Graph, Power Platform and Azure OpenAI are core to the architecture — a genuine gap versus Moodle, Canvas and every generic LMS.</p>
+                    </div>
+                    <div class="card ov-card reveal">
+                        <div class="ov-icon"><i class="fa-solid fa-university"></i></div>
+                        <h3>Why institutions choose it</h3>
+                        <p>Reduced administration, automated assessment generation, real-time student analytics, and Microsoft 365 integration your staff already know — delivered with local Sri Lankan pricing and support.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ FEATURES ============ -->
+        <section id="features" class="features-wrap">
+            <div class="container">
+                <div class="section-head reveal">
+                    <span class="eyebrow"><i class="fa-solid fa-layer-group"></i> Platform Capabilities</span>
+                    <h2>Everything your institution needs, in one platform</h2>
+                    <p>Sixteen enterprise capabilities spanning AI teaching, assessment, analytics, and Microsoft-native workflow automation.</p>
+                </div>
+                <div class="feat-grid">
+                    <div class="card feat-card reveal"><div class="fi"><i class="fa-solid fa-comments"></i></div><h4>AI Learning Assistant</h4><p>A conversational AI tutor that supports students 24/7 with subject help, explanations and study guidance.</p><div class="benefit"><i class="fa-solid fa-arrow-trend-up"></i> Improves engagement</div></div>
+                    <div class="card feat-card reveal"><div class="fi"><i class="fa-solid fa-pen-ruler"></i></div><h4>AI Course Builder</h4><p>Generate structured courses, lesson plans and curriculum-aligned content in minutes, not weeks.</p><div class="benefit"><i class="fa-solid fa-arrow-trend-up"></i> Saves lecturer time</div></div>
+                    <div class="card feat-card reveal"><div class="fi"><i class="fa-solid fa-list-check"></i></div><h4>Assessment Generator</h4><p>Automatically generate quizzes, exams and rubrics aligned to your course outcomes.</p><div class="benefit"><i class="fa-solid fa-arrow-trend-up"></i> Automates marking</div></div>
+                    <div class="card feat-card reveal"><div class="fi"><i class="fa-solid fa-database"></i></div><h4>Question Bank</h4><p>A centralised, searchable repository of reusable, categorised assessment questions.</p><div class="benefit"><i class="fa-solid fa-arrow-trend-up"></i> Centralises learning</div></div>
+                    <div class="card feat-card reveal"><div class="fi"><i class="fa-solid fa-chart-column"></i></div><h4>Student Analytics</h4><p>Track performance, attendance and engagement trends at student, class and campus level.</p><div class="benefit"><i class="fa-solid fa-arrow-trend-up"></i> Data-driven decisions</div></div>
+                    <div class="card feat-card reveal"><div class="fi"><i class="fa-solid fa-chalkboard-user"></i></div><h4>Teacher Dashboard</h4><p>A single view of classes, grading queues, content and AI-assisted teaching tools for staff.</p><div class="benefit"><i class="fa-solid fa-arrow-trend-up"></i> Reduces administration</div></div>
+                    <div class="card feat-card reveal"><div class="fi"><i class="fa-solid fa-user-check"></i></div><h4>Attendance</h4><p>Digital attendance tracking with automated reporting to academic and compliance teams.</p><div class="benefit"><i class="fa-solid fa-arrow-trend-up"></i> Reduces admin load</div></div>
+                    <div class="card feat-card reveal"><div class="fi"><i class="fa-solid fa-magnifying-glass-chart"></i></div><h4>Learning Analytics</h4><p>Predictive insights on cohort performance to identify at-risk students earlier.</p><div class="benefit"><i class="fa-solid fa-arrow-trend-up"></i> Improves outcomes</div></div>
+                    <div class="card feat-card reveal"><div class="fi"><i class="fa-solid fa-plug"></i></div><h4>API Integration</h4><p>Embed MITANZ360Edu's AI directly into your existing LMS, SIS or student portal.</p><div class="benefit"><i class="fa-solid fa-arrow-trend-up"></i> Extends your systems</div></div>
+                    <div class="card feat-card reveal"><div class="fi"><i class="fa-solid fa-gears"></i></div><h4>Workflow Automation</h4><p>Automate approvals, enrolment steps and academic processes across departments.</p><div class="benefit"><i class="fa-solid fa-arrow-trend-up"></i> Digital campus</div></div>
+                    <div class="card feat-card reveal"><div class="fi"><i class="fa-brands fa-windows"></i></div><h4>SharePoint Integration</h4><p>Course content and documents live in SharePoint Online — your institution's own content repository.</p><div class="benefit"><i class="fa-solid fa-arrow-trend-up"></i> Enterprise-grade storage</div></div>
+                    <div class="card feat-card reveal"><div class="fi"><i class="fa-brands fa-microsoft"></i></div><h4>Microsoft 365 Integration</h4><p>Native sign-in, email and collaboration through Microsoft Entra ID and Microsoft 365.</p><div class="benefit"><i class="fa-solid fa-arrow-trend-up"></i> Staff already know it</div></div>
+                    <div class="card feat-card reveal"><div class="fi"><i class="fa-solid fa-certificate"></i></div><h4>Certificate Generator</h4><p>Automatically issue and verify digital certificates on programme completion.</p><div class="benefit"><i class="fa-solid fa-arrow-trend-up"></i> AI-powered teaching</div></div>
+                    <div class="card feat-card reveal"><div class="fi"><i class="fa-solid fa-wand-magic-sparkles"></i></div><h4>AI Content Generation</h4><p>Generate lecture notes, summaries and study materials aligned to your syllabus instantly.</p><div class="benefit"><i class="fa-solid fa-arrow-trend-up"></i> Generates assessments</div></div>
+                    <div class="card feat-card reveal"><div class="fi"><i class="fa-solid fa-file-magnifying-glass"></i></div><h4>Document Analysis</h4><p>AI reads and summarises uploaded documents, papers and student submissions.</p><div class="benefit"><i class="fa-solid fa-arrow-trend-up"></i> Faster review cycles</div></div>
+                    <div class="card feat-card reveal"><div class="fi"><i class="fa-solid fa-file-invoice"></i></div><h4>AI Reports</h4><p>Automated, board-ready reports on academic performance and institutional KPIs.</p><div class="benefit"><i class="fa-solid fa-arrow-trend-up"></i> Board-ready reporting</div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ WHY SRI LANKA ============ -->
+        <section id="why-sl" class="sl-section">
+            <div class="container">
+                <div class="sl-grid">
+                    <div class="reveal">
+                        <img class="sl-img" src="https://images.unsplash.com/photo-1571260899304-425eee4c7efc?q=80&w=1200&auto=format&fit=crop" alt="University campus building in Sri Lanka with students walking outside">
+                    </div>
+                    <div>
+                        <span class="eyebrow" style="background:rgba(255,255,255,0.14);border-color:rgba(255,255,255,0.3);color:#fff;"><i class="fa-solid fa-earth-asia"></i> Built for the Sri Lankan Market</span>
+                        <h2 style="font-size:clamp(26px,3.4vw,36px);margin-bottom:18px;">Designed for how Sri Lankan institutions actually buy and operate</h2>
+                        <div class="sl-list">
+                            <div class="sl-item"><div class="si-icon"><i class="fa-solid fa-sack-dollar"></i></div><div><h4>Affordable, LKR-priced tiers</h4><p>Local annual pricing built around Sri Lankan institutional budgets — not converted global SaaS pricing.</p></div></div>
+                            <div class="sl-item"><div class="si-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div><div><h4>Cloud-based, low setup cost</h4><p>Microsoft-native cloud architecture keeps infrastructure and hosting costs low from day one.</p></div></div>
+                            <div class="sl-item"><div class="si-icon"><i class="fa-solid fa-arrows-spin"></i></div><div><h4>Digital transformation partner</h4><p>Helps institutions move from paper-based and fragmented systems to a unified digital campus.</p></div></div>
+                            <div class="sl-item"><div class="si-icon"><i class="fa-solid fa-building-columns"></i></div><div><h4>Universities, PTEs, TVET & corporate</h4><p>One platform that scales from a 200-student institute to a 5,000-student university group.</p></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ WORKFLOW ============ -->
+        <section id="workflow" class="workflow-wrap">
+            <div class="container">
+                <div class="section-head reveal">
+                    <span class="eyebrow"><i class="fa-solid fa-diagram-project"></i> How It Works</span>
+                    <h2>One continuous flow, from institution to insight</h2>
+                    <p>Every interaction on MITANZ360Edu moves through the same connected pipeline — nothing sits in a disconnected system.</p>
+                </div>
+                <div class="workflow-rail reveal">
+                    <div class="wf-step"><div class="wf-node"><i class="fa-solid fa-building-columns"></i></div><h5>Institution</h5><p>Configures programmes, staff & policies</p></div>
+                    <div class="wf-step"><div class="wf-node"><i class="fa-solid fa-chalkboard-user"></i></div><h5>Teacher</h5><p>Builds courses & assessments</p></div>
+                    <div class="wf-step"><div class="wf-node"><i class="fa-solid fa-robot"></i></div><h5>AI</h5><p>Generates & personalises content</p></div>
+                    <div class="wf-step"><div class="wf-node"><i class="fa-solid fa-user-graduate"></i></div><h5>Student</h5><p>Learns, submits & gets support</p></div>
+                    <div class="wf-step"><div class="wf-node"><i class="fa-solid fa-chart-line"></i></div><h5>Analytics</h5><p>Tracks progress in real time</p></div>
+                    <div class="wf-step"><div class="wf-node"><i class="fa-solid fa-file-invoice"></i></div><h5>Reports</h5><p>Delivers board-ready insight</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ COMPARISON TABLE ============ -->
+        <section id="compare">
+            <div class="container">
+                <div class="section-head reveal">
+                    <span class="eyebrow"><i class="fa-solid fa-scale-balanced"></i> Platform Comparison</span>
+                    <h2>How MITANZ360Edu compares</h2>
+                    <p>An AI-native, Microsoft-integrated Education Operating System versus traditional and generic LMS platforms.</p>
+                </div>
+                <div class="compare-wrap reveal">
+                    <table class="compare">
+                        <thead>
+                            <tr>
+                                <th>Capability</th>
+                                <th class="hero-col">MITANZ360Edu</th>
+                                <th>Moodle</th>
+                                <th>Google Classroom</th>
+                                <th>Canvas</th>
+                                <th>Generic LMS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>AI Native</td><td class="hero-col"><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td></tr>
+                            <tr><td>AI Assessment Generation</td><td class="hero-col"><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td></tr>
+                            <tr><td>Workflow Automation</td><td class="hero-col"><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td></tr>
+                            <tr><td>SharePoint Integration</td><td class="hero-col"><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td></tr>
+                            <tr><td>Microsoft 365 Native</td><td class="hero-col"><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td></tr>
+                            <tr><td>Advanced Analytics</td><td class="hero-col"><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-xmark cross"></i></td></tr>
+                            <tr><td>White Label</td><td class="hero-col"><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td></tr>
+                            <tr><td>Open API</td><td class="hero-col"><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-xmark cross"></i></td></tr>
+                            <tr><td>Institution Management</td><td class="hero-col"><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-check tick"></i></td></tr>
+                            <tr><td>Board-Ready Reports</td><td class="hero-col"><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td></tr>
+                            <tr><td>Enterprise Security</td><td class="hero-col"><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-xmark cross"></i></td></tr>
+                            <tr><td>Local Sri Lanka Support</td><td class="hero-col"><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td><td><i class="fa-solid fa-xmark cross"></i></td></tr>
+                            <tr><td>Cloud Native</td><td class="hero-col"><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-check tick"></i></td></tr>
+                            <tr><td>Responsive / Mobile Ready</td><td class="hero-col"><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-check tick"></i></td><td><i class="fa-solid fa-xmark cross"></i></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ PRICING ============ -->
+        <section id="pricing" class="pricing-wrap">
+            <div class="container">
+                <div class="section-head reveal">
+                    <span class="eyebrow"><i class="fa-solid fa-tags"></i> Pricing</span>
+                    <h2>Institutional pricing, built for Sri Lanka</h2>
+                    <p>Annual licensing in LKR, scaled to your student capacity. Custom Enterprise pricing available for universities and government tenders.</p>
+                </div>
+                <div class="price-grid">
+                    <div class="card price-card reveal">
+                        <h3>Starter Institute</h3>
+                        <p class="p-desc">Small IT institutes, language schools & training centres</p>
+                        <div class="p-amount">LKR 300,000</div>
+                        <div class="p-period">per year</div>
+                        <ul>
+                            <li><i class="fa-solid fa-circle-check"></i> Up to 200 students</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Up to 20 staff</li>
+                            <li><i class="fa-solid fa-circle-check"></i> AI Chat Assistant</li>
+                            <li><i class="fa-solid fa-circle-check"></i> AI Course Builder</li>
+                            <li><i class="fa-solid fa-circle-check"></i> AI Assessment Generator</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Full LMS</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Standard reports</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Email support</li>
+                        </ul>
+                        <a href="#contact" class="btn btn-outline btn-block">Request Proposal</a>
+                    </div>
+                    <div class="card price-card highlight reveal">
+                        <span class="p-badge badge badge-popular">Most Popular</span>
+                        <h3>Professional Institute</h3>
+                        <p class="p-desc">Mid-sized higher education providers & campus networks</p>
+                        <div class="p-amount">LKR 750,000</div>
+                        <div class="p-period">per year</div>
+                        <ul>
+                            <li><i class="fa-solid fa-circle-check"></i> Up to 1,000 students</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Up to 100 staff</li>
+                            <li><i class="fa-solid fa-circle-check"></i> All AI features</li>
+                            <li><i class="fa-solid fa-circle-check"></i> API integration</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Advanced analytics</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Student & teacher portals</li>
+                            <li><i class="fa-solid fa-circle-check"></i> White label (optional)</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Priority support</li>
+                        </ul>
+                        <a href="#contact" class="btn btn-primary btn-block">Book Live Demo</a>
+                    </div>
+                    <div class="card price-card reveal">
+                        <span class="p-badge badge badge-pro">Professional</span>
+                        <h3>University</h3>
+                        <p class="p-desc">Private universities, university groups & multi-campus institutions</p>
+                        <div class="p-amount">LKR 2,000,000</div>
+                        <div class="p-period">per year</div>
+                        <ul>
+                            <li><i class="fa-solid fa-circle-check"></i> Up to 5,000 students</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Unlimited staff</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Multi-campus support</li>
+                            <li><i class="fa-solid fa-circle-check"></i> SSO (Microsoft Entra ID)</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Full API access</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Dedicated database</li>
+                            <li><i class="fa-solid fa-circle-check"></i> White label included</li>
+                            <li><i class="fa-solid fa-circle-check"></i> SLA-backed support</li>
+                        </ul>
+                        <a href="#contact" class="btn btn-outline btn-block">Request Proposal</a>
+                    </div>
+                    <div class="card price-card reveal">
+                        <span class="p-badge badge badge-ent">Enterprise</span>
+                        <h3>Enterprise / Government</h3>
+                        <p class="p-desc">Government universities, procurement tenders & large multi-tenant deployments</p>
+                        <div class="p-amount">Custom</div>
+                        <div class="p-period">proposal-based pricing</div>
+                        <ul>
+                            <li><i class="fa-solid fa-circle-check"></i> Unlimited users</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Multi-tenancy</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Dedicated environment</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Unlimited contracted API</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Custom AI models</li>
+                            <li><i class="fa-solid fa-circle-check"></i> 24×7 premium support</li>
+                        </ul>
+                        <a href="#contact" class="btn btn-outline btn-block">Contact Sales</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ BENEFITS ============ -->
+        <section class="benefits-wrap">
+            <div class="container">
+                <div class="section-head reveal">
+                    <span class="eyebrow"><i class="fa-solid fa-trophy"></i> Measurable Outcomes</span>
+                    <h2>Results institutions can measure, not just promises</h2>
+                </div>
+                <div class="benefits-grid">
+                    <div class="card benefit-card reveal"><div class="b-num" data-count="40">0%</div><div class="b-label">Less administrative workload</div><div class="progress-track"><div class="progress-fill" data-width="80%"></div></div></div>
+                    <div class="card benefit-card reveal"><div class="b-num" data-count="60">0%</div><div class="b-label">Faster assessment creation</div><div class="progress-track"><div class="progress-fill" data-width="90%"></div></div></div>
+                    <div class="card benefit-card reveal"><div class="b-num" data-count="35">0%</div><div class="b-label">Higher student engagement</div><div class="progress-track"><div class="progress-fill" data-width="70%"></div></div></div>
+                    <div class="card benefit-card reveal"><div class="b-num" data-count="24">0/7</div><div class="b-label">AI teaching support availability</div><div class="progress-track"><div class="progress-fill" data-width="100%"></div></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ CUSTOMER TYPES ============ -->
+        <section id="customers">
+            <div class="container">
+                <div class="section-head reveal">
+                    <span class="eyebrow"><i class="fa-solid fa-people-group"></i> Who We Serve</span>
+                    <h2>Built for every type of education & training provider</h2>
+                </div>
+                <div class="cust-grid">
+                    <div class="card cust-card reveal">
+                        <img src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=800&auto=format&fit=crop" alt="Private higher education institute lecture hall">
+                        <div class="cust-body"><div class="ci"><i class="fa-solid fa-school"></i></div><h4>Private Institute</h4><p>Purpose-built for private higher education providers and PTEs scaling their programmes.</p></div>
+                    </div>
+                    <div class="card cust-card reveal">
+                        <img src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800&auto=format&fit=crop" alt="University campus with students">
+                        <div class="cust-body"><div class="ci"><i class="fa-solid fa-graduation-cap"></i></div><h4>University</h4><p>Multi-campus, multi-faculty deployments with SSO, SLA and dedicated infrastructure.</p></div>
+                    </div>
+                    <div class="card cust-card reveal">
+                        <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop" alt="Corporate training session in a boardroom">
+                        <div class="cust-body"><div class="ci"><i class="fa-solid fa-briefcase"></i></div><h4>Corporate</h4><p>Internal upskilling, certification tracking and AI-assisted training content for teams.</p></div>
+                    </div>
+                    <div class="card cust-card reveal">
+                        <img src="https://images.unsplash.com/photo-1541872703-74c5e44368f9?q=80&w=800&auto=format&fit=crop" alt="Government building representing public sector education">
+                        <div class="cust-body"><div class="ci"><i class="fa-solid fa-landmark"></i></div><h4>Government</h4><p>Multi-tenant, procurement-ready deployments for government universities and ministries.</p></div>
+                    </div>
+                    <div class="card cust-card reveal">
+                        <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=800&auto=format&fit=crop" alt="Professional training institute classroom">
+                        <div class="cust-body"><div class="ci"><i class="fa-solid fa-user-tie"></i></div><h4>Professional Training</h4><p>Certification-focused institutes needing fast course builds and automated assessment.</p></div>
+                    </div>
+                    <div class="card cust-card reveal">
+                        <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800&auto=format&fit=crop" alt="TVET vocational training computer lab">
+                        <div class="cust-body"><div class="ci"><i class="fa-solid fa-toolbox"></i></div><h4>TVET Institutions</h4><p>Vocational and technical training providers needing hands-on digital delivery tools.</p></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ SECURITY ============ -->
+        <section id="security" class="security-wrap">
+            <div class="container">
+                <div class="section-head reveal">
+                    <span class="eyebrow" style="background:rgba(251,146,60,0.15);border-color:rgba(251,146,60,0.3);color:var(--accent);"><i class="fa-solid fa-shield-halved"></i> Enterprise Security</span>
+                    <h2>Secure by architecture, not as an afterthought</h2>
+                    <p>MITANZ360Edu is built on Microsoft's security stack — the same standards your IT and compliance teams already trust.</p>
+                </div>
+                <div class="sec-grid">
+                    <div class="sec-card reveal"><i class="fa-solid fa-cloud"></i><h5>Cloud Security</h5><p>Hosted on Microsoft-grade cloud infrastructure with encrypted data at rest and in transit.</p></div>
+                    <div class="sec-card reveal"><i class="fa-solid fa-user-lock"></i><h5>Role-Based Access</h5><p>Granular RBAC ensures staff and students only see what's relevant to their role.</p></div>
+                    <div class="sec-card reveal"><i class="fa-brands fa-microsoft"></i><h5>Microsoft Integration</h5><p>Authentication via Microsoft Entra ID with MFA and single sign-on support.</p></div>
+                    <div class="sec-card reveal"><i class="fa-solid fa-building-shield"></i><h5>Enterprise Ready</h5><p>Multi-tenant architecture, audit logging and SLA-backed uptime for large institutions.</p></div>
+                    <div class="sec-card reveal"><i class="fa-solid fa-lock"></i><h5>Secure Data</h5><p>Encrypted secrets, HTTPS everywhere, and regular automated backups by default.</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ TESTIMONIALS (placeholder) ============ -->
+        <section id="testimonials">
+            <div class="container">
+                <div class="section-head reveal">
+                    <span class="eyebrow"><i class="fa-solid fa-quote-left"></i> What Leaders Say</span>
+                    <h2>Trusted by forward-thinking education leaders</h2>
+                </div>
+                <div class="testi-grid">
+                    <div class="card testi-card reveal">
+                        <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                        <p class="quote">"Placeholder testimonial — replace with a direct quote from a pilot institution once available."</p>
+                        <div class="testi-person"><img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=200&auto=format&fit=crop" alt="Portrait placeholder for academic director"><div><h6>Academic Director</h6><span>Private Higher Education Institute</span></div></div>
+                    </div>
+                    <div class="card testi-card reveal">
+                        <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                        <p class="quote">"Placeholder testimonial — replace with a direct quote from a pilot institution once available."</p>
+                        <div class="testi-person"><img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=200&auto=format&fit=crop" alt="Portrait placeholder for CIO"><div><h6>Chief Information Officer</h6><span>Private University</span></div></div>
+                    </div>
+                    <div class="card testi-card reveal">
+                        <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                        <p class="quote">"Placeholder testimonial — replace with a direct quote from a pilot institution once available."</p>
+                        <div class="testi-person"><img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=200&auto=format&fit=crop" alt="Portrait placeholder for training manager"><div><h6>Training Manager</h6><span>Professional Training Institute</span></div></div>
+                    </div>
+                </div>
+                <p style="text-align:center;font-size:12.5px;color:var(--text-soft);margin-top:24px;">Testimonials shown are illustrative placeholders pending live customer case studies.</p>
+
+                <div class="partner-strip reveal" style="margin-top:56px;">
+                    <div class="p-item"><i class="fa-brands fa-microsoft"></i> Microsoft Partner</div>
+                    <div class="p-item"><i class="fa-solid fa-building-columns"></i> MIT ANZ Group</div>
+                    <div class="p-item"><i class="fa-solid fa-globe"></i> Sri Lanka · NZ · Australia</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ FAQ ============ -->
+        <section id="faq" class="faq-wrap">
+            <div class="container">
+                <div class="section-head reveal">
+                    <span class="eyebrow"><i class="fa-solid fa-circle-question"></i> FAQ</span>
+                    <h2>Frequently asked questions</h2>
+                    <p>Everything decision-makers ask before rolling out MITANZ360Edu.</p>
+                </div>
+                <div class="faq-list reveal">
+                    <details class="faq-item"><summary>What exactly is MITANZ360Edu?</summary><div class="faq-a">MITANZ360Edu is an AI-powered Digital Education Operating System that combines AI teaching, assessment, analytics and institutional workflow automation on Microsoft-native infrastructure.</div></details>
+                    <details class="faq-item"><summary>How is this different from a traditional LMS like Moodle or Canvas?</summary><div class="faq-a">Traditional LMS platforms manage courses and content. MITANZ360Edu is AI-first from the ground up, with native SharePoint, Microsoft Graph, Power Platform and Azure OpenAI integration — capabilities generic LMS platforms don't offer.</div></details>
+                    <details class="faq-item"><summary>Do we need Microsoft 365 to use MITANZ360Edu?</summary><div class="faq-a">MITANZ360Edu is optimised for institutions already using or planning to adopt Microsoft 365. Both Microsoft 365 A1 (education) and Business/Individual licensing are supported.</div></details>
+                    <details class="faq-item"><summary>How is pricing structured?</summary><div class="faq-a">Pricing is annual, institution-wide, and scales with student capacity — from 200 students (Starter Institute) up to 5,000+ students (University), with custom Enterprise pricing for larger or government deployments.</div></details>
+                    <details class="faq-item"><summary>Can we start with a small pilot?</summary><div class="faq-a">Yes. The Starter Institute tier is designed for smaller institutes and pilots, supporting up to 200 students and 20 staff with core AI, LMS and reporting features.</div></details>
+                    <details class="faq-item"><summary>What's included in the Professional Institute tier?</summary><div class="faq-a">All AI features, API integration, advanced analytics, student and teacher portals, and an optional white-label option — designed for mid-sized providers up to 1,000 students.</div></details>
+                    <details class="faq-item"><summary>Is white labelling available?</summary><div class="faq-a">Yes. White label branding is optional on the Professional Institute tier and included as standard on the University and Enterprise tiers.</div></details>
+                    <details class="faq-item"><summary>How does the API integration mode work?</summary><div class="faq-a">Partner institutes can embed MITANZ360Edu's AI directly into their own LMS, SIS or student portal via API — rather than replacing their existing systems outright.</div></details>
+                    <details class="faq-item"><summary>What support is available?</summary><div class="faq-a">Email support is included from the Starter tier, with priority support on Professional, SLA-backed support on University, and 24×7 premium support on Enterprise.</div></details>
+                    <details class="faq-item"><summary>Is our data secure?</summary><div class="faq-a">Yes. The platform uses Microsoft Entra ID authentication, MFA, encrypted connections, role-based access control and audit logging by default.</div></details>
+                    <details class="faq-item"><summary>Can MITANZ360Edu handle multi-campus institutions?</summary><div class="faq-a">Yes. The University tier includes native multi-campus support, single sign-on, and a dedicated database for larger, more complex institutions.</div></details>
+                    <details class="faq-item"><summary>What implementation and migration support is offered?</summary><div class="faq-a">One-time professional services cover implementation, data migration, staff training and custom development, so onboarding risk is minimised.</div></details>
+                    <details class="faq-item"><summary>Can we integrate our existing Student Information System?</summary><div class="faq-a">Yes, Student Information System integration is available as an add-on, alongside Microsoft 365/SharePoint integration and API expansion packs.</div></details>
+                    <details class="faq-item"><summary>Does MITANZ360Edu support TVET and vocational training?</summary><div class="faq-a">Yes. The platform is designed to serve private institutes, universities, TVET institutions, professional training providers, corporate and government training programmes alike.</div></details>
+                    <details class="faq-item"><summary>How do we get started?</summary><div class="faq-a">Book a live demo or request a proposal below. Our team will walk through your institution's requirements and recommend the right tier and rollout plan.</div></details>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ FINAL CTA ============ -->
+        <section id="contact" class="cta-final">
+            <div class="container">
+                <span class="eyebrow" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.35);color:#fff;"><i class="fa-solid fa-rocket"></i> Ready When You Are</span>
+                <h2>Bring AI to your institution — the Microsoft-native way</h2>
+                <p>Book a live walkthrough, request a tailored proposal, or speak with our team directly. We'll help you find the right tier for your institution.</p>
+                <div class="cta-buttons">
+                    <a href="#" class="btn btn-white"><i class="fa-solid fa-calendar-check"></i> Book Live Demo</a>
+                    <a href="#" class="btn btn-ghost-light"><i class="fa-solid fa-file-lines"></i> Request Proposal</a>
+                    <a href="#" class="btn btn-ghost-light"><i class="fa-solid fa-headset"></i> Contact Sales</a>
+                </div>
+                <div class="contact-row">
+                    <a href="https://wa.me/94000000000"><i class="fa-brands fa-whatsapp"></i> +94 00 000 0000</a>
+                    <a href="mailto:sales@mitanz360edu.com"><i class="fa-solid fa-envelope"></i> sales@mitanz360edu.com</a>
+                    <a href="tel:+94000000000"><i class="fa-solid fa-phone"></i> +94 00 000 0000</a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ============ FOOTER ============ -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="#top" class="brand"><span class="logo-mark"><i class="fa-solid fa-graduation-cap"></i></span>MITANZ<span class="sub" style="color:var(--accent);">360</span>Edu</a>
+                    <p>The AI-powered Digital Education Operating System for Sri Lankan universities, PTEs, TVET institutions and corporate training providers.</p>
+                    <div class="social-row">
+                        <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                        <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                        <a href="#" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h6>Company</h6>
+                    <ul><li><a href="#overview">About</a></li><li><a href="#why-sl">Why Sri Lanka</a></li><li><a href="#customers">Customers</a></li><li><a href="#contact">Contact</a></li></ul>
+                </div>
+                <div>
+                    <h6>Products</h6>
+                    <ul><li><a href="#features">AI Learning Assistant</a></li><li><a href="#features">AI Course Builder</a></li><li><a href="#features">Assessment Engine</a></li><li><a href="#features">Analytics Suite</a></li></ul>
+                </div>
+                <div>
+                    <h6>Solutions</h6>
+                    <ul><li><a href="#customers">Universities</a></li><li><a href="#customers">Private Institutes</a></li><li><a href="#customers">TVET</a></li><li><a href="#customers">Corporate Training</a></li></ul>
+                </div>
+                <div>
+                    <h6>Support</h6>
+                    <ul><li><a href="#faq">FAQ</a></li><li><a href="#security">Security</a></li><li><a href="#pricing">Pricing</a></li><li><a href="#contact">Book a Demo</a></li></ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>© 2026 MITANZ360Edu, a MIT ANZ Group product. All rights reserved.</span>
+                <span>Sri Lanka · New Zealand · Australia</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+// Sticky header on scroll
+const header = document.getElementById('siteHeader');
+window.addEventListener('scroll', () => {
+  header.classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// Mobile nav toggle
+const navToggle = document.getElementById('navToggle');
+const navLinks = document.getElementById('navLinks');
+navToggle.addEventListener('click', () => {
+  const isOpen = navLinks.classList.toggle('open');
+  navToggle.setAttribute('aria-expanded', isOpen);
+});
+navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+  navLinks.classList.remove('open');
+  navToggle.setAttribute('aria-expanded', 'false');
+}));
+
+// Scroll reveal
+const revealEls = document.querySelectorAll('.reveal');
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('in');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12 });
+revealEls.forEach(el => revealObserver.observe(el));
+
+// Animated counters (hero stat + benefit numbers)
+function animateCount(el, target, suffix){
+  let start = 0;
+  const duration = 1200;
+  const startTime = performance.now();
+  function tick(now){
+    const progress = Math.min((now - startTime) / duration, 1);
+    const value = Math.floor(progress * target);
+    el.textContent = value + suffix;
+    if (progress < 1) requestAnimationFrame(tick);
+    else el.textContent = target + suffix;
+  }
+  requestAnimationFrame(tick);
+}
+const countEls = document.querySelectorAll('[data-count]');
+const countObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      const target = parseInt(el.getAttribute('data-count'), 10);
+      const originalText = el.textContent;
+      const suffix = originalText.replace(/^[0-9]+/, '');
+      animateCount(el, target, suffix);
+      countObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.5 });
+countEls.forEach(el => countObserver.observe(el));
+
+// Progress bar fill
+const progressEls = document.querySelectorAll('.progress-fill');
+const progressObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.width = entry.target.getAttribute('data-width');
+      progressObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.4 });
+progressEls.forEach(el => progressObserver.observe(el));
+    </script>
+</body>
+</html>

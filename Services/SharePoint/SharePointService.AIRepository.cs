@@ -6,9 +6,6 @@ using System.Threading;
 
 namespace MITANZ360Edu.Web.Services
 {
-    // =====================================================
-    // ✅ MODEL
-    // =====================================================
     public class AIRepositoryItem
     {
         public int Id { get; set; }
@@ -24,7 +21,7 @@ namespace MITANZ360Edu.Web.Services
     public partial class SharePointService
     {
         // =====================================================
-        // ✅ SIMPLE GET (FOR UI DROPDOWN)
+        // ✅ SIMPLE GET
         // =====================================================
         public async Task<List<AIRepositoryItem>> GetAIRepositoryItemsAsync(string? orderBy)
         {
@@ -32,7 +29,7 @@ namespace MITANZ360Edu.Web.Services
         }
 
         // =====================================================
-        // ✅ MAIN GET (THIS ONE FIXES EMPTY DROPDOWN)
+        // ✅ MAIN GET (FIXED)
         // =====================================================
         public async Task<List<AIRepositoryItem>> GetAIRepositoryItemsAsync(
             string? filter,
@@ -48,19 +45,25 @@ namespace MITANZ360Edu.Web.Services
 
             var topInt = top.HasValue ? (int)top.Value : 50;
 
-            // ✅ CRITICAL FIX → LOAD FIELDS FROM SHAREPOINT
             var response = await _graphClient
-                .Sites[SiteId]
+                .Sites[SiteId]   // ✅ FIXED (CRITICAL)
                 .Lists[listId]
                 .Items
-                .GetAsync(requestConfiguration =>
+                .GetAsync(request =>
                 {
-                    requestConfiguration.QueryParameters.Top = topInt;
+                    request.QueryParameters.Top = topInt;
 
-                    // 🔥 THIS FIX MAKES FIELDS AVAILABLE
-                    requestConfiguration.QueryParameters.Expand =
-                        new[] { "fields" };
-                });
+                    // ✅ CRITICAL FIX → Select + Expand together
+                    request.QueryParameters.Select = new[] { "id", "fields" };
+                    request.QueryParameters.Expand = new[] { "fields" };
+
+                    if (!string.IsNullOrWhiteSpace(filter))
+                        request.QueryParameters.Filter = filter;
+
+                    if (!string.IsNullOrWhiteSpace(orderBy))
+                        request.QueryParameters.Orderby = new[] { orderBy };
+
+                }, cancellationToken: cancellationToken);
 
             var items = new List<AIRepositoryItem>();
 
@@ -68,25 +71,19 @@ namespace MITANZ360Edu.Web.Services
             {
                 var fields = item.Fields?.AdditionalData;
 
-                // ✅ DEBUG LOG (you already saw NULL before — now will be populated)
-                _logger.LogInformation("FIELDS RAW: {Fields}",
+                _logger.LogDebug("AIRepo Fields: {Fields}",
                     fields == null ? "NULL" : JsonSerializer.Serialize(fields));
 
                 items.Add(new AIRepositoryItem
                 {
                     Id = int.TryParse(item.Id, out var id) ? id : 0,
-
                     Title = GetField(fields, "Title"),
                     Metadata = GetField(fields, "Metadata"),
                     Summary = GetField(fields, "Summary"),
-
-                    // ⚠ IF EMPTY → CHECK INTERNAL NAME IN SHAREPOINT
                     HtmlReport = GetField(fields, "HtmlReport"),
-
                     Status = GetField(fields, "Status"),
                     Tags = GetField(fields, "Tags"),
-
-                    Score = decimal.TryParse(GetField(fields, "Score"), out var s) ? s : 0,
+                    Score = decimal.TryParse(GetField(fields, "Score"), out var s) ? s : 0
                 });
             }
 
@@ -108,11 +105,11 @@ namespace MITANZ360Edu.Web.Services
                 { "HtmlReport", item.HtmlReport },
                 { "Status", item.Status },
                 { "Tags", item.Tags },
-                { "Score", item.Score },
+                { "Score", item.Score }
             };
 
             await _graphClient
-                .Sites[SiteId]
+                .Sites[SiteId]   // ✅ FIXED
                 .Lists[listId]
                 .Items
                 .PostAsync(new ListItem
@@ -146,11 +143,11 @@ namespace MITANZ360Edu.Web.Services
                 { "HtmlReport", item.HtmlReport },
                 { "Status", item.Status },
                 { "Tags", item.Tags },
-                { "Score", item.Score },
+                { "Score", item.Score }
             };
 
             await _graphClient
-                .Sites[SiteId]
+                .Sites[SiteId]   // ✅ FIXED
                 .Lists[listId]
                 .Items[item.Id.ToString()]
                 .Fields
@@ -160,8 +157,7 @@ namespace MITANZ360Edu.Web.Services
                         AdditionalData = fields
                     },
                     null,
-                    cancellationToken
-                );
+                    cancellationToken);
         }
 
         // =====================================================
@@ -172,14 +168,14 @@ namespace MITANZ360Edu.Web.Services
             var listId = _configuration["SharePoint:Lists:AIRepository"];
 
             await _graphClient
-                .Sites[SiteId]
+                .Sites[SiteId]   // ✅ FIXED
                 .Lists[listId]
                 .Items[itemId.ToString()]
                 .DeleteAsync();
         }
 
         // =====================================================
-        // ✅ AI UPDATE (NEW - DTO BASED + PROMPT TO TAGS)
+        // ✅ AI UPDATE
         // =====================================================
         public async Task UpdateAIFieldsAsync(
             int itemId,
@@ -189,21 +185,16 @@ namespace MITANZ360Edu.Web.Services
         {
             var listId = _configuration["SharePoint:Lists:AIRepository"];
 
-            if (string.IsNullOrWhiteSpace(listId))
-                throw new InvalidOperationException("AIRepository ListId missing.");
-
             var fields = new Dictionary<string, object>
             {
                 { "Summary", aiResult.Summary ?? "" },
                 { "HtmlReport", aiResult.Html ?? "" },
-
-                // ✅ Save selected prompt
                 { "Tags", promptName ?? "" },
                 { "Score", aiResult.Score }
             };
 
             await _graphClient
-                .Sites[SiteId]
+                .Sites[SiteId]   // ✅ FIXED
                 .Lists[listId]
                 .Items[itemId.ToString()]
                 .Fields
@@ -213,11 +204,11 @@ namespace MITANZ360Edu.Web.Services
                         AdditionalData = fields
                     },
                     null,
-                    cancellationToken
-                );
+                    cancellationToken);
         }
+
         // =====================================================
-        // ✅ CHECK - Course Exists
+        // ✅ COURSE EXISTS
         // =====================================================
         public async Task<bool> CourseExistsAsync(string courseName, string courseCode)
         {
@@ -234,22 +225,24 @@ namespace MITANZ360Edu.Web.Services
                 var listId = _configuration["SharePoint:Lists:AIRepository"];
 
                 var result = await _graphClient
-                    .Sites[SiteId]
+                    .Sites[SiteId]   // ✅ FIXED
                     .Lists[listId]
                     .Items
-                    .GetAsync(config =>
+                    .GetAsync(cfg =>
                     {
-                        config.QueryParameters.Filter = filter;
-                        config.QueryParameters.Top = 1;
-                        config.QueryParameters.Expand = new[] { "fields" };
+                        cfg.QueryParameters.Filter = filter;
+                        cfg.QueryParameters.Top = 1;
+
+                        // ✅ FIX (important)
+                        cfg.QueryParameters.Select = new[] { "id", "fields" };
+                        cfg.QueryParameters.Expand = new[] { "fields" };
                     });
 
                 return result?.Value?.Any() == true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine("❌ CourseExists check failed:");
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex, "CourseExists error");
                 return false;
             }
         }

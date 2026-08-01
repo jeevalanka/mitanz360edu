@@ -69,13 +69,6 @@
                             @App.Name — Enterprise AI Education Platform
                         </p>
 
-                        @if (!string.IsNullOrWhiteSpace(successMessage))
-                        {
-                            <div class="alert alert-success py-2 px-3 rounded-3 mb-3">
-                                @successMessage
-                            </div>
-                        }
-
                         @if (!string.IsNullOrWhiteSpace(errorMessage))
                         {
                             <div class="alert alert-danger py-2 px-3 rounded-3 mb-3">
@@ -83,59 +76,77 @@
                             </div>
                         }
 
-                        <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
-                            <DataAnnotationsValidator />
-                            <ValidationSummary />
-
-                            <div class="mb-3">
-                                <label class="form-label">Full Name</label>
-                                <InputText class="form-control"
-                                           @bind-Value="model.FullName" />
+                        @if (submitted)
+                        {
+                            <div class="text-center py-5">
+                                <div class="mb-3" style="font-size:3rem; line-height:1;">✅</div>
+                                <h4 class="fw-bold mb-2">Message Sent</h4>
+                                <p class="mb-2" style="color:#e5e7eb;">@successMessage</p>
+                                @if (!string.IsNullOrWhiteSpace(referenceNumber))
+                                {
+                                    <p class="mb-4">
+                                        <span class="badge bg-secondary px-3 py-2 rounded-3" style="font-size:.9rem;">
+                                            Ref: @referenceNumber
+                                        </span>
+                                    </p>
+                                }
+                                <button class="btn btn-outline-light rounded-3 px-4" @onclick="ResetForm">
+                                    Send Another Message
+                                </button>
                             </div>
+                        }
+                        else
+                        {
+                            <EditForm Model="@model" OnValidSubmit="@SubmitAsync">
+                                <DataAnnotationsValidator />
+                                <ValidationSummary />
 
-                            <div class="mb-3">
-                                <label class="form-label">Email Address</label>
-                                <InputText class="form-control"
-                                           @bind-Value="model.Email" />
-                            </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Full Name</label>
+                                    <InputText class="form-control"
+                                               @bind-Value="model.FullName" />
+                                </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Problem Category</label>
-                                <InputSelect class="form-select"
-                                             @bind-Value="model.Category">
-                                    @foreach (var c in Categories)
-                                    {
-                                        <option value="@c">@c</option>
-                                    }
-                                </InputSelect>
-                            </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email Address</label>
+                                    <InputText class="form-control"
+                                               @bind-Value="model.Email" />
+                                </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Subject</label>
-                                <InputText class="form-control"
-                                           @bind-Value="model.Subject" />
-                            </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Problem Category</label>
+                                    <InputSelect class="form-select"
+                                                 @bind-Value="model.Category">
+                                        @foreach (var c in Categories)
+                                        {
+                                            <option value="@c">@c</option>
+                                        }
+                                    </InputSelect>
+                                </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Message</label>
-                                <InputTextArea class="form-control"
-                                               rows="4"
-                                               @bind-Value="model.Message" />
-                            </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Subject</label>
+                                    <InputText class="form-control"
+                                               @bind-Value="model.Subject" />
+                                </div>
 
-                            <div class="mb-3 form-check">
-                                <InputCheckbox class="form-check-input"
-                                               @bind-Value="model.SendCopyToUser" />
-                                <label class="form-check-label">
-                                    Send me a copy
-                                </label>
-                            </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Message</label>
+                                    <InputTextArea class="form-control"
+                                                   rows="4"
+                                                   @bind-Value="model.Message" />
+                                </div>
 
-                            <button class="btn btn-success w-100 py-2 rounded-3"
-                                    disabled="@isSubmitting">
-                                @(isSubmitting ? "Sending…" : "Send Message")
-                            </button>
-                        </EditForm>
+                                <p class="form-check-label mb-3">
+                                    A copy of this message will be sent to your email address automatically.
+                                </p>
+
+                                <button class="btn btn-success w-100 py-2 rounded-3"
+                                        disabled="@isSubmitting">
+                                    @(isSubmitting ? "Sending…" : "Send Message")
+                                </button>
+                            </EditForm>
+                        }
                     </div>
                 </div>
 
@@ -189,6 +200,7 @@
 @code {
     private readonly List<string> Categories =
     [
+        "Demo-Request",
         "General Inquiry",
         "Login / Account Access",
         "Technical Issue",
@@ -199,29 +211,67 @@
 
     private ContactModel model = new();
     private bool isSubmitting;
+    private bool submitted;
     private string? successMessage;
     private string? errorMessage;
+    private string? referenceNumber;
 
-    private ApplicationInfo App => Configuration.GetSection("Application").Get<ApplicationInfo>()!;
-    private ClientInfo Client => Configuration.GetSection("Client").Get<ClientInfo>()!;
+    private static int referenceCounter;
+
+    private ApplicationInfo appInfo = new("", "", "", "", "", "", "", "");
+    private ClientInfo clientInfo = new("", "", "");
+    private BrandingInfo brandingInfo = new("", "", "#2563eb", "#0f172a", "#2563eb");
+
+    private ApplicationInfo App => appInfo;
+    private ClientInfo Client => clientInfo;
+
+    protected override void OnInitialized()
+    {
+        appInfo = Configuration.GetSection("Application").Get<ApplicationInfo>()
+                  ?? new ApplicationInfo("", "", "", "", "", "", "", "");
+        clientInfo = Configuration.GetSection("Client").Get<ClientInfo>()
+                     ?? new ClientInfo("", "", "");
+        brandingInfo = Configuration.GetSection("Branding").Get<BrandingInfo>()
+                        ?? new BrandingInfo("", "", "#2563eb", "#0f172a", "#2563eb");
+    }
 
     private async Task SubmitAsync()
     {
         isSubmitting = true;
         successMessage = errorMessage = null;
 
+        var adminEmail = Configuration["EmailSettings:AdminEmail"];
+        if (string.IsNullOrWhiteSpace(adminEmail))
+        {
+            Logger.LogError("CONTACT FAILED: EmailSettings:AdminEmail is not configured.");
+            errorMessage = "Unable to send message. Please try again later.";
+            isSubmitting = false;
+            return;
+        }
+
         try
         {
+            var now = DateTime.Now;
+            referenceNumber = GenerateReferenceNumber(now);
+            var submittedAt = now.ToString("dddd, dd MMMM yyyy 'at' h:mm tt");
+            var body = BuildEmailBody(submittedAt, referenceNumber);
+
             await GraphMailService.SendMailAsync(new GraphMailRequest
             {
-                Subject = $"[{model.Category}] {model.Subject}",
-                Body = model.Message,
-                To = [Configuration["EmailSettings:AdminEmail"]!],
-                Cc = model.SendCopyToUser ? [model.Email] : [],
+                Subject = $"[{model.Category}] {model.Subject} (Ref: {referenceNumber})",
+                Body = body,
+                IsHtml = true, // TODO: confirm GraphMailRequest exposes this (or an
+                               // equivalent ContentType/BodyType flag) — without it,
+                               // Graph will send this markup as plain text.
+                To = [adminEmail],
+                // Every submission is always copied to the sender, regardless of
+                // any user choice, so they always have a record of what was sent.
+                Cc = [model.Email],
                 ReplyTo = model.Email
             });
 
-            successMessage = "Your message has been sent successfully.";
+            successMessage = "Your message has been sent successfully. A copy has been sent to your email address.";
+            submitted = true;
             model = new();
         }
         catch (Exception ex)
@@ -235,14 +285,109 @@
         }
     }
 
+    private void ResetForm()
+    {
+        submitted = false;
+        successMessage = null;
+        errorMessage = null;
+        referenceNumber = null;
+    }
+
+    private static string GenerateReferenceNumber(DateTime now)
+    {
+        // NOTE: this counter is in-memory and per-process — it resets on app
+        // restart and isn't shared across multiple server instances. Fine for
+        // a low-traffic contact form; for guaranteed global uniqueness under
+        // load or across instances, back this with a DB sequence/identity
+        // column or a GUID-based suffix instead.
+        var index = System.Threading.Interlocked.Increment(ref referenceCounter);
+        return $"MIT-{now.ToString("yyyyMMMdd", System.Globalization.CultureInfo.InvariantCulture)}-{now:HHmm}-{index:D3}";
+    }
+
+    private string BuildEmailBody(string submittedAt, string referenceNumber)
+    {
+        var accent = string.IsNullOrWhiteSpace(brandingInfo.AccentColor) ? "#2563eb" : brandingInfo.AccentColor;
+        var dark = string.IsNullOrWhiteSpace(brandingInfo.SecondaryColor) ? "#0f172a" : brandingInfo.SecondaryColor;
+
+        return $"""
+            <!DOCTYPE html>
+            <html>
+            <body style="margin:0;padding:0;background-color:#f3f4f6;font-family:Segoe UI,Arial,sans-serif;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:24px 0;">
+                <tr>
+                  <td align="center">
+                    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+
+                      <tr>
+                        <td style="background-color:{dark};padding:24px 32px;">
+                          <span style="color:#ffffff;font-size:18px;font-weight:600;">{System.Net.WebUtility.HtmlEncode(appInfo.Name)}</span>
+                          <div style="color:#9ca3af;font-size:13px;margin-top:4px;">New contact form submission</div>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td style="padding:32px;">
+                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+                            <tr>
+                              <td style="padding:6px 0;color:#6b7280;font-size:13px;width:120px;">Reference</td>
+                              <td style="padding:6px 0;color:#111827;font-size:14px;font-weight:600;">{System.Net.WebUtility.HtmlEncode(referenceNumber)}</td>
+                            </tr>
+                            <tr>
+                              <td style="padding:6px 0;color:#6b7280;font-size:13px;width:120px;">Name</td>
+                              <td style="padding:6px 0;color:#111827;font-size:14px;font-weight:600;">{System.Net.WebUtility.HtmlEncode(model.FullName)}</td>
+                            </tr>
+                            <tr>
+                              <td style="padding:6px 0;color:#6b7280;font-size:13px;">Email</td>
+                              <td style="padding:6px 0;color:#111827;font-size:14px;">
+                                <a href="mailto:{System.Net.WebUtility.HtmlEncode(model.Email)}" style="color:{accent};text-decoration:none;">{System.Net.WebUtility.HtmlEncode(model.Email)}</a>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding:6px 0;color:#6b7280;font-size:13px;">Category</td>
+                              <td style="padding:6px 0;">
+                                <span style="display:inline-block;background-color:{accent};color:#ffffff;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;">{System.Net.WebUtility.HtmlEncode(model.Category)}</span>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding:6px 0;color:#6b7280;font-size:13px;">Submitted</td>
+                              <td style="padding:6px 0;color:#111827;font-size:14px;">{submittedAt}</td>
+                            </tr>
+                          </table>
+
+                          <div style="border-top:1px solid #e5e7eb;padding-top:20px;">
+                            <div style="color:#6b7280;font-size:13px;margin-bottom:8px;">Subject</div>
+                            <div style="color:#111827;font-size:15px;font-weight:600;margin-bottom:16px;">{System.Net.WebUtility.HtmlEncode(model.Subject)}</div>
+
+                            <div style="color:#6b7280;font-size:13px;margin-bottom:8px;">Message</div>
+                            <div style="color:#374151;font-size:14px;line-height:1.6;white-space:pre-wrap;">{System.Net.WebUtility.HtmlEncode(model.Message)}</div>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td style="background-color:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb;">
+                          <div style="color:#9ca3af;font-size:12px;">
+                            {System.Net.WebUtility.HtmlEncode(appInfo.Company)} · {System.Net.WebUtility.HtmlEncode(clientInfo.ClientName)} · This message was sent from the {System.Net.WebUtility.HtmlEncode(appInfo.Name)} contact form.
+                          </div>
+                        </td>
+                      </tr>
+
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </body>
+            </html>
+            """;
+    }
+
     public class ContactModel
     {
         [Required] public string FullName { get; set; } = "";
         [Required, EmailAddress] public string Email { get; set; } = "";
-        public string Category { get; set; } = "General Inquiry";
+        public string Category { get; set; } = "Demo-Request";
         [Required] public string Subject { get; set; } = "";
         [Required] public string Message { get; set; } = "";
-        public bool SendCopyToUser { get; set; } = true;
     }
 
     public record ApplicationInfo(
@@ -259,4 +404,11 @@
         string ClientName,
         string ClientCode,
         string Region);
+
+    public record BrandingInfo(
+        string LogoUrl,
+        string LogoSmallUrl,
+        string PrimaryColor,
+        string SecondaryColor,
+        string AccentColor);
 }

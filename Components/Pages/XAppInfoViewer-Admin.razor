@@ -1,5 +1,6 @@
 ﻿@page "/App-Info-viewer-admin"
 @layout MainLayout_NoRightPan
+@attribute [Authorize(Roles = "Admin,SysAdmin")]
 
 @using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Forms

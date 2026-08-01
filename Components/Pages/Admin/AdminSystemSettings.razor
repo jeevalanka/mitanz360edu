@@ -1,6 +1,7 @@
 ﻿
 @page "/admin/system-settings"
 @layout MainLayout_NoRightPan
+@attribute [Authorize(Roles = "Admin,SysAdmin")]
 
 @using Microsoft.AspNetCore.Components.Forms
 @using MITANZ360Edu.Web.Services

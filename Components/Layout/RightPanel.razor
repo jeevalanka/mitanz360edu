@@ -24,12 +24,12 @@
             @foreach (var card in NavigationCards)
             {
                 <RadzenCard class=@($@"
-                                                rp-card
-                                                {card.CardColor}
-                                                {(SelectedUrl == card.Url
-                                                                        ? "rp-active"
-                                                                        : "")}
-                                            ")>
+                                                        rp-card
+                                                        {card.CardColor}
+                                                        {(SelectedUrl == card.Url
+                                                                                                    ? "rp-active"
+                                                                                                    : "")}
+                                                    ")>
 
                     <div class="rp-content"
                          @onclick="() => OpenCard(card)">
@@ -66,6 +66,7 @@
                         <div class="rp-sub">
 
                             @card.Subtitle
+                            #@card.SortOrder
                         </div>
 
                     </div>
@@ -126,25 +127,16 @@
     // LOAD NAVIGATION CARDS
     // =====================================================
 
-    private async Task
-        LoadNavigationCardsAsync()
+    private async Task LoadNavigationCardsAsync()
     {
         try
         {
-            // =====================================================
-            // AUTH STATE
-            // =====================================================
-
             var authState =
                 await AuthenticationStateProvider
                     .GetAuthenticationStateAsync();
 
             var user =
                 authState.User;
-
-            // =====================================================
-            // CURRENT USER ROLES
-            // =====================================================
 
             CurrentUserRoles =
                 user.Claims
@@ -165,44 +157,24 @@
             Console.WriteLine(
                 $"USER ROLES: {string.Join(",", CurrentUserRoles)}");
 
-            // =====================================================
-            // LOAD ALL CARDS
-            // =====================================================
-
             var allCards =
                 await SharePointService
                     .GetNavigationCardsAsync();
-
-            // =====================================================
-            // FILTER CARDS
-            // =====================================================
 
             NavigationCards =
                 allCards
                     .Where(card =>
                     {
-                        // =====================================================
-                        // ENABLED ONLY
-                        // =====================================================
-
                         if (!card.IsEnabled)
                         {
                             return false;
                         }
-
-                        // =====================================================
-                        // PUBLIC CARD
-                        // =====================================================
 
                         if (string.IsNullOrWhiteSpace(
                             card.Role))
                         {
                             return true;
                         }
-
-                        // =====================================================
-                        // CARD ROLES
-                        // =====================================================
 
                         var cardRoles =
                             (card.Role ?? "")
@@ -225,32 +197,27 @@
                         Console.WriteLine(
                             $"CARD: {card.Title} | ROLES: {string.Join(",", cardRoles)}");
 
-                        // =====================================================
-                        // GUEST
-                        // GUEST = ANY AUTHENTICATED USER
-                        // =====================================================
-
                         if (cardRoles.Contains("guest"))
                         {
                             return true;
                         }
-
-                        // =====================================================
-                        // MATCH ANY ROLE
-                        // =====================================================
 
                         return CurrentUserRoles
                             .Intersect(cardRoles)
                             .Any();
                     })
 
-                    .OrderBy(x =>
-                        x.SortOrder)
-
+                    .OrderBy(x => x.SortOrder)
                     .ToList();
 
             Console.WriteLine(
                 $"VISIBLE CARDS: {NavigationCards.Count}");
+
+            foreach (var card in NavigationCards)
+            {
+                Console.WriteLine(
+                    $"FINAL SORT => {card.SortOrder} - {card.Title}");
+            }
         }
         catch (Exception ex)
         {
@@ -265,33 +232,18 @@
     // OPEN CARD
     // =====================================================
 
-    private async Task
-        OpenCard(
-            NavigationCardModel card)
+    private async Task OpenCard(
+        NavigationCardModel card)
     {
-        // =====================================================
-        // ACTIVE CARD
-        // =====================================================
-
         SelectedUrl =
             card.Url ?? "";
 
         StateHasChanged();
 
-        // =====================================================
-        // URL CHECK
-        // =====================================================
-
-        if (string.IsNullOrWhiteSpace(
-            card.Url))
+        if (string.IsNullOrWhiteSpace(card.Url))
         {
             return;
         }
-
-        // =====================================================
-        // EXTERNAL URL
-        // OPEN NEW TAB
-        // =====================================================
 
         if ((card.OpenType ?? "")
             .Equals(
@@ -306,10 +258,6 @@
             return;
         }
 
-        // =====================================================
-        // INTERNAL URL
-        // =====================================================
-
         Navigation.NavigateTo(
             card.Url);
     }
@@ -317,9 +265,21 @@
 
 <style>
 
-    /* =====================================================
-           RIGHT PANEL
-        ===================================================== */
+    .rp-debug {
+        margin-bottom: 12px;
+        padding: 8px;
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 12px;
+    }
+
+    .rp-sort {
+        font-size: 11px;
+        font-weight: 700;
+        color: #2563eb;
+        margin-bottom: 4px;
+    }
 
     .right-panel {
         width: 100%;
@@ -329,20 +289,12 @@
         background: #ffffff;
     }
 
-    /* =====================================================
-           GRID
-        ===================================================== */
-
     .rp-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;
         width: 100%;
     }
-
-    /* =====================================================
-           CARD
-        ===================================================== */
 
     .rp-card {
         border-radius: 16px !important;
@@ -360,28 +312,16 @@
         overflow: hidden;
     }
 
-    /* =====================================================
-           ACTIVE CARD
-        ===================================================== */
-
     .rp-active {
         border: 2px solid #3b82f6 !important;
         box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
         transform: scale(1.02);
     }
 
-    /* =====================================================
-           HOVER
-        ===================================================== */
-
     .rp-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 16px rgba(0,0,0,0.10);
     }
-
-    /* =====================================================
-           CONTENT
-        ===================================================== */
 
     .rp-content {
         text-align: center;
@@ -394,10 +334,6 @@
         height: 100%;
     }
 
-    /* =====================================================
-           IMAGE
-        ===================================================== */
-
     .rp-image {
         width: 36px;
         height: 36px;
@@ -405,19 +341,11 @@
         margin-bottom: 6px;
     }
 
-    /* =====================================================
-           ICON
-        ===================================================== */
-
     .rp-icon {
         font-size: 28px !important;
         color: #64748b;
         margin-bottom: 6px;
     }
-
-    /* =====================================================
-           TITLE
-        ===================================================== */
 
     .rp-title {
         font-weight: 600;
@@ -428,20 +356,12 @@
         text-align: center;
     }
 
-    /* =====================================================
-           SUBTITLE
-        ===================================================== */
-
     .rp-sub {
         font-size: 10px;
         color: #6b7280;
         line-height: 1.1;
         text-align: center;
     }
-
-    /* =====================================================
-           EMPTY
-        ===================================================== */
 
     .rp-empty {
         grid-column: span 2;

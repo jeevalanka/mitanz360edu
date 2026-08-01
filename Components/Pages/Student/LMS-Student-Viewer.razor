@@ -1,0 +1,282 @@
+﻿@page "/lms-student-cont-viewer/{FolderId}"
+
+@layout MainLayout_No_Left_RightPan
+
+@using MITANZ360Edu.Web.Services
+@using Microsoft.AspNetCore.Components
+@inject SharePointService _spService
+@inject IJSRuntime JS
+
+<PageTitle>Student Document Viewer</PageTitle>
+
+<style>
+    .layout {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        height: 100vh;
+        background: #F8FAFC;
+    }
+
+    .left-panel {
+        background: #fff;
+        border-right: 1px solid #e2e8f0;
+        padding: 12px;
+        border-radius: 15px;
+    }
+
+    .right-panel {
+        padding: 12px;
+    }
+
+    .file-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .tree-item {
+        padding: 6px 10px;
+        cursor: pointer;
+        border-radius: 8px;
+    }
+
+        .tree-item:hover {
+            background: #eff6ff;
+        }
+
+        .tree-item.active {
+            background: #dbeafe;
+            font-weight: 600;
+        }
+
+    .empty-state {
+        padding: 12px;
+        border: 1px solid #fdba74;
+        border-radius: 10px;
+        background: #fff7ed;
+    }
+</style>
+
+<div class="layout">
+
+    <!-- LEFT -->
+    <div class="left-panel">
+        <div style="font-weight:600;">Course Content</div>
+
+        @if (RootFolders == null)
+        {
+            <div>Loading...</div>
+        }
+        else if (RootFolders.Count == 0)
+        {
+            <div class="empty-state">No folders available</div>
+        }
+        else
+        {
+            @foreach (var folder in RootFolders)
+            {
+                @RenderTree(folder, 0)
+            }
+        }
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-panel">
+
+        @if (Files == null)
+        {
+            <div class="empty-state">Select a folder</div>
+        }
+        else if (Files.Count == 0)
+        {
+            <div class="empty-state">No files here</div>
+        }
+        else
+        {
+            @foreach (var file in Files)
+            {
+                <div class="file-row">
+                    <div>
+                        @((MarkupString)GetFileIcon(file.ContentType))
+                        @file.Name
+                    </div>
+
+                    <div>
+                        <button class="btn btn-primary btn-sm"
+                                @onclick="() => ViewFile(file.Id)">
+                            View
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+
+    </div>
+
+</div>
+
+@code {
+    [Parameter]
+    public string? FolderId { get; set; }
+
+    private string Role = "Admin"; // or "Student" / "Tutor" / "Trainer"
+
+    private bool IsStudent => Role == "Student";
+    private bool IsTutor => Role == "Tutor" || Role == "Trainer";
+    private bool IsAdmin => Role == "Admin";
+
+    private List<LibraryItem>? RootFolders;
+    private Dictionary<string, List<LibraryItem>> FolderTree = new();
+    private List<LibraryItem>? Files;
+
+    private string DriveId = string.Empty;
+    private HashSet<string> Expanded = new();
+    private string SelectedFolderId = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadFolderContentAsync();
+    }
+
+    // ✅ CENTRAL FILTER RULE
+    private bool IsHiddenForUser(LibraryItem item)
+    {
+        if (Role == "Tutor" || Role == "Trainer")
+            return false;
+
+        return item.IsFolder &&
+               item.Name.StartsWith("01_Tutor", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task LoadFolderContentAsync()
+    {
+        if (string.IsNullOrWhiteSpace(FolderId)) return;
+
+        DriveId = await _spService.GetLmsDriveIdAsync();
+
+        var folder = await _spService.GetItemAsync(DriveId, FolderId);
+
+        // ✅ BLOCK STUDENT DIRECT ACCESS
+        if ((IsStudent || IsAdmin) && folder != null && folder.Name.StartsWith("01_Tutor", StringComparison.OrdinalIgnoreCase))
+        {
+            RootFolders = new();
+            Files = new();
+            return;
+        }
+
+        var items = await _spService.GetLibraryFolderChildrenAsync(DriveId, FolderId);
+
+        var visible = items
+            .Where(x => !IsHiddenForUser(x))
+            .ToList();
+
+        RootFolders = visible
+            .Where(x => x.IsFolder)
+            .OrderBy(x => x.Name)
+            .ToList();
+
+        Files = visible
+            .Where(x => !x.IsFolder && x.IsPublished && !x.IsArchived)
+            .OrderBy(x => x.Name)
+            .ToList();
+
+        FolderTree[FolderId] = visible;
+        SelectedFolderId = FolderId;
+    }
+
+    private async Task ExpandFolder(string id)
+    {
+        if (!FolderTree.ContainsKey(id))
+        {
+            var items = await _spService.GetLibraryFolderChildrenAsync(DriveId, id);
+
+            FolderTree[id] = items
+                .Where(x => !IsHiddenForUser(x))
+                .ToList();
+        }
+    }
+
+    private async Task LoadFolder(string id)
+    {
+        List<LibraryItem> items;
+
+        if (FolderTree.ContainsKey(id))
+        {
+            items = FolderTree[id];
+        }
+        else
+        {
+            items = (await _spService.GetLibraryFolderChildrenAsync(DriveId, id))
+                .Where(x => !IsHiddenForUser(x))
+                .ToList();
+
+            FolderTree[id] = items;
+        }
+
+        Files = items
+            .Where(x => !x.IsFolder && x.IsPublished && !x.IsArchived)
+            .OrderBy(x => x.Name)
+            .ToList();
+    }
+
+    private async Task ViewFile(string id)
+    {
+        await JS.InvokeVoidAsync("open", $"/api/files/{id}", "_blank");
+    }
+
+    private RenderFragment RenderTree(LibraryItem folder, int level) => builder =>
+    {
+        int seq = 0;
+
+        bool isExpanded = Expanded.Contains(folder.Id);
+        bool isSelected = SelectedFolderId == folder.Id;
+
+        builder.OpenElement(seq++, "div");
+        builder.AddAttribute(seq++, "class",
+            $"tree-item {(isSelected ? "active" : "")}");
+        builder.AddAttribute(seq++, "style", $"padding-left:{level * 16}px");
+
+        builder.AddAttribute(seq++, "onclick", EventCallback.Factory.Create(this, async () =>
+        {
+            SelectedFolderId = folder.Id;
+
+            if (isExpanded)
+                Expanded.Remove(folder.Id);
+            else
+            {
+                Expanded.Add(folder.Id);
+                await ExpandFolder(folder.Id);
+            }
+
+            await LoadFolder(folder.Id);
+        }));
+
+        builder.AddContent(seq++, folder.Name);
+        builder.CloseElement();
+
+        if (isExpanded && FolderTree.ContainsKey(folder.Id))
+        {
+            foreach (var child in FolderTree[folder.Id]
+                         .Where(x => x.IsFolder)
+                         .OrderBy(x => x.Name))
+            {
+                builder.AddContent(seq++, RenderTree(child, level + 1));
+            }
+        }
+    };
+
+    private string GetFileIcon(string? contentType)
+    {
+        if (string.IsNullOrEmpty(contentType))
+            return "<i class='bi bi-file'></i>";
+
+        var m = contentType.ToLower();
+
+        if (m.Contains("pdf")) return "<i class='bi bi-file-earmark-pdf'></i>";
+        if (m.Contains("image")) return "<i class='bi bi-file-earmark-image'></i>";
+
+        return "<i class='bi bi-file'></i>";
+    }
+}

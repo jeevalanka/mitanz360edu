@@ -5,7 +5,7 @@ namespace MITANZ360Edu.Web.Data;
 public static class DbInitializer
 {
     private const string SysAdminRole = "SysAdmin";
-    private const string SysAdminEmail = "sysadmin@mitanz360.fin";
+    private const string SysAdminEmail = "supper@mitanz360.edu";
     private const string SysAdminPassword = "P@ssw0rd"; // change after first login
 
     public static async Task SeedAsync(IServiceProvider services)

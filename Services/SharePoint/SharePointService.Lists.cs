@@ -53,7 +53,7 @@ public partial class SharePointService
 
         var clean = NormalizeFields(fields);
 
-        await ExecuteWithRetryAsync(async token =>
+        await ExecuteWithRetryAsync<ListItem>(async token =>
         {
             var item = new ListItem
             {
@@ -63,14 +63,17 @@ public partial class SharePointService
                 }
             };
 
-            await _graphClient
+            var result = await _graphClient
                 .Sites[SiteId]
                 .Lists[listId]
                 .Items
                 .PostAsync(item, cancellationToken: token)
                 .ConfigureAwait(false);
 
-        }, $"CreateListItem(list={listId})", ct).ConfigureAwait(false);
+            return result!; // ✅ REQUIRED → fixes CS0411
+        },
+        $"CreateListItem(list={listId})",
+        ct).ConfigureAwait(false);
     }
 
     // =====================================================
@@ -191,26 +194,31 @@ public partial class SharePointService
         FieldValueSet patch,
         CancellationToken ct)
     {
-        await ExecuteWithRetryAsync(async token =>
+        await ExecuteWithRetryAsync<bool>(async token =>
         {
             var requestInfo = new RequestInformation
             {
                 HttpMethod = Method.PATCH,
                 UrlTemplate = "{+baseurl}/sites/{siteId}/lists/{listId}/items/{itemId}/fields",
                 PathParameters =
-                {
-                    ["siteId"] = SiteId,
-                    ["listId"] = listId,
-                    ["itemId"] = itemId
-                }
+            {
+                ["siteId"] = SiteId,
+                ["listId"] = listId,
+                ["itemId"] = itemId
+            }
             };
 
             requestInfo.Headers.TryAdd("Accept", "application/json");
             requestInfo.SetContentFromParsable(_graphClient.RequestAdapter, "application/json", patch);
 
-            await _graphClient.RequestAdapter.SendNoContentAsync(requestInfo, cancellationToken: token)
+            await _graphClient.RequestAdapter
+                .SendNoContentAsync(requestInfo, cancellationToken: token)
                 .ConfigureAwait(false);
 
-        }, $"PatchListItemFields(list={listId},item={itemId})", ct).ConfigureAwait(false);
+            return true; // ✅ REQUIRED for ExecuteWithRetryAsync<T>
+        },
+        $"PatchListItemFields(list={listId},item={itemId})",
+        ct).ConfigureAwait(false);
     }
+
 }

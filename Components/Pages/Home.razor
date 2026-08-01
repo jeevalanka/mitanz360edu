@@ -1,111 +1,244 @@
 ﻿@page "/"
 @layout MainLayout
 
+@inject NavigationManager Navigation
+
 <link href="css/home.css" rel="stylesheet" />
 
 <section class="hero-fin">
 
     <div class="hero-container">
 
-        <!-- Home IMAGE -->
+        <!-- =======================================
+             HERO BANNER
+        ======================================== -->
         <div class="hero-image">
-            <img src="images/fin-hero.png" class="hero-img" />
+            <img src="images/fin-hero.png"
+                 class="hero-img"
+                 alt="MITANZ360Edu Hero Banner" />
         </div>
 
     </div>
 
+    <!-- =======================================
+             AI PLATFORM FEATURES
+        ======================================== -->
+    <div class="feature-section">
+
+        <div class="feature-label">
+            <h2>🤖 AI-Powered Learning</h2>
+            <p>Personal AI tutors, smart assessments, and adaptive learning experiences.</p>
+        </div>
+
+        <div class="feature-image">
+            <img src="images/ai base functions.png"
+                 class="feature-img"
+                 alt="MITANZ360Edu AI Features" />
+        </div>
+
+    </div>
+
+    <div class="feature-section">
+
+        <div class="feature-label">
+            <h2>🌐 Immersive 3D Digital Campus</h2>
+            <p>Walk into a virtual campus, interact with AI tutors, and learn by doing.</p>
+        </div>
+
+        <div class="feature-image">
+            <img src="images/Immersive-Digital Campus.png"
+                 class="feature-img"
+                 alt="MITANZ360Edu Digital Campus" />
+        </div>
+
+    </div>
+
+    <div class="feature-section">
+
+        <div class="feature-label">
+            <h2>☁️ Real Microsoft Azure Cloud Labs</h2>
+            <p>Create and manage real Azure Virtual Machines with AI-guided practical labs.</p>
+        </div>
+
+        <div class="feature-image">
+            <img src="images/Marketing-01.png"
+                 class="feature-img"
+                 alt="MITANZ360Edu Azure Labs" />
+        </div>
+
+    </div>
 </section>
 
-@code {
-    [Inject] NavigationManager Navigation { get; set; } = default!;
-
+@code
+{
     private void GoToReconciliation()
     {
         Navigation.NavigateTo("/reconciliation");
     }
 }
 
-
 <style>
 
-    /* =========================
-       HERO SECTION
-    ========================= */
+    /* ===========================================
+           PAGE
+        =========================================== */
 
     .hero-fin {
-        padding: 16px;
-        background: #f5f6f8;
-    }
-
-    /* FULL WIDTH FLEX */
-    .hero-container {
-        display: flex;
         width: 100%;
+        padding: 18px;
+        background: #f5f6f8;
         box-sizing: border-box;
     }
 
-    /* IMAGE WRAPPER (CARD STYLE) */
-    .hero-image {
+    /* ===========================================
+           MAIN CONTAINER
+        =========================================== */
+
+    .hero-container {
         width: 100%;
-        border-radius: 16px;
-        padding: 12px;
         background: #ffffff;
         border: 2px solid #ff9800;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        border-radius: 18px;
+        box-shadow: 0 8px 24px rgba(0,0,0,.10);
+        padding: 20px;
+        overflow: hidden;
     }
 
-    /* IMAGE FIT PERFECTLY */
+    /* ===========================================
+           HERO IMAGE
+        =========================================== */
+
+    .hero-image {
+        width: 100%;
+        margin-bottom: 0px;
+        text-align: center;
+    }
+
     .hero-img {
         width: 100%;
         height: auto;
-        max-height: 70vh; /* 🔥 KEY: responsive to screen */
-
-        object-fit: contain;
-        border-radius: 10px;
-        transition: transform 0.3s ease;
+        display: block;
+        margin: auto;
+        border-radius: 12px;
+        transition: all .3s ease;
     }
 
-    /* HOVER EFFECT */
-    .hero-image:hover .hero-img {
-        transform: scale(1.01);
+        .hero-img:hover {
+            transform: scale(1.01);
+        }
+
+    /* ===========================================
+           AI FEATURES IMAGE
+        =========================================== */
+
+    .feature-image {
+        width: 100%;
+        text-align: center;
+        margin-top: 0px;
     }
 
-    /* =========================
-       RESPONSIVE
-    ========================= */
+    .feature-img {
+        width: 100%;
+        max-width: 1800px;
+        height: auto;
+        display: block;
+        margin: auto;
+        border-radius: 12px;
+        transition: all .3s ease;
+    }
 
-    @@media (max-width: 1200px) {
+        .feature-img:hover {
+            transform: scale(1.01);
+        }
+
+    .feature-label {
+        margin: 20px 0;
+        padding: 15px 20px;
+        background: #f8f9fa;
+        border-left: 5px solid #0078D4;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+        .feature-label h3 {
+            margin: 0 0 8px;
+            color: #003366;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .feature-label p {
+            margin: 0;
+            color: #555;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+    /* ===========================================
+           RESPONSIVE
+        =========================================== */
+
+    @@media (max-width:1400px) {
+
+        .hero-container {
+            padding: 18px;
+        }
+    }
+
+    @@media (max-width:1200px) {
+
+        .hero-fin {
+            padding: 14px;
+        }
+
+        .hero-image {
+            margin-bottom: 25px;
+        }
+    }
+
+    @@media (max-width:992px) {
+
         .hero-fin {
             padding: 12px;
         }
 
-        .hero-img {
-            max-height: 60vh;
+        .hero-container {
+            padding: 15px;
+        }
+
+        .hero-image {
+            margin-bottom: 20px;
         }
     }
 
-    @@media (max-width: 992px) {
+    @@media (max-width:768px) {
+
+        .hero-fin {
+            padding: 10px;
+        }
 
         .hero-container {
-            flex-direction: column;
+            border-radius: 12px;
+            padding: 12px;
         }
 
-        .hero-img {
-            max-height: 50vh;
+        .hero-image {
+            margin-bottom: 18px;
         }
     }
 
-    @@media (max-width: 576px) {
+    @@media (max-width:576px) {
 
         .hero-fin {
             padding: 8px;
         }
 
-        .hero-img {
-            max-height: 40vh;
+        .hero-container {
+            padding: 10px;
+        }
+
+        .hero-image {
+            margin-bottom: 15px;
         }
     }
 

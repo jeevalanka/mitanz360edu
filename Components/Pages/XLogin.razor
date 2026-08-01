@@ -72,13 +72,21 @@
                        value="@password" />
 
                 <button type="submit"
-                        class="xlogin-btn login-btn">
+                        class="xlogin-btn login-btn"
+                        disabled="@IsInvalidInput"
+                        @onclick="OnLoginClick">
 
-                    <span>🔐</span>
-                    <span>Login</span>
+                    @if (isLoading)
+                    {
+                        <span>⏳ Logging in...</span>
+                    }
+                    else
+                    {
+                        <span>🔐</span>
+                        <span>Login</span>
+                    }
 
                 </button>
-
             </form>
 
             <!-- GUEST FORM -->
@@ -194,6 +202,20 @@
 
         return tokens.RequestToken ?? "";
     }
+    private bool isLoading;
+
+    private bool IsInvalidInput =>
+        string.IsNullOrWhiteSpace(email) ||
+        string.IsNullOrWhiteSpace(password);
+
+    private void OnLoginClick()
+    {
+        if (IsInvalidInput)
+            return;
+
+        isLoading = true;
+    }
+
 }
 
 <style>

@@ -5,22 +5,19 @@ namespace MITANZ360Edu.Web.Services;
 
 public partial class SharePointService
 {
+
     // =========================================================
     // GET NAVIGATION CARDS
     // =========================================================
-
     public async Task<List<NavigationCardModel>>
         GetNavigationCardsAsync()
     {
-        var cards =
-            new List<NavigationCardModel>();
+        var cards = new List<NavigationCardModel>();
 
         try
         {
             var listId =
-                _configuration[
-                    "SharePoint:Lists:AppNavCards"
-                ];
+                _configuration["SharePoint:Lists:AppNavCards"];
 
             var response =
                 await _graphClient
@@ -49,6 +46,9 @@ public partial class SharePointService
                 {
                     continue;
                 }
+
+                var sortOrder =
+                    GetInt(fields, "field_9");
 
                 cards.Add(
                     new NavigationCardModel
@@ -84,15 +84,21 @@ public partial class SharePointService
                             GetBool(fields, "field_8"),
 
                         SortOrder =
-                            GetInt(fields, "field_9_x0020_"),
+                            sortOrder,
 
                         CardColor =
                             GetString(fields, "field_10")
                     });
+
+                _logger.LogInformation(
+                    "AppNavCard: {Title} | SortOrder={SortOrder}",
+                    GetString(fields, "Title"),
+                    sortOrder);
             }
 
             return cards
                 .OrderBy(x => x.SortOrder)
+                .ThenBy(x => x.Title)
                 .ToList();
         }
         catch (Exception ex)
@@ -104,6 +110,7 @@ public partial class SharePointService
             return [];
         }
     }
+
 
     // =========================================================
     // CREATE
@@ -385,21 +392,32 @@ public partial class SharePointService
     // SAFE INT
     // =========================================================
 
-    private static int GetInt(
-        IDictionary<string, object> fields,
-        string key)
+    private static int GetInt(IDictionary<string, object> fields,string key)
     {
-        if (!fields.TryGetValue(
-            key,
-            out var value))
+        if (!fields.TryGetValue(key, out var value) ||
+            value == null)
         {
             return 0;
         }
 
-        return int.TryParse(
-            value?.ToString(),
-            out var result)
-                ? result
-                : 0;
+        try
+        {
+            return value switch
+            {
+                int i => i,
+                long l => (int)l,
+                double d => (int)d,
+                decimal m => (int)m,
+                _ => Convert.ToInt32(value)
+            };
+        }
+        catch
+        {
+            return int.TryParse(
+                value.ToString(),
+                out var result)
+                    ? result
+                    : 0;
+        }
     }
 }

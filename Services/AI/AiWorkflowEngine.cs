@@ -18,20 +18,14 @@ public sealed class AiWorkflowEngine
         _logger = logger;
     }
 
-    public async Task<AiWorkflowResult> ExecuteAsync(
-        AiWorkflowRequest request,
-        CancellationToken cancellationToken = default)
+    public async Task<AiWorkflowResult> ExecuteAsync(AiWorkflowRequest request,CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        _logger.LogInformation(
-            "AI Workflow Engine started. TaskType: {TaskType}",
+        _logger.LogInformation( "AI Workflow Engine started. TaskType: {TaskType}",
             request.TaskType);
 
-        var result =
-            await _gatewayService.ExecuteAsync(
-                request,
-                cancellationToken);
+        var result = await _gatewayService.ExecuteAsync( request, cancellationToken);
 
         if (!result.Success)
         {
@@ -68,8 +62,7 @@ public sealed class AiWorkflowEngine
                 parseResult.Result;
         }
 
-        _logger.LogInformation(
-            "AI Workflow Engine completed successfully.");
+        _logger.LogInformation("AI Workflow Engine completed successfully.");
 
         return result;
     }

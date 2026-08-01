@@ -10,14 +10,9 @@ namespace MITANZ360Edu.Web.Services
     {
         private const string AIList = "AIResalt";
 
-        // ✅ helper to resolve SiteId from config (no missing field)
-        private string GetSiteId()
-        {
-            return _configuration["SharePoint:SiteId"]
-                ?? throw new InvalidOperationException("SharePoint SiteId missing in config.");
-        }
-
-        // ✅ EXISTING (UNCHANGED)
+        // =====================================================
+        // ✅ SAVE AI RESULT (FILES → DRIVE ✅ OK to use DriveId)
+        // =====================================================
         public async Task SaveAIResultAsync(
             string workflowId,
             string targetEntityId,
@@ -47,11 +42,11 @@ namespace MITANZ360Edu.Web.Services
             }
         }
 
-        // ✅ CREATE DRAFT
+        // =====================================================
+        // ✅ CREATE DRAFT (FIXED → SitePath)
+        // =====================================================
         public async Task<string> CreateAIDraftAsync(string entityType, string metadataJson)
         {
-            var siteId = GetSiteId();
-
             var fields = new Dictionary<string, object>
             {
                 { "Metadata", metadataJson },
@@ -59,7 +54,7 @@ namespace MITANZ360Edu.Web.Services
             };
 
             var item = await _graphClient
-                .Sites[siteId]
+                .Sites[SitePath] // ✅ FIXED
                 .Lists[AIList]
                 .Items
                 .PostAsync(new ListItem
@@ -70,31 +65,32 @@ namespace MITANZ360Edu.Web.Services
                     }
                 });
 
-            return item.Id;
+            return item?.Id ?? "";
         }
 
-        // ✅ UPDATE METADATA (MERGE INSTRUCTION)
+        // =====================================================
+        // ✅ UPDATE METADATA (FIXED)
+        // =====================================================
         public async Task UpdateMetadataAsync(string itemId, string instruction)
         {
-            var siteId = GetSiteId();
-
             var item = await _graphClient
-                .Sites[siteId]
+                .Sites[SitePath] // ✅ FIXED
                 .Lists[AIList]
                 .Items[itemId]
                 .Fields
                 .GetAsync();
 
-            var metadata = item.AdditionalData["Metadata"]?.ToString() ?? "{}";
+            var metadata = item?.AdditionalData?["Metadata"]?.ToString() ?? "{}";
 
-            var obj = JsonSerializer.Deserialize<Dictionary<string, object>>(metadata);
+            var obj = JsonSerializer.Deserialize<Dictionary<string, object>>(metadata)
+                      ?? new Dictionary<string, object>();
 
             obj["Instruction"] = instruction;
 
             var updated = JsonSerializer.Serialize(obj);
 
             await _graphClient
-                .Sites[siteId]
+                .Sites[SitePath] // ✅ FIXED
                 .Lists[AIList]
                 .Items[itemId]
                 .Fields
@@ -107,22 +103,24 @@ namespace MITANZ360Edu.Web.Services
                 });
         }
 
-        // ✅ GET METADATA (AI INPUT)
+        // =====================================================
+        // ✅ GET METADATA
+        // =====================================================
         public async Task<string> GetMetadataAsync(string itemId)
         {
-            var siteId = GetSiteId();
-
             var item = await _graphClient
-                .Sites[siteId]
+                .Sites[SitePath] // ✅ FIXED
                 .Lists[AIList]
                 .Items[itemId]
                 .Fields
                 .GetAsync();
 
-            return item.AdditionalData["Metadata"]?.ToString() ?? "{}";
+            return item?.AdditionalData?["Metadata"]?.ToString() ?? "{}";
         }
 
+        // =====================================================
         // ✅ UPDATE AI RESULT FIELDS
+        // =====================================================
         public async Task UpdateAIResultFieldsAsync(
             string itemId,
             int score,
@@ -131,8 +129,6 @@ namespace MITANZ360Edu.Web.Services
             string summary,
             string tags)
         {
-            var siteId = GetSiteId();
-
             var fields = new Dictionary<string, object>
             {
                 { "Score", score },
@@ -143,7 +139,7 @@ namespace MITANZ360Edu.Web.Services
             };
 
             await _graphClient
-                .Sites[siteId]
+                .Sites[SitePath] // ✅ FIXED
                 .Lists[AIList]
                 .Items[itemId]
                 .Fields
@@ -153,7 +149,9 @@ namespace MITANZ360Edu.Web.Services
                 });
         }
 
-        // ✅ EXISTING FILE UPLOAD (UNCHANGED)
+        // =====================================================
+        // ✅ FILE UPLOAD (DRIVE → KEEP AS IS ✅)
+        // =====================================================
         private async Task UploadTextFileAsync(
             string path,
             string content,
@@ -165,7 +163,7 @@ namespace MITANZ360Edu.Web.Services
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
 
             await _graphClient
-                .Drives[driveId]
+                .Drives[driveId] // ✅ CORRECT (Drive uses DriveId)
                 .Root
                 .ItemWithPath(path)
                 .Content

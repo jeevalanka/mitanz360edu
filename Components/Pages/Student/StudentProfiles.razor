@@ -1,0 +1,669 @@
+﻿@page "/student-profiles"
+@layout MainLayout_No_Left_RightPan
+@attribute [Authorize(Roles = "Admin,SysAdmin")]
+
+@using MITANZ360Edu.Web.Models
+@using MITANZ360Edu.Web.Services
+@inject SharePointService SharePointService
+@inject IStudentService StudentService
+@inject IJSRuntime JS
+@inject NavigationManager NavManager
+
+<PageTitle>Student Profiles</PageTitle>
+
+<div class="page">
+
+    <!-- HEADER -->
+    <div class="page-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-people-fill header-icon"></i>
+            <div>
+                <div class="title">Student Profiles</div>
+                <div class="meta">
+                    @(Data.Count) Students • Last updated @LastRefresh
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-grow-1 mx-3" style="max-width: 400px;">
+            <input class="form-control"
+                   placeholder="Search students..."
+                   value="@Search"
+                   @oninput="OnSearchChanged" />
+        </div>
+
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" @onclick="NewStudent">
+                <i class="bi bi-plus"></i> New
+            </button>
+            <button class="btn btn-secondary" @onclick="Load">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(StatusMessage))
+    {
+        <div class="alert alert-info">@StatusMessage</div>
+    }
+
+    <div class="workspace">
+
+        <!-- LEFT -->
+        <div class="explorer">
+            @foreach (var s in Data)
+            {
+                <div class="student-card @(Selected?.Id == s.Id ? "active" : "")"
+                     @onclick="() => Select(s)">
+                    <div class="avatar" style="color:orangered">
+                        <i class="bi bi-person"></i>
+                    </div>
+
+                    <div class="info">
+                        <div class="name">@s.FirstName @s.LastName</div>
+                        <div class="meta">@s.StudentNumber</div>
+                        <div class="meta">@s.Email</div>
+                    </div>
+
+                    <div class="status @(s.IsActive ? "success" : "danger")">
+                        @(s.IsActive ? "Active" : "Inactive")
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- RIGHT -->
+        <div class="details">
+            <EditForm Model="Model" OnValidSubmit="Save">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <!-- PROFILE -->
+                <div class="profile-header p-3 mb-3 rounded shadow-sm" style="background-color:lightsteelblue;">
+                    <div class="d-flex flex-column">
+
+                        <!-- Name (Primary Identity) -->
+                        <div class="profile-name fw-bold text-primary fs-4">
+                            @Model.FullName
+                        </div>
+
+                        <!-- Student Number -->
+                        <div class="profile-meta mt-2">
+                            <span class="badge bg-secondary me-2">Student ID</span>
+                            <span class="text-dark">@Model.StudentNumber</span>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="profile-meta mt-1">
+                            <span class="badge bg-info text-dark me-2">Email</span>
+                            <span class="text-dark">@Model.Email</span>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- IDENTITY -->
+                <div class="card">
+                    <div class="card-title">Identity</div>
+                    <div class="grid">
+
+                        <div class="form-group">
+                            <label>Student Number *</label>
+                            <InputText @bind-Value="Model.StudentNumber" class="form-control" />
+                            <ValidationMessage For="@(() => Model.StudentNumber)" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>User ID</label>
+                            <InputText @bind-Value="Model.UserId" class="form-control" />
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- PERSONAL -->
+                <div class="card">
+                    <div class="card-title">Personal Information</div>
+                    <div class="grid">
+
+                        <div class="form-group">
+                            <label>First Name *</label>
+                            <InputText @bind-Value="Model.FirstName" class="form-control" />
+                            <ValidationMessage For="@(() => Model.FirstName)" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Last Name *</label>
+                            <InputText @bind-Value="Model.LastName" class="form-control" />
+                            <ValidationMessage For="@(() => Model.LastName)" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Preferred Name</label>
+                            <InputText @bind-Value="Model.PreferredName" class="form-control" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Date of Birth</label>
+                            <InputDate @bind-Value="Model.DOB_Date" class="form-control" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <InputText @bind-Value="Model.Gender" class="form-control" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>NIC</label>
+                            <InputText @bind-Value="Model.NIC" class="form-control" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Passport</label>
+                            <InputText @bind-Value="Model.Passport" class="form-control" />
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- CONTACT -->
+                <div class="card">
+                    <div class="card-title">Contact</div>
+                    <div class="grid">
+
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <InputText @bind-Value="Model.Email" class="form-control" />
+                            <ValidationMessage For="@(() => Model.Email)" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <InputText @bind-Value="Model.Phone" class="form-control" />
+                        </div>
+
+                        <div class="form-group" style="grid-column: span 3;">
+                            <label>Address</label>
+                            <InputText @bind-Value="Model.Address" class="form-control" />
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ACADEMIC -->
+                <div class="card">
+                    <div class="card-title">Academic</div>
+                    <div class="grid">
+
+                        <div class="form-group">
+                            <label>Country</label>
+                            <RadzenDropDown Data="@Country"
+                                            TextProperty="Title"
+                                            ValueProperty="Code"
+                                            @bind-Value="Model.Country"
+                                            Class="form-control"
+                                            Placeholder="Select Country"
+                                            Style="width:100%;" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Faculty</label>
+                            <RadzenDropDown Data="@Faculty"
+                                            TextProperty="Title"
+                                            ValueProperty="Code"
+                                            @bind-Value="Model.Faculty"
+                                            Class="form-control"
+                                            Placeholder="Select Faculty"
+                                            Style="width:100%;" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Academic Status</label>
+                            <RadzenDropDown Data="@AcademicStatus"
+                                            TextProperty="Title"
+                                            ValueProperty="Code"
+                                            @bind-Value="Model.AcademicStatus"
+                                            Class="form-control"
+                                            Placeholder="Select Academic Status"
+                                            Style="width:100%;" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Study Mode</label>
+                            <RadzenDropDown Data="@StudyModes"
+                                            TextProperty="Title"
+                                            ValueProperty="Code"
+                                            @bind-Value="Model.StudyMode"
+                                            Class="form-control"
+                                            Placeholder="Select Study Mode"
+                                            Style="width:100%;" />
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- SYSTEM -->
+                <div class="card">
+                    <div class="card-title">System</div>
+                    <div class="grid">
+
+                        <div class="form-group">
+                            <label>Status</label>
+                            <InputSelect @bind-Value="Model.IsActive" class="form-control">
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </InputSelect>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Created Date</label>
+                            <InputText @bind-Value="Model.CreatedDate" class="form-control" disabled />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Created By</label>
+                            <InputText @bind-Value="Model.CreatedBy" class="form-control" disabled />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Modified By</label>
+                            <InputText @bind-Value="Model.ModifiedBy" class="form-control" disabled />
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ACTION BAR -->
+                <div class="action-bar">
+                    <button type="submit" class="btn btn-primary">
+                        Save
+                    </button>
+                    <button type="button" class="btn btn-secondary" @onclick="OnCancel">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" @onclick="ConfirmDelete">
+                        Delete
+                    </button>
+                </div>
+
+            </EditForm>
+        </div>
+    </div>
+
+</div>
+
+@code {
+
+    private List<StudentProfile> Data = new();
+    private StudentProfile Model = new();
+    private StudentProfile? Selected;
+
+    private List<ReferenceDataItem> Country = new();
+    private List<ReferenceDataItem> Faculty = new();
+    private List<ReferenceDataItem> AcademicStatus = new();
+    private List<ReferenceDataItem> StudyModes = new();
+
+    private string Search = "";
+    private bool Loading;
+    private string StatusMessage = "";
+    private string LastRefresh = DateTime.Now.ToString("HH:mm");
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+        Country = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "Country");
+        Faculty = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "Faculty");
+        AcademicStatus = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "AcademicStatus");
+        StudyModes = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "StudyModes");
+    }
+
+    private async Task Load()
+    {
+        Data = string.IsNullOrWhiteSpace(Search)
+            ? await StudentService.GetStudentsAsync()
+            : await StudentService.SearchStudentsAsync(Search);
+
+        if (Data.Any())
+            Select(Data.First());
+
+        LastRefresh = DateTime.Now.ToString("HH:mm");
+    }
+
+    private void Select(StudentProfile s)
+    {
+        Selected = s;
+        Model = s.Clone();
+    }
+
+    private async Task Save()
+    {
+        try
+        {
+            Model.Normalize();
+            Model.Validate();
+
+            if (Model.Id == 0)
+            {
+                var id = await StudentService.CreateStudentAsync(Model);
+                if (id == 0)
+                {
+                    StatusMessage = "Create failed";
+                    return;
+                }
+            }
+            else
+            {
+                var result = await StudentService.UpdateStudentAsync(Model);
+                if (!result)
+                {
+                    StatusMessage = "Update failed";
+                    return;
+                }
+            }
+
+            StatusMessage = " Saved: successfully ✅ " + Model.Title;
+            await Load();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "Error: " + ex.Message;
+        }
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (Selected == null) return;
+
+        var confirmed = await JS.InvokeAsync<bool>("confirm", "Delete student?");
+        if (!confirmed) return;
+
+        await StudentService.DeleteStudentAsync(Selected.Id);
+        StatusMessage = "Deleted successfully";
+        await Load();
+    }
+
+    private void NewStudent()
+    {
+        Selected = null;
+        Model = new StudentProfile { IsActive = true };
+    }
+
+    private Timer? _searchDebounce;
+
+    private void OnSearchChanged(ChangeEventArgs e)
+    {
+        Search = e.Value?.ToString() ?? "";
+
+        _searchDebounce?.Dispose();
+
+        _searchDebounce = new Timer(async _ =>
+        {
+            await InvokeAsync(async () =>
+            {
+                await Load();
+                StateHasChanged();
+            });
+        }, null, 300, Timeout.Infinite);
+    }
+
+    void OnCancel()
+    {
+        NavManager.NavigateTo(NavManager.Uri, forceLoad: true);
+    }
+}
+
+<style>
+
+    /* LABEL BLUE COLOR */
+    label {
+        color: #0078D4; /* Microsoft blue */
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    /* KEEP YOUR EXISTING STYLE */
+    .page {
+        padding: 24px;
+        background-color: aliceblue;
+    }
+
+    .workspace {
+        display: flex;
+        gap: 16px;
+    }
+
+    .explorer {
+        width: 320px;
+        background-color: aliceblue;
+        border-radius: 12px;
+        overflow-y: auto;
+    }
+
+
+    .card {
+        background: #fff;
+        padding: 18px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    .action-bar {
+        position: sticky;
+        bottom: 0;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        background: #fff;
+        padding: 12px;
+    }
+
+
+    /* ================= GLOBAL ================= */
+    * {
+        box-sizing: border-box;
+    }
+
+    /* ================= PAGE ================= */
+    .page {
+        padding: 18px;
+        background: #F5F7FA;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    /* ================= HEADER ================= */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .title {
+        font-size: 28px;
+        font-weight: 600;
+        color: darkorange;
+    }
+
+    .meta {
+        font-size: 11px;
+        color: cornflowerblue;
+    }
+
+    /* ================= WORKSPACE ================= */
+    .workspace {
+        display: flex;
+        gap: 16px;
+        flex: 1;
+        min-height: 0;
+    }
+
+    /* ================= LEFT PANEL ================= */
+    .explorer {
+        width: 320px;
+        min-width: 320px;
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #E1DFDD;
+        overflow-y: auto;
+    }
+
+    /* ================= LIST ITEMS ================= */
+    .student-card {
+        display: flex;
+        gap: 12px;
+        padding: 12px;
+        border-bottom: 1px solid #F3F2F1;
+        cursor: pointer;
+    }
+
+        .student-card:hover {
+            background: #F3F2F1;
+        }
+
+        .student-card.active {
+            background: #E5F1FB;
+        }
+
+    .avatar {
+        font-size: 20px;
+    }
+
+    .info .name {
+        font-weight: 600;
+    }
+
+    .status.success {
+        color: green;
+    }
+
+    .status.danger {
+        color: red;
+    }
+
+    /* ================= RIGHT PANEL ================= */
+    .details {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        background-color:aliceblue;
+    }
+
+    /* ================= PROFILE ================= */
+    .profile-header {
+        background: #ffffff;
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        border: 1px solid #E1DFDD;
+    }
+
+    /* ================= CARD ================= */
+    .card {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        border: 1px solid #E1DFDD;
+    }
+
+    .card-title {
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    /* ================= FORM ================= */
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+    /* ================= GRID ================= */
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    @@media (max-width: 992px) {
+        .grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* ================= ACTION BAR ================= */
+    .action-bar {
+        position: sticky;
+        bottom: 0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        background-color:aliceblue;
+        padding: 12px;
+        border-top: 1px solid #E1DFDD;
+    }
+
+    /* ================= BUTTON ================= */
+    .btn {
+        padding: 8px 14px;
+    }
+
+    /* ================= EMPTY ================= */
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #605E5C;
+    }
+
+    /* ================= LOADING ================= */
+    .shimmer {
+        background: linear-gradient(90deg, #f3f2f1 25%, #e1dfdd 50%, #f3f2f1 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.2s infinite;
+        height: 80px;
+        border-radius: 10px;
+    }
+
+    @@keyframes shimmer {
+        0% {
+            background-position: 100%
+        }
+
+        100% {
+            background-position: -100%
+        }
+    }
+
+    /* ================= MOBILE ================= */
+    @@media (max-width: 992px) {
+        .workspace {
+            flex-direction: column;
+        }
+
+        .explorer {
+            width: 100%;
+        }
+    }
+
+</style>

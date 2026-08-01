@@ -64,6 +64,12 @@ builder.Services.AddScoped<JsonLookupDataService>();
 
 #endregion
 
+#region 📦 User Context SERVICES
+
+builder.Services.AddScoped<IUserContextService, UserContextService>();
+
+#endregion
+
 #region 🎨 UI SERVICES
 
 builder.Services.AddRadzenComponents();
@@ -81,51 +87,67 @@ builder.Services.AddScoped<ContextMenuService>();
 
 #region 🗄️ DATABASE
 
-var connectionString =
-    builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException(
-        "Connection string 'DefaultConnection' not found.");
+    var connectionString =
+        builder.Configuration
+            .GetConnectionString("DefaultConnection")
+        ?? throw new InvalidOperationException(
+            "Connection string 'DefaultConnection' not found.");
 
-builder.Services.AddDbContextFactory<ApplicationDbContext>(
-    options => options.UseSqlServer(connectionString));
+    builder.Services.AddDbContextFactory<ApplicationDbContext>(
+        options =>
+        {
+            options.UseSqlServer(
+                connectionString,
+                sql =>
+                {
+                    // ✅ Enterprise resiliency (REQUIRED for production)
+                    sql.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(10),
+                        errorNumbersToAdd: null);
+                });
 
-builder.Services.AddScoped(sp =>
-    sp.GetRequiredService<IDbContextFactory<ApplicationDbContext>>()
-      .CreateDbContext());
+            // ✅ Development-only diagnostics (SAFE)
+            if (builder.Environment.IsDevelopment())
+            {
+                options.EnableSensitiveDataLogging();
+            }
+        });
+
+    // ✅ Scoped DbContext for services (REQUIRED pattern)
+    builder.Services.AddScoped(sp =>
+        sp.GetRequiredService<IDbContextFactory<ApplicationDbContext>>()
+          .CreateDbContext());
 
 #endregion
 
 #region 🔐 IDENTITY & AUTHORIZATION
+    builder.Services
+        .AddIdentityCore<ApplicationUser>(options =>
+        {
+            options.SignIn.RequireConfirmedAccount = false;
+            options.Password.RequiredLength = 3;
+        })
+        .AddRoles<IdentityRole>()
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddSignInManager()
+        .AddDefaultTokenProviders();
 
-builder.Services
-    .AddIdentityCore<ApplicationUser>(options =>
+    builder.Services.Configure<IdentityOptions>(options =>
     {
-        options.SignIn.RequireConfirmedAccount = false;
-        options.Password.RequiredLength = 3;
-    })
-    .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddSignInManager()
-    .AddDefaultTokenProviders();
+        options.ClaimsIdentity.RoleClaimType = ClaimTypes.Role;
+    });
 
-builder.Services.Configure<IdentityOptions>(options =>
-{
-    options.ClaimsIdentity.RoleClaimType = ClaimTypes.Role;
-});
+    builder.Services
+        .AddAuthentication(IdentityConstants.ApplicationScheme)
+        .AddIdentityCookies();
 
-builder.Services
-    .AddAuthentication(IdentityConstants.ApplicationScheme)
-    .AddIdentityCookies();
-
-builder.Services.AddAuthorization();
-builder.Services.AddCascadingAuthenticationState();
-
-builder.Services.AddScoped<
-    AuthenticationStateProvider,
-    IdentityRevalidatingAuthenticationStateProvider>();
-
-builder.Services.AddScoped<IdentityRedirectManager>();
-
+    builder.Services.AddAuthorization();
+    builder.Services.AddCascadingAuthenticationState();
+    builder.Services.AddScoped<
+        AuthenticationStateProvider,
+        IdentityRevalidatingAuthenticationStateProvider>();
+    builder.Services.AddScoped<IdentityRedirectManager>();
 #endregion
 
 #region 🔥 MICROSOFT GRAPH
@@ -150,6 +172,18 @@ builder.Services.AddSingleton<GraphServiceClient>(sp =>
 
 builder.Services.AddScoped<ModelContentService>();
 builder.Services.AddScoped<SharePointService>();
+builder.Services.AddScoped<IStudentService>(sp => sp.GetRequiredService<SharePointService>());
+builder.Services.AddScoped<IGroupService>(sp => sp.GetRequiredService<SharePointService>());
+builder.Services.AddScoped<IEnrollmentService>(sp => sp.GetRequiredService<SharePointService>());
+
+#endregion
+
+#region Document Processing
+
+builder.Services.AddMemoryCache();
+    builder.Services.AddScoped<
+        MITANZ360Edu.Web.Services.DocumentProcessing.IFileStreamingService,
+        MITANZ360Edu.Web.Services.DocumentProcessing.FileStreamingService>();
 
 #endregion
 
@@ -204,51 +238,50 @@ var app = builder.Build();
 
 #region ✅ DOCUMENT PROXY API (MINIMAL API)
 
-app.MapGet("/api/documents/view/{id}", async (
+// Renders a library item in-browser. Office documents are converted to
+// PDF server-side and cached (see SharePointService.DocumentViewer.cs);
+// PDFs/images/HTML/text are streamed as-is. Permission (Published/Archived
+// state vs. caller's role) is validated inside GetRenderableDocumentAsync —
+// never trust the query string or client-side state for this decision.
+
+app.MapGet("/api/documents/render/{id}", async (
     string id,
     SharePointService sp,
     HttpContext context) =>
 {
     if (string.IsNullOrWhiteSpace(id))
-        return Results.BadRequest();
+        return Results.BadRequest("Missing document id.");
 
     try
     {
-        var stream = await sp.DownloadFileAsync(id);
+        var doc = await sp.GetRenderableDocumentAsync(id, context.User, context.RequestAborted);
 
-        var fileName = context.Request.Query["name"].ToString();
-
-        var ext = Path.GetExtension(fileName).ToLower();
-
-        var contentType = ext switch
-        {
-            ".pdf" => "application/pdf",
-
-            ".html" => "text/html",
-            ".htm" => "text/html",
-
-            ".png" => "image/png",
-            ".jpg" => "image/jpeg",
-            ".jpeg" => "image/jpeg",
-            ".gif" => "image/gif",
-
-            ".mp4" => "video/mp4",
-            ".webm" => "video/webm",
-            ".mov" => "video/quicktime",
-
-            _ => "application/octet-stream"
-        };
+        context.Response.Headers.ContentDisposition = $"inline; filename=\"{doc.FileName}\"";
 
         return Results.File(
-            stream,
-            contentType,
+            doc.Stream,
+            doc.ContentType,
             enableRangeProcessing: true);
+    }
+    catch (UnauthorizedAccessException)
+    {
+        return Results.Forbid();
+    }
+    catch (FileNotFoundException)
+    {
+        return Results.NotFound();
+    }
+    catch (NotSupportedException ex)
+    {
+        return Results.BadRequest(ex.Message);
     }
     catch (Exception ex)
     {
-        return Results.Problem($"File error: {ex.Message}");
+        return Results.Problem($"Document render failed: {ex.Message}");
     }
-});
+})
+.RequireAuthorization();
+
 #endregion
 
 #region 🧱 DATABASE INITIALIZATION

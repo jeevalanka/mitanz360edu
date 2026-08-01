@@ -1,5 +1,6 @@
 ﻿@page "/system-doctor"
 @layout MainLayout_NoRightPan
+@attribute [Authorize(Roles = "Admin,SysAdmin")]
 
 @using System.Globalization
 @using Microsoft.AspNetCore.Components.Authorization

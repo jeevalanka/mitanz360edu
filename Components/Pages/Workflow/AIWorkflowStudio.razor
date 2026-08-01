@@ -1,403 +1,784 @@
 ﻿@page "/ai-workflow-studio"
 @layout MainLayout_No_Left_RightPan
+@attribute [Authorize(Roles = "Admin,SysAdmin")]
 
 @using System.Text.Json
-@using Microsoft.AspNetCore.Components.Forms
-@using Microsoft.AspNetCore.Components.Web
+@using MITANZ360Edu.Web.Models.Workflow
+@using MITANZ360Edu.Web.Services.Workflow.Engine
+@using MITANZ360Edu.Web.Services.Workflow.Validation
+@using MITANZ360Edu.Web.Services.Workflow.Plugins
 
 @inject IJSRuntime JS
-@inject WorkflowRepository WorkflowRepository
-@inject WorkflowExecutionService WorkflowExecutionService
-@inject WorkflowValidator WorkflowValidator
+@inject WorkflowExecutionService WorkflowService
+@inject WorkflowValidator Validator
 @inject WorkflowPluginManager PluginManager
+@inject NavigationManager Navigation
 
 <PageTitle>AI Workflow Studio</PageTitle>
 
 <link href="css/workflowstudio.css" rel="stylesheet" />
 
-<div class="wf-shell">
+<div class="wf-page">
 
-    <!-- Ribbon -->
+    <div class="container-fluid p-0 wf-studio d-flex flex-column">
 
-    <header class="wf-toolbar border-bottom">
+        <!-- Ribbon -->
+        <div class="border-bottom bg-white shadow-sm p-2 flex-shrink-0">
+            <div class="btn-toolbar gap-2">
 
-        <div class="btn-toolbar">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary btn-sm" @onclick="NewWorkflow">
+                        <i class="bi bi-plus-circle"></i> New
+                    </button>
 
-            <button class="btn btn-primary btn-sm" @onclick="NewWorkflow">
-                <i class="bi bi-plus-circle"></i> New
-            </button>
+                    <button type="button" class="btn btn-primary"
+                            disabled="@(!CanSave)"
+                            @onclick="SaveWorkflow">
+                        Save
+                    </button>
 
-            <button class="btn btn-outline-primary btn-sm" @onclick="SaveWorkflow" disabled="@(!CanSave)">
-                <i class="bi bi-floppy"></i> Save
-            </button>
-
-            <button class="btn btn-outline-success btn-sm" @onclick="ExecuteWorkflow" disabled="@(!CanExecute)">
-                <i class="bi bi-play-fill"></i> Run
-            </button>
-
-            <button class="btn btn-outline-warning btn-sm" @onclick="ValidateWorkflow">
-                <i class="bi bi-shield-check"></i> Validate
-            </button>
-
-            <button class="btn btn-outline-secondary btn-sm" @onclick="AutoArrange">
-                <i class="bi bi-grid"></i> Arrange
-            </button>
-
-            <button class="btn btn-outline-danger btn-sm" @onclick="DeleteWorkflowConfirmed" disabled="@(!CanDelete)">
-                <i class="bi bi-trash"></i> Delete
-            </button>
-
-            <button class="btn btn-outline-dark btn-sm" @onclick="AiGenerateWorkflow">
-                <i class="bi bi-stars"></i> AI Generate
-            </button>
-
-        </div>
-
-        <div class="d-flex align-items-center gap-2">
-
-            <input class="form-control form-control-sm"
-                   style="width:220px"
-                   placeholder="Search..."
-                   @bind="SearchText" />
-
-            <span class="badge bg-success">@WorkflowStatus</span>
-
-        </div>
-
-    </header>
-
-    <div class="wf-main">
-
-        <!-- Left -->
-
-        <aside class="wf-left">
-
-            <div class="card mb-2">
-
-                <div class="card-header fw-bold">
-                    Workflows
+                    <button type="button" class="btn btn-outline-danger"
+                            disabled="@(!CanDelete)"
+                            @onclick="ConfirmWorkflowDelete">
+                        Delete
+                    </button>
                 </div>
 
-                <div class="list-group list-group-flush">
+                <div class="btn-group">
+                    <button type="button"
+                            class="btn btn-success"
+                            disabled="@(!CanExecute)"
+                            @onclick="ExecuteWorkflow"
+                            @onclick:preventDefault>
+                        Execute
+                    </button>
 
-                    @foreach (var workflow in FilteredWorkflows)
-                    {
-                        <button class="list-group-item list-group-item-action @(workflow==SelectedWorkflow?"active":"")"
-                                @onclick="@(()=>SelectWorkflow(workflow))">
+                    <button type="button" class="btn btn-warning"
+                            disabled="@(Workflow is null)"
+                            @onclick="ValidateWorkflow">
+                        Validate
+                    </button>
 
-                            @workflow.Name
-
-                        </button>
-                    }
-
+                    <button type="button" class="btn btn-outline-secondary ms-1"
+                            @onclick="RefreshWorkflows">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
                 </div>
 
             </div>
+        </div>
+        
+        <!-- Main -->
+        <div class="row g-0 flex-grow-1 overflow-auto">
 
-            <div class="card">
-
-                <div class="card-header fw-bold">
-                    Plugins
+            <!-- Explorer -->
+            <div class="col-2 border-end bg-light">
+                <div class="p-2 border-bottom">
+                    <input class="form-control form-control-sm"
+                           placeholder="Search workflow..."
+                           @bind="SearchText" />
                 </div>
 
                 <div class="list-group list-group-flush">
+                    @foreach (var file in FilteredWorkflows)
+                    {
+                        <button class="list-group-item list-group-item-action"
+                                @onclick="() => LoadWorkflow(file)">
+                            <i class="bi bi-diagram-3 me-2"></i>
+                            @System.IO.Path.GetFileNameWithoutExtension(file)
+                        </button>
+                    }
+                </div>
+            </div>
 
+            <!-- Toolbox -->
+            <div class="col-2 border-end bg-white">
+                <div class="p-2 fw-bold border-bottom">Plugins</div>
+
+                <div class="list-group list-group-flush">
                     @foreach (var plugin in Plugins)
                     {
                         <button class="list-group-item list-group-item-action"
-                                @onclick="@(()=>AddPlugin(plugin))">
-
-                            <i class="@GetPluginIcon(plugin) me-2"></i>
-
-                            @plugin
-
+                                @onclick="() => AddPlugin(plugin.Type)">
+                            <i class="bi bi-box me-2"></i>
+                            @plugin.Type
                         </button>
                     }
-
                 </div>
-
             </div>
 
-        </aside>
+            <!-- Designer -->
+            <div class="col-5 bg-body">
+                <div class="p-3">
 
-        <!-- Canvas -->
-
-        <section class="wf-center">
-
-            <WorkflowCanvas
-
-                @ref="Canvas"
-
-                Workflow="SelectedWorkflow"
-
-                SelectedStep="SelectedStep"
-
-                OnStepSelected="SelectStep"
-
-                OnStepMoved="StepMoved"
-
-                OnCanvasChanged="CanvasChanged" />
-
-        </section>
-
-        <!-- Properties -->
-
-        <aside class="wf-right">
-
-            <div class="card h-100">
-
-                <div class="card-header fw-bold">
-                    Properties
-                </div>
-
-                <div class="card-body">
-
-                    @if (SelectedStep != null)
+                    @if (Workflow is null)
                     {
-                        <div class="mb-2">
+                        <div class="alert alert-info p-4">
 
-                            <label>Name</label>
+                            <h5 class="mb-3">
+                                🧠 AI Workflow Studio – Quick Guide
+                            </h5>
+                            <code>Scrape🌐🔎📡→Process⚙️🧩🔄→Save💾🗄️📂→Notify🔔📩📢</code>
 
-                            <input class="form-control"
-                                   @bind="SelectedStep.Name" />
+                            <ol class="mb-3">
+                                <li>
+                                    <strong>Create or Load Workflow</strong><br />
+                                    Click <b>New</b> to start or select a workflow from the left panel.
+                                </li>
 
-                        </div>
+                                <li class="mt-2">
+                                    <strong>Add Steps</strong><br />
+                                    Use the <b>Plugins</b> panel to add steps like HTTP, SQL, Email, or File.
+                                </li>
 
-                        <div class="mb-2">
+                                <li class="mt-2">
+                                    <strong>Configure Step</strong><br />
+                                    Select a step to edit its properties on the right panel.
+                                </li>
 
-                            <label>Plugin</label>
+                                <li class="mt-2">
+                                    <strong>Arrange Order</strong><br />
+                                    Adjust execution order using the <b>Order</b> field.
+                                </li>
 
-                            <input class="form-control"
-                                   @bind="SelectedStep.Plugin" />
+                                <li class="mt-2">
+                                    <strong>Validate Workflow</strong><br />
+                                    Click <b>Validate</b> to check for errors.
+                                </li>
 
-                        </div>
+                                <li class="mt-2">
+                                    <strong>Execute Workflow</strong><br />
+                                    Click <b>Execute</b> to run and view results in the console below.
+                                </li>
 
-                        <div class="mb-2">
+                                <li class="mt-2">
+                                    <strong>Save Your Work</strong><br />
+                                    Click <b>Save</b> to store your workflow.
+                                </li>
+                            </ol>
 
-                            <label>Description</label>
-
-                            <textarea rows="4"
-                                      class="form-control"
-                                      @bind="SelectedStep.Description">
-                            </textarea>
-
-                        </div>
-
-                        <div class="row">
-
-                            <div class="col">
-
-                                <label>X</label>
-
-                                <input class="form-control"
-                                       type="number"
-                                       @bind="SelectedStep.X" />
-
+                            <div class="mt-3">
+                                <strong class="text-primary">
+                                    💡 Tip:
+                                </strong>
+                                You can combine multiple steps to build automation pipelines such as:
+                                <br />
                             </div>
 
-                            <div class="col">
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="card shadow-lg border-0 workflow-card">
 
-                                <label>Y</label>
-
-                                <input class="form-control"
-                                       type="number"
-                                       @bind="SelectedStep.Y" />
-
+                            <div class="card-header">
+                                <strong>@Workflow.Name</strong>
                             </div>
 
-                        </div>
+                            <div class="card-body">
 
-                        <div class="d-grid gap-2 mt-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Workflow Name</label>
+                                    <input class="form-control" @bind="Workflow.Name" />
+                                </div>
 
-                            <button class="btn btn-outline-primary btn-sm"
-                                    @onclick="RunSelectedStep">
+                                <div class="mb-3">
+                                    <label class="form-label">Description</label>
+                                    <textarea class="form-control" rows="3"
+                                              @bind="Workflow.Description"></textarea>
+                                </div>
 
-                                Run Step
+                                <h6 class="border-bottom pb-2">Workflow Steps</h6>
 
-                            </button>
+                                <div class="list-group">
+                                    @foreach (var step in Workflow.DataSources.OrderBy(x => x.Order))
+                                    {
+                                        <button class="list-group-item list-group-item-action"
+                                                @onclick="() => SelectStep(step)">
+                                            <div class="d-flex justify-content-between">
 
-                            <button class="btn btn-outline-danger btn-sm"
-                                    @onclick="DeleteSelectedStep">
+                                                <span>
+                                                    <strong>@step.Name</strong>
+                                                    <span class="badge bg-secondary ms-2">
+                                                        @step.Type
+                                                    </span>
+                                                </span>
 
-                                Delete Step
+                                                <span>Order: @step.Order</span>
 
-                            </button>
+                                            </div>
+                                        </button>
+                                    }
+                                </div>
+
+                            </div>
 
                         </div>
                     }
 
                 </div>
-
             </div>
 
-        </aside>
+            <!-- Properties (FULL RESTORED) -->
+            <div class="col-3 border-start bg-light">
+                <div class="p-3">
+
+                    <h6 class="border-bottom pb-2">Properties</h6>
+                    @if (SelectedStep is not null)
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input class="form-control" @bind="SelectedStep.Name" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Type</label>
+                            <input class="form-control" @bind="SelectedStep.Type" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Output</label>
+                            <input class="form-control" @bind="SelectedStep.Output" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Order</label>
+                            <input class="form-control" type="number" @bind="SelectedStep.Order" />
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox"
+                                   @bind="SelectedStep.Enabled" />
+                            <label class="form-check-label">Enabled</label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox"
+                                   @bind="SelectedStep.ContinueOnError" />
+                            <label class="form-check-label">
+                                Continue On Error
+                            </label>
+                        </div>
+
+                        @* SCRAPE / HTTP *@
+                        @if (SelectedStep.Type.Equals("scrape", StringComparison.OrdinalIgnoreCase) ||
+                             SelectedStep.Type.Equals("http", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">URL</label>
+                                <input class="form-control"
+                                       value="@GetSetting("url")"
+                                       @onchange="SetUrl" />
+                            </div>
+                        }
+                        @if (SelectedStep.Type.Equals("http", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Method</label>
+                                <select class="form-select"
+                                        value="@GetSetting("method")"
+                                        @onchange="SetMethod">
+                                    <option>GET</option>
+                                    <option>POST</option>
+                                    <option>PUT</option>
+                                    <option>DELETE</option>
+                                </select>
+                            </div>
+                        }
+
+                        @* FILE *@
+                        @if (SelectedStep.Type.Equals("file", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Operation</label>
+                                <select class="form-select"
+                                        value="@GetSetting("operation")"
+                                        @onchange="SetFileOperation">
+
+                                    <option value="Read">Read</option>
+                                    <option value="Write">Write</option>
+                                    <option value="Append">Append</option>
+                                    <option value="Delete">Delete</option>
+                                    <option value="Copy">Copy</option>
+                                    <option value="Move">Move</option>
+                                    <option value="List">List</option>
+
+                                    <option value="SaveHtml">SaveHtml</option>
+                                    <option value="SaveMarkdown">SaveMarkdown</option>
+                                    <option value="SaveJson">SaveJson</option>
+                                    <option value="SaveCsv">SaveCsv</option>
+
+                                    <option value="UploadToSharePoint">
+                                        UploadToSharePoint
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Input</label>
+                                <input class="form-control"
+                                       value="@GetSetting("input")"
+                                       @onchange="SetFileInput" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">File Path</label>
+                                <input class="form-control"
+                                       value="@GetSetting("path")"
+                                       @onchange="SetPath" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Destination</label>
+                                <input class="form-control"
+                                       value="@GetSetting("destination")"
+                                       @onchange="SetDestination" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    File Name
+                                </label>
+
+                                <input class="form-control"
+                                       value="@GetSetting("fileName")"
+                                       @onchange="SetFileName" />
+                            </div>
+                        }
+
+                        @* SQL *@
+                        @if (SelectedStep.Type.Equals("sql", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Connection</label>
+                                <input class="form-control"
+                                       value="@GetSetting("connection")"
+                                       @onchange="SetConnection" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">SQL Query</label>
+                                <textarea rows="5" class="form-control"
+                                          @onchange="SetQuery">@GetSetting("query")</textarea>
+                            </div>
+                        }
+
+                        @* EMAIL *@
+                        @if (SelectedStep.Type.Equals("email", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">To</label>
+                                <input class="form-control"
+                                       value="@GetSetting("to")"
+                                       @onchange="SetEmailTo" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Subject</label>
+                                <input class="form-control"
+                                       value="@GetSetting("subject")"
+                                       @onchange="SetEmailSubject" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Body</label>
+                                <textarea rows="5" class="form-control"
+                                          @onchange="SetEmailBody">@GetSetting("body")</textarea>
+                            </div>
+                        }
+
+
+                        @* SHAREPOINT *@
+                        @if (SelectedStep.Type.Equals("sharepoint", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Site URL</label>
+                                <input class="form-control"
+                                       value="@GetSetting("siteUrl")"
+                                       @onchange="SetSiteUrl" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">List Name</label>
+                                <input class="form-control"
+                                       value="@GetSetting("listName")"
+                                       @onchange="SetListName" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Operation</label>
+                                <select class="form-select"
+                                        value="@GetSetting("operation")"
+                                        @onchange="SetOperation">
+                                    <option value="read">Read</option>
+                                    <option value="create">Create</option>
+                                    <option value="update">Update</option>
+                                    <option value="delete">Delete</option>
+                                </select>
+                            </div>
+                        }
+
+                        @* AI *@
+                        @if (SelectedStep.Type.Equals("ai", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Provider</label>
+                                <InputSelect class="form-select"
+                                             @bind-Value="AiProvider">
+                                    <option value="AzureOpenAI">Azure OpenAI</option>
+                                    <option value="OpenAI">OpenAI</option>
+                                    <option value="OpenRouter">OpenRouter</option>
+                                </InputSelect>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Model</label>
+                                <InputText class="form-control"
+                                           @bind-Value="AiModel" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Prompt</label>
+                                <InputTextArea rows="6"
+                                               class="form-control"
+                                               @bind-Value="AiPrompt" />
+                            </div>
+                        }
+
+                        <div class="mt-3">
+                            <button type="button"
+                                    class="btn btn-outline-danger btn-sm w-100"
+                                    @onclick="ShowDeleteConfirmation">
+                                Remove Step
+                            </button>
+                        </div>
+                        @if (ShowDeleteDialog)
+                        {
+                            <div class="modal fade show d-block"
+                                 style="background:rgba(0,0,0,.5);">
+
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title">
+                                                Confirm Delete
+                                            </h5>
+                                        </div>
+
+                                        <div class="modal-body">
+                                            Are you sure you want to delete
+                                            <strong>@SelectedStep?.Name</strong>?
+                                        </div>
+
+                                        <div class="modal-footer">
+
+                                            <button class="btn btn-secondary"
+                                                    @onclick="CancelDelete">
+                                                Cancel
+                                            </button>
+
+                                            <button class="btn btn-danger"
+                                                    @onclick="@(() => DeleteConfirmed())">
+                                                Delete
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+
+                </div>
+            </div>
+
+        </div>
+
+        @* ✅ PLACE WORKFLOW DELETE MODAL HERE *@
+        @if (ShowWorkflowDeleteDialog)
+        {
+            <div class="modal fade show d-block"
+                 style="background:rgba(0,0,0,.5);">
+
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title">
+                                Confirm Workflow Delete
+                            </h5>
+                        </div>
+
+                        <div class="modal-body">
+                            Are you sure you want to delete workflow
+                            <strong>@Workflow?.Name</strong>?
+                        </div>
+
+                        <div class="modal-footer">
+
+                            <button class="btn btn-secondary"
+                                    @onclick="CancelWorkflowDelete">
+                                Cancel
+                            </button>
+
+                            <button class="btn btn-danger"
+                                    @onclick="DeleteWorkflowConfirmed">
+                                Delete
+                            </button>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        }
+
+
+        <!-- ✅ Console Footer -->
+        <div class="wf-console border-top bg-dark text-light p-3 flex-shrink-0">
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <strong class="text-warning">Workflow Console</strong>
+                    <span class="ms-2 badge bg-secondary">@Logs.Count</span>
+                </div>
+
+                <button class="btn btn-sm btn-outline-light"
+                        @onclick="ClearLogs">
+                    <i class="bi bi-trash"></i> Clear
+                </button>
+            </div>
+
+            <div style="max-height:200px; overflow-y:auto;">
+                @if (!Logs.Any())
+                {
+                    <div class="text-secondary">No log entries available.</div>
+                }
+                else
+                {
+                    @foreach (var line in Logs)
+                    {
+                        <div class="py-1 px-2 mb-1 rounded"
+                             style="background:#1f2937;color:white;">
+                            @line
+                        </div>
+                    }
+                }
+            </div>
+
+        </div>
 
     </div>
-
-    <!-- Console -->
-
-    <footer class="wf-console">
-
-        <div class="d-flex justify-content-between mb-2">
-
-            <strong>Console</strong>
-
-            <div>
-
-                <button class="btn btn-sm btn-outline-secondary"
-                        @onclick="ClearConsole">
-
-                    Clear
-
-                </button>
-
-            </div>
-
-        </div>
-
-        <div class="wf-log">
-
-            @foreach (var log in Logs)
-            {
-                <div>@log</div>
-            }
-
-        </div>
-
-    </footer>
 
 </div>
 
 @code
 {
-    private WorkflowCanvas? Canvas;
-
-    private WorkflowDefinition? SelectedWorkflow;
+    private WorkflowDefinition? Workflow;
 
     private WorkflowStep? SelectedStep;
 
-    private readonly List<string> Logs = new();
+    private WorkflowContext? Result;
 
-    private List<string> Plugins = new();
+    private List<string> WorkflowFiles = [];
 
-    private List<WorkflowDefinition> Workflows = new();
+    private List<string> Logs = [];
 
-    private string WorkflowStatus = "Ready";
+    private string SearchText = string.Empty;
 
-    private string SearchText = "";
+    private IReadOnlyCollection<IWorkflowPlugin> Plugins = [];
+
+    private bool ShowDeleteDialog;
+
+    private bool ShowWorkflowDeleteDialog;
+
+    private string AiModel
+    {
+        get => GetSetting("model");
+        set => SetSetting("model", value);
+    }
+
+    private string AiPrompt
+    {
+        get => GetSetting("prompt");
+        set => SetSetting("prompt", value);
+    }
+
+    private void SetOperation(ChangeEventArgs e)
+    {
+        SelectedStep!.Settings["operation"] =
+            e.Value?.ToString() ?? "read";
+    }
+
+    private void ConfirmWorkflowDelete()
+    {
+        ShowWorkflowDeleteDialog = true;
+    }
+
+    private void CancelWorkflowDelete()
+    {
+        ShowWorkflowDeleteDialog = false;
+    }
+
+    private async Task DeleteWorkflowConfirmed()
+    {
+        ShowWorkflowDeleteDialog = false;
+
+        await DeleteWorkflow();
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        Plugins = PluginManager.GetPlugins()
-            .Select(x => x.Name)
-            .OrderBy(x => x)
-            .ToList();
+        WorkflowFiles = await WorkflowService.GetWorkflowsAsync();
 
-        Workflows = (await WorkflowRepository.GetAllAsync()).ToList();
-
-        SelectedWorkflow = Workflows.FirstOrDefault();
+        Plugins = PluginManager.GetAll();
     }
 
-    private IEnumerable<WorkflowDefinition> FilteredWorkflows =>
+    private IEnumerable<string> FilteredWorkflows =>
         string.IsNullOrWhiteSpace(SearchText)
-            ? Workflows
-            : Workflows.Where(x =>
-                x.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+            ? WorkflowFiles
+            : WorkflowFiles.Where(x =>
+                x.Contains(
+                    SearchText,
+                    StringComparison.OrdinalIgnoreCase));
 
-    private bool CanSave => SelectedWorkflow != null;
+    private bool CanSave => Workflow is not null;
 
-    private bool CanDelete => SelectedWorkflow != null;
+    private bool CanDelete => Workflow is not null;
 
     private bool CanExecute =>
-        SelectedWorkflow != null &&
-        SelectedWorkflow.Steps.Any();
+      Workflow is not null &&
+      Workflow.DataSources.Any(s => s.Enabled);
 
-    private async Task NewWorkflow()
+    private string AiProvider
     {
-        SelectedWorkflow = new WorkflowDefinition
+        get => GetSetting("provider") ?? "AzureOpenAI";
+        set
         {
-            Id = Guid.NewGuid(),
+            if (SelectedStep is not null)
+            {
+                SelectedStep.Settings["provider"] = value;
+            }
+        }
+    }
+
+    private void NewWorkflow()
+    {
+        Workflow = new WorkflowDefinition
+        {
             Name = "New Workflow"
         };
 
         SelectedStep = null;
 
-        Workflows.Add(SelectedWorkflow);
+        Log("Workflow created.");
+    }
 
-        AddLog("New workflow created.");
+    private async Task LoadWorkflow(string file)
+    {
+        Workflow = await WorkflowService.LoadAsync(file);
 
-        await InvokeAsync(StateHasChanged);
+        SelectedStep = null;
+
+        Log($"Loaded {file}");
     }
 
     private async Task SaveWorkflow()
     {
-        if (SelectedWorkflow == null)
+        if (Workflow is null)
             return;
 
-        await WorkflowRepository.SaveAsync(SelectedWorkflow);
+        await WorkflowService.SaveAsync(Workflow);
 
-        WorkflowStatus = "Saved";
+        WorkflowFiles =
+            await WorkflowService.GetWorkflowsAsync();
 
-        AddLog($"{SelectedWorkflow.Name} saved.");
+        Log("Workflow saved.");
+
+        StateHasChanged();
+    }
+
+    private async Task DeleteWorkflow()
+    {
+        if (Workflow is null)
+            return;
+
+        await WorkflowService.DeleteAsync(
+            $"{Workflow.Name}.json");
+
+        Workflow = null;
+
+        SelectedStep = null;
+
+        WorkflowFiles =
+            await WorkflowService.GetWorkflowsAsync();
+
+        Log("Workflow deleted.");
+
+        StateHasChanged();
     }
 
     private async Task ExecuteWorkflow()
     {
-        if (SelectedWorkflow == null)
+        if (Workflow is null)
             return;
-
-        WorkflowStatus = "Running";
 
         try
         {
-            var result = await WorkflowExecutionService.ExecuteAsync(SelectedWorkflow);
+            Log($"Executing workflow: {Workflow.Name}");
 
-            AddLog("Workflow executed.");
+            Result = await WorkflowService.ExecuteAsync(Workflow);
 
-            if (result != null)
-                AddLog(JsonSerializer.Serialize(result));
+            Log("═══════════════════════════════");
+            Log("WORKFLOW COMPLETED");
+            Log("═══════════════════════════════");
+
+            if (Result?.Variables is not null &&
+                Result.Variables.Count > 0)
+            {
+                foreach (var variable in Result.Variables)
+                {
+                    Log($"OUTPUT: {variable.Key}");
+
+                    var value = variable.Value?.ToString() ?? "(null)";
+
+                    if (value.Length > 2000)
+                    {
+                        value = value[..2000] + "...";
+                    }
+
+                    Log(value);
+
+                    Log("───────────────────────────────");
+                }
+            }
+            else
+            {
+                Log("No output variables returned.");
+            }
         }
         catch (Exception ex)
         {
-            AddLog(ex.Message);
+            Log($"ERROR: {ex.Message}");
+        }
+    }
+    private void ValidateWorkflow()
+    {
+        if (Workflow is null) return;
+
+        var errors = Validator.Validate(Workflow);
+
+        if (errors.Count == 0)
+        {
+            Log("Validation passed.");
+            return;
         }
 
-        WorkflowStatus = "Ready";
-    }
-
-    private async Task ValidateWorkflow()
-    {
-        if (SelectedWorkflow == null)
-            return;
-
-        var result = await WorkflowValidator.ValidateAsync(SelectedWorkflow);
-
-        AddLog(result.Success
-            ? "Validation passed."
-            : result.Message);
-    }
-
-    private async Task DeleteWorkflowConfirmed()
-    {
-        if (SelectedWorkflow == null)
-            return;
-
-        await WorkflowRepository.DeleteAsync(SelectedWorkflow.Id);
-
-        Workflows.Remove(SelectedWorkflow);
-
-        SelectedWorkflow = Workflows.FirstOrDefault();
-
-        SelectedStep = null;
-
-        WorkflowStatus = "Deleted";
-    }
-
-    private void SelectWorkflow(WorkflowDefinition workflow)
-    {
-        SelectedWorkflow = workflow;
-
-        SelectedStep = null;
+        foreach (var error in errors)
+        {
+            Log(error);
+        }
     }
 
     private void SelectStep(WorkflowStep step)
@@ -405,146 +786,259 @@
         SelectedStep = step;
     }
 
-    private void AddPlugin(string plugin)
+    private void AddPlugin(string type)
     {
-        if (SelectedWorkflow == null)
+        if (Workflow is null)
             return;
 
         var step = new WorkflowStep
         {
-            Id = Guid.NewGuid(),
-            Name = $"{plugin} Step",
-            Plugin = plugin,
-            X = 120,
-            Y = 120
+            Name = $"{type} step",
+            Type = type,
+            Enabled = true,
+            Order = Workflow.DataSources.Count + 1,
+            Output = $"{type}Output"
         };
 
-        SelectedWorkflow.Steps.Add(step);
+        switch (type.ToLowerInvariant())
+        {
+            case "ai":
+                step.Settings["provider"] = "AzureOpenAI";
+                step.Settings["model"] = "gpt-5";
+                step.Settings["prompt"] = "Enter your prompt here...";
+                break;
+
+            case "http":
+                step.Settings["method"] = "GET";
+                step.Settings["url"] = "";
+                break;
+
+            case "scrape":
+                step.Settings["url"] = "";
+                break;
+
+            case "sql":
+                step.Settings["connection"] = "";
+                step.Settings["query"] = "";
+                break;
+
+            case "email":
+                step.Settings["to"] = "";
+                step.Settings["subject"] = "";
+                step.Settings["body"] = "";
+                break;
+
+            case "sharepoint":
+                step.Settings["siteUrl"] = "";
+                step.Settings["listName"] = "";
+                step.Settings["operation"] = "read";
+                break;
+
+            case "file":
+                step.Settings["path"] = "";
+                step.Settings["fileName"] = "Report.html";
+                break;
+        }
+
+        Workflow.DataSources.Add(step);
 
         SelectedStep = step;
 
-        Canvas?.Refresh();
+        Log($"{type} step added.");
+
+        StateHasChanged();
     }
 
-    private void DeleteSelectedStep()
+    private void ShowDeleteConfirmation()
     {
-        if (SelectedWorkflow == null || SelectedStep == null)
+        Log("Delete button clicked");
+        ShowDeleteDialog = true;
+    }
+
+    private void CancelDelete()
+    {
+        ShowDeleteDialog = false;
+        StateHasChanged();
+    }
+
+    private void DeleteConfirmed()
+    {
+        if (Workflow is null || SelectedStep is null)
             return;
 
-        SelectedWorkflow.Steps.Remove(SelectedStep);
+        var stepName = SelectedStep.Name;
 
+        Workflow.DataSources.RemoveAll(s => s == SelectedStep);
+
+        // ✅ reset selection
         SelectedStep = null;
 
-        Canvas?.Refresh();
+        // ✅ re-order steps (very important)
+        int order = 1;
+        foreach (var step in Workflow.DataSources.OrderBy(x => x.Order))
+        {
+            step.Order = order++;
+        }
+
+        ShowDeleteDialog = false;
+
+        Log($"Step '{stepName}' removed.");
+
+        StateHasChanged();
     }
 
-    private async Task RunSelectedStep()
+    private void Log(string message)
     {
-        if (SelectedWorkflow == null || SelectedStep == null)
+        Logs.Add(
+            $"[{DateTime.Now:HH:mm:ss}] {message}");
+
+        if (Logs.Count > 500)
+            Logs.RemoveAt(0);
+
+        StateHasChanged();
+    }
+
+    private string GetSetting(string key)
+    {
+        if (SelectedStep is null)
+            return string.Empty;
+
+        if (SelectedStep.Settings.TryGetValue(
+            key,
+            out var value))
+        {
+            return value?.ToString()
+                ?? string.Empty;
+        }
+
+        return string.Empty;
+    }
+
+    private void SetSetting(
+        string key,
+        string? value)
+    {
+        if (SelectedStep is null)
             return;
 
-        try
-        {
-            await WorkflowExecutionService.ExecuteStepAsync(
-                SelectedWorkflow,
-                SelectedStep,
-                new WorkflowContext());
-
-            AddLog($"{SelectedStep.Name} completed.");
-        }
-        catch (Exception ex)
-        {
-            AddLog(ex.Message);
-        }
+        SelectedStep.Settings[key] = value;
     }
 
-    private async Task AiGenerateWorkflow()
+    private void SetUrl(ChangeEventArgs e)
+        => SetSetting("url", e.Value?.ToString());
+
+    private void SetMethod(ChangeEventArgs e)
+        => SetSetting("method", e.Value?.ToString());
+
+    private void SetPath(ChangeEventArgs e)
+        => SetSetting("path", e.Value?.ToString());
+
+    private void SetConnection(ChangeEventArgs e)
+        => SetSetting("connection", e.Value?.ToString());
+
+    private void SetQuery(ChangeEventArgs e)
+        => SetSetting("query", e.Value?.ToString());
+
+    private void SetEmailTo(ChangeEventArgs e)
+        => SetSetting("to", e.Value?.ToString());
+
+    private void SetEmailSubject(ChangeEventArgs e)
+        => SetSetting("subject", e.Value?.ToString());
+
+    private void SetEmailBody(ChangeEventArgs e)
+        => SetSetting("body", e.Value?.ToString());
+
+    private void SetSiteUrl(ChangeEventArgs e)
+        => SetSetting("siteUrl", e.Value?.ToString());
+
+    private void SetListName(ChangeEventArgs e)
+        => SetSetting("listName", e.Value?.ToString());
+
+    private async Task RefreshWorkflows()
     {
-        var prompt = await JS.InvokeAsync<string>(
-            "prompt",
-            "Describe workflow");
+        WorkflowFiles = await WorkflowService.GetWorkflowsAsync();
 
-        if (string.IsNullOrWhiteSpace(prompt))
-            return;
-
-        try
-        {
-            var output = await WorkflowExecutionService.GenerateWorkflowAsync(prompt);
-
-            if (output != null)
-            {
-                SelectedWorkflow = output;
-
-                if (!Workflows.Any(x => x.Id == output.Id))
-                    Workflows.Add(output);
-
-                Canvas?.Refresh();
-
-                AddLog("AI workflow generated.");
-            }
-        }
-        catch (Exception ex)
-        {
-            AddLog(ex.Message);
-        }
+        Log("Workflow list refreshed.");
     }
 
-    private void AutoArrange()
-    {
-        if (SelectedWorkflow == null)
-            return;
-
-        int x = 80;
-        int y = 60;
-
-        foreach (var step in SelectedWorkflow.Steps)
-        {
-            step.X = x;
-            step.Y = y;
-
-            y += 140;
-
-            if (y > 900)
-            {
-                y = 60;
-                x += 320;
-            }
-        }
-
-        Canvas?.Refresh();
-    }
-
-    private void StepMoved(WorkflowStep step)
-    {
-        SelectedStep = step;
-    }
-
-    private void CanvasChanged()
-    {
-        WorkflowStatus = "Modified";
-    }
-
-    private void ClearConsole()
+    private void ClearLogs()
     {
         Logs.Clear();
+
+        StateHasChanged();
     }
 
-    private void AddLog(string text)
+    private void SetAiProvider(ChangeEventArgs e)
     {
-        Logs.Add($"[{DateTime.Now:HH:mm:ss}] {text}");
-
-        if (Logs.Count > 300)
-            Logs.RemoveAt(0);
+        SelectedStep!.Settings["provider"] =
+            e.Value?.ToString() ?? "AzureOpenAI";
     }
 
-    private string GetPluginIcon(string plugin) => plugin switch
+    private void SetAiModel(ChangeEventArgs e)
     {
-        "AI" => "bi bi-robot",
-        "HTTP" => "bi bi-globe",
-        "SQL" => "bi bi-database",
-        "Email" => "bi bi-envelope",
-        "SharePoint" => "bi bi-share",
-        "File" => "bi bi-file-earmark",
-        _ => "bi bi-box"
-    };
+        SelectedStep!.Settings["model"] =
+            e.Value?.ToString() ?? string.Empty;
+    }
+
+    private void SetAiPrompt(ChangeEventArgs e)
+    {
+        SelectedStep!.Settings["prompt"] =
+            e.Value?.ToString() ?? string.Empty;
+    }
+
+    private void SetFileOperation(ChangeEventArgs e)
+    {
+        SelectedStep!.Settings["operation"] =
+            e.Value?.ToString() ?? string.Empty;
+    }
+
+    private void SetFileInput(ChangeEventArgs e)
+    {
+        SelectedStep!.Settings["input"] =
+            e.Value?.ToString() ?? string.Empty;
+    }
+
+    private void SetDestination(ChangeEventArgs e)
+    {
+        SelectedStep!.Settings["destination"] =
+            e.Value?.ToString() ?? string.Empty;
+    }
+
+    private void SetFileName(ChangeEventArgs e)
+    {
+        SelectedStep!.Settings["fileName"] =
+            e.Value?.ToString() ?? string.Empty;
+    }
 }
+
+<style>
+        .workflow-card {
+            background: #ff8c00;
+            border-radius: 12px;
+        }
+
+        .workflow-card .card-header {
+            background: #e67e00;
+            color: white;
+            font-weight: 600;
+        }
+
+        .workflow-card .card-body {
+            color: white;
+        }
+
+        .wf-page {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .wf-studio {
+            flex: 1;
+        }
+
+        .wf-console {
+            height: 260px;
+        }
+
+    </style>

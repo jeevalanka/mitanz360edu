@@ -13,60 +13,170 @@ public sealed class WorkflowValidator
 
         var errors = new List<string>();
 
+        // Workflow
         if (string.IsNullOrWhiteSpace(workflow.Name))
+        {
             errors.Add("Workflow name is required.");
+        }
+
+        if (workflow.DataSources.Count == 0)
+        {
+            errors.Add("Workflow must contain at least one step.");
+        }
 
         foreach (var step in workflow.DataSources)
         {
-            if (string.IsNullOrWhiteSpace(step.Name))
-                errors.Add("A data source name is required.");
+            ValidateCommonStep(step, errors);
 
-            if (string.IsNullOrWhiteSpace(step.Type))
-                errors.Add($"'{step.Name}' type is required.");
-
-            if (string.IsNullOrWhiteSpace(step.Output))
-                errors.Add($"'{step.Name}' output is required.");
-
-            if (step.Type.Equals("scrape", StringComparison.OrdinalIgnoreCase))
+            switch (step.Type.ToLowerInvariant())
             {
-                if (!step.Settings.ContainsKey("url"))
-                    errors.Add($"'{step.Name}' requires a URL.");
+                case "scrape":
+                    ValidateRequiredSetting(
+                        step,
+                        "url",
+                        "URL",
+                        errors);
+                    break;
+
+                case "http":
+                    ValidateRequiredSetting(
+                        step,
+                        "url",
+                        "URL",
+                        errors);
+
+                    ValidateRequiredSetting(
+                        step,
+                        "method",
+                        "Method",
+                        errors);
+                    break;
+
+                case "sql":
+                    ValidateRequiredSetting(
+                        step,
+                        "connection",
+                        "Connection",
+                        errors);
+
+                    ValidateRequiredSetting(
+                        step,
+                        "query",
+                        "SQL Query",
+                        errors);
+                    break;
+
+                case "file":
+                    ValidateRequiredSetting(
+                        step,
+                        "path",
+                        "File Path",
+                        errors);
+                    break;
+
+                case "email":
+                    ValidateRequiredSetting(
+                        step,
+                        "to",
+                        "Recipient",
+                        errors);
+
+                    ValidateRequiredSetting(
+                        step,
+                        "subject",
+                        "Subject",
+                        errors);
+
+                    ValidateRequiredSetting(
+                        step,
+                        "body",
+                        "Body",
+                        errors);
+                    break;
+
+                case "sharepoint":
+                    ValidateRequiredSetting(step,"siteUrl","Site URL",errors);
+
+                    ValidateRequiredSetting(
+                        step,
+                        "listName",
+                        "List Name",
+                        errors);
+
+                    ValidateRequiredSetting(
+                        step,
+                        "operation",
+                        "Operation",
+                        errors);
+                    break;
+
+                case "ai":
+                    ValidateRequiredSetting(
+                        step,
+                        "provider",
+                        "Provider",
+                        errors);
+
+                    ValidateRequiredSetting(
+                        step,
+                        "model",
+                        "Model",
+                        errors);
+
+                    ValidateRequiredSetting(
+                        step,
+                        "prompt",
+                        "Prompt",
+                        errors);
+                    break;
+
+                default:
+                    errors.Add(
+                        $"'{step.Name}' has unsupported plugin type '{step.Type}'.");
+                    break;
             }
-
-            if (step.Type.Equals("http", StringComparison.OrdinalIgnoreCase))
-            {
-                if (!step.Settings.ContainsKey("url"))
-                    errors.Add($"'{step.Name}' requires a URL.");
-            }
-
-            if (step.Type.Equals("sql", StringComparison.OrdinalIgnoreCase))
-            {
-                if (!step.Settings.ContainsKey("query"))
-                    errors.Add($"'{step.Name}' requires a SQL query.");
-            }
-
-            if (step.Type.Equals("file", StringComparison.OrdinalIgnoreCase))
-            {
-                if (!step.Settings.ContainsKey("path"))
-                    errors.Add($"'{step.Name}' requires a file path.");
-            }
-        }
-
-        foreach (var ai in workflow.AiSteps)
-        {
-            if (string.IsNullOrWhiteSpace(ai.Name))
-                errors.Add("AI step name is required.");
-
-            if (string.IsNullOrWhiteSpace(ai.Provider))
-                errors.Add($"'{ai.Name}' provider is required.");
-
-            if (string.IsNullOrWhiteSpace(ai.Prompt))
-                errors.Add($"'{ai.Name}' prompt is required.");
-
-            if (string.IsNullOrWhiteSpace(ai.Output))
-                errors.Add($"'{ai.Name}' output is required.");
         }
 
         return errors;
+    }
+
+    private static void ValidateCommonStep(
+        WorkflowStep step,
+        List<string> errors)
+    {
+        if (string.IsNullOrWhiteSpace(step.Name))
+        {
+            errors.Add("Step name is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(step.Type))
+        {
+            errors.Add($"'{step.Name}' type is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(step.Output))
+        {
+            errors.Add($"'{step.Name}' output is required.");
+        }
+
+        if (step.Order <= 0)
+        {
+            errors.Add(
+                $"'{step.Name}' must have a valid execution order.");
+        }
+    }
+
+    private static void ValidateRequiredSetting(
+        WorkflowStep step,
+        string key,
+        string displayName,
+        List<string> errors)
+    {
+        if (!step.Settings.TryGetValue(key, out var value) ||
+            string.IsNullOrWhiteSpace(value?.ToString()))
+        {
+            errors.Add(
+                $"'{step.Name}' requires {displayName}.");
+        }
     }
 }

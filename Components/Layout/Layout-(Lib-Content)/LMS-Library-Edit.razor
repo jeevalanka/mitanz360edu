@@ -1,940 +1,1965 @@
-﻿@page "/lms-crud-edit/{Id}/{FolderId}"
+﻿@page "/x-lms-library-edit/{ItemId}"
 @layout Lib_Cont_Layout
 
 @using MITANZ360Edu.Web.Services
-@using MITANZ360Edu.Web.Services.Automation
-@using Radzen
-@using Radzen.Blazor
+@using MITANZ360Edu.Web.Models
+@using Microsoft.AspNetCore.Components.Authorization
 @using System.Text.Json
-@using System.Text.Json.Nodes
-@using System.Text.RegularExpressions;
-@using HtmlAgilityPack;
-@using System.Net;
 
-@inject SharePointService SharePointService
-@inject NavigationManager NavigationManager
-@inject NotificationService NotificationService
+@inject SharePointService _spService
+@inject NavigationManager Nav
 @inject IJSRuntime JS
-@inject Radzen.DialogService DialogService
-@inject JsonLookupDataService JsonLookupDataService
-@inject AutomationService AutomationService
-
-<PageTitle>LMS Content Edit</PageTitle>
-
-<!-- ===================================================== -->
-<!-- PAGE -->
-<!-- ===================================================== -->
-
-<div style="
-    min-height:100vh;
-    padding:28px;
-    background:
-    linear-gradient(
-    135deg,
-    #f3f6fb,
-    #eef3f8);">
-
-    <!-- ================================================= -->
-    <!-- HEADER -->
-    <!-- ================================================= -->
-
-    <RadzenCard Style="
-        border-radius:30px;
-        padding:10px;
-        margin-bottom:14px;
-        background:
-        linear-gradient(
-        135deg,
-        blue,
-        #0078D4,
-        black);
-        color:white;
-        box-shadow:
-        0 10px 20px rgba(0,0,0,0.16);">
-
-        <RadzenStack Orientation="Orientation.Horizontal"
-                     AlignItems="AlignItems.Center"
-                     JustifyContent="JustifyContent.SpaceBetween">
-
-            <div>
-                <RadzenText TextStyle="TextStyle.H6" Style="font-weight:700; color:white;">
-                    LMS Content Editor
-                </RadzenText>
-            </div>
-
-            <RadzenButton Icon="arrow_back"
-                          Text="Back"
-                          ButtonStyle="ButtonStyle.Light"
-                          Click="@BackToLibrary"
-                          Style="
-            border-radius:16px;
-            height:18px;
-            padding-left:10px;
-            padding-right:20px;
-            font-weight:800;" />
-
-        </RadzenStack>
-
-    </RadzenCard>
-
-    <!-- ================================================= -->
-    <!-- MAIN GRID -->
-    <!-- ================================================= -->
-
-    <RadzenRow Gap="1rem">
-
-        <!-- ============================================= -->
-        <!-- LEFT -->
-        <!-- ============================================= -->
-
-        <RadzenColumn Size="8">
-
-            <!-- GENERAL -->
-            <RadzenCard Style="@GlassCardStyle">
-                <RadzenStack Gap="1.25rem">
-                    <RadzenText TextStyle="TextStyle.H5" Style="@SectionHeaderStyle">
-                        General Information
-                    </RadzenText>
-
-                    <div class="lms-inline-fields">
-                        <RadzenTextBox @bind-Value="Model.ContentId"
-                                       Placeholder="Content ID"
-                                       Style="width:50%;"
-                                       ReadOnly="true"
-                                       Title="System generated enterprise content identifier." />
-
-                        <RadzenTextBox @bind-Value="Model.CourseId"
-                                       Placeholder="Course ID"
-                                       Style="width:50%;"
-                                       ReadOnly="true"
-                                       Title="Associated LMS course identifier." />
-                    </div>
-
-                    <RadzenTextBox @bind-Value="Model.Title"
-                                   Placeholder="Title"
-                                   Style="@InputStyle"
-                                   Title="Main learning content title displayed in the LMS." />
-
-                    <RadzenTextArea @bind-Value="Model.Description"
-                                    Placeholder="Description"
-                                    Rows="5"
-                                    Style="@InputStyle"
-                                    Title="Detailed summary or overview of the learning content." />
-
-                </RadzenStack>
-            </RadzenCard>
-
-            <!-- METADATA -->
-            <RadzenCard Style="@GlassCardStyle">
-
-                <RadzenStack Gap="1rem">
-
-                    <RadzenText TextStyle="TextStyle.H5" Style="@SectionHeaderStyle">
-                        METADATA
-                    </RadzenText>
-
-                    <!-- Select Country -->
-                    <RadzenDropDown Data="@Countries"
-                                    TValue="string"
-                                    TextProperty="Title"
-                                    ValueProperty="Code"
-                                    @bind-Value="SelectedCountry"
-                                    Change="OnCountryChanged"
-                                    Placeholder="Select Country"
-                                    AllowClear="true"
-                                    Style="@InputStyle"
-                                    Title="Country associated with this learning content." />
-                    <!-- Select Course -->
-                    <RadzenDropDown TValue="string"
-                                    Data="@Courses"
-                                    TextProperty="Title"
-                                    ValueProperty="CourseCode"
-                                    @bind-Value="Model.CourseId"
-                                    Change="@OnCourseChanged"
-                                    Placeholder="Select Course"
-                                    Style="@InputStyle"
-                                    Title="Select the linked LMS course." />
-
-                </RadzenStack>
-
-            </RadzenCard>
-
-            <!-- EXTENDED METADATA -->
-            <RadzenCard Style="@GlassCardStyle">
-                <RadzenStack Gap="1rem">
-                    <RadzenText TextStyle="TextStyle.H5" Style="@SectionHeaderStyle">
-                        Extended Metadata
-                    </RadzenText>
-
-                    <RadzenTextArea @bind-Value="Model.MetadataJson"
-                                    ReadOnly="true"
-                                    Rows="10"
-                                    Style="@InputStyle"
-                                    Title="Structured metadata information stored in JSON format." />
-                </RadzenStack>
-            </RadzenCard>
-
-            <!-- AI -->
-            <RadzenCard Style="@AiCardStyle">
-                <RadzenStack Gap="1rem">
-                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem"AlignItems="AlignItems.Center">
-                        <RadzenIcon Icon="psychology" Style=" font-size:28px; color:lightskyblue;" />
-                        <RadzenText TextStyle="TextStyle.H5" Style="@SectionHeaderStyle">
-                            AI Intelligence Feed
-                        </RadzenText>
-
-                        <RadzenButton Icon="psychology"
-                                      Text="Generate AI Feedback"
-                                      ButtonStyle="ButtonStyle.Primary"
-                                      Click="@GenerateAIFeedbackAsync"
-                                      Disabled="@IsAiButtonDisabled"
-                                      Busy="@IsLoading"
-                                      BusyText="AI Processing..." />
-
-                    </RadzenStack>
-
-                    <RadzenTextArea Value="Model.AiFeed"
-                                    ReadOnly="true"
-                                    Rows="10"
-                                    Style="@($"{InputStyle}; background:#f3f2f1;")"
-                                    Title="AI-generated summaries, intelligence insights, or recommendations." />
-                </RadzenStack>
-            </RadzenCard>
-
-        </RadzenColumn>
-
-        <!-- ============================================= -->
-        <!-- RIGHT -->
-        <!-- ============================================= -->
-
-        <RadzenColumn Size="4">
-
-            <!-- QUICK INFO -->
-            <RadzenCard Style="@($"{GlassCardStyle}; background:#e7f1fb;")">
-                <RadzenStack Gap="0.75rem">
-                    <RadzenText TextStyle="TextStyle.H5" Style="@SectionHeaderStyle">
-                        Quick Info
-                    </RadzenText>
-
-                    <div>
-                        <b>File:</b> @Model.Name
-                    </div>
-
-                    <div>
-                        <b>Modified:</b> @Model.LastModified?.LocalDateTime.ToString("g")
-
-                    </div>
-
-                    <div>
-                        <b>Size:</b>
-                        @FormatBytes(Model.Size)
-                    </div>
-
-                </RadzenStack>
-            </RadzenCard>
-
-            <!-- GOVERNANCE -->
-            <RadzenCard Style="@GlassCardStyle">
-
-                <RadzenStack Gap="1rem">
-                    <RadzenText TextStyle="TextStyle.H5"
-                                Style="@SectionHeaderStyle">
-                        Governance
-                    </RadzenText>
-
-                    <!-- CONTENT TYPE -->
-                    <RadzenDropDown Data="@ContentTypes"
-                                    TextProperty="Title"
-                                    ValueProperty="Code"
-                                    TValue="string"
-                                    @bind-Value="Model.ContentTypeCode"
-                                    Placeholder="Content Type"
-                                    Style="@InputStyle"
-                                    Title="Defines the category or type of learning content." />
-
-                    <!-- SOURCE -->
-                    <RadzenDropDown Data="@SourceTypes"
-                                    TextProperty="Title"
-                                    ValueProperty="Code"
-                                    TValue="string"
-                                    @bind-Value="Model.Source"
-                                    Placeholder="Content Source"
-                                    Style="@InputStyle" />
-
-                    <!-- ✅ COURSE MODEL -->
-                    <RadzenDropDown Data="@CourseModels"
-                                    TextProperty="Title"
-                                    ValueProperty="Code"
-                                    TValue="string"
-                                    @bind-Value="Model.CourseModelCode"
-                                    Placeholder="Select Course Model"
-                                    Style="@InputStyle"
-                                    Title="Associated learning model or curriculum structure." />
-
-                    <!-- PUBLISHED -->
-                    <RadzenCard Style="
-                        border-radius:18px;
-                        padding:18px;
-                        background:
-                        rgba(255,255,255,0.55);">
-
-                        <RadzenStack Orientation="Orientation.Horizontal"
-                                     AlignItems="AlignItems.Center"
-                                     JustifyContent="JustifyContent.SpaceBetween">
-
-                            <div>
-                                <RadzenText TextStyle="TextStyle.Body1">
-                                    Published
-                                </RadzenText>
-
-                                <RadzenText TextStyle="TextStyle.Caption">
-                                    Enable learner visibility
-                                </RadzenText>
-                            </div>
-
-                            <RadzenSwitch @bind-Value="Model.IsPublished" />
-
-                        </RadzenStack>
-
-                    </RadzenCard>
-
-                    <!-- ARCHIVED -->
-                    <RadzenCard Style="
-                        border-radius:18px;
-                        padding:18px;
-                        background:
-                        rgba(255,255,255,0.55);">
-
-                        <RadzenStack Orientation="Orientation.Horizontal"
-                                     AlignItems="AlignItems.Center"
-                                     JustifyContent="JustifyContent.SpaceBetween">
-                            <div>
-                                <RadzenText TextStyle="TextStyle.Body1">
-                                    Archived
-                                </RadzenText>
-
-                                <RadzenText TextStyle="TextStyle.Caption">
-                                    Remove from active usage
-                                </RadzenText>
-                            </div>
-                            <RadzenSwitch @bind-Value="Model.IsArchived" />
-                        </RadzenStack>
-                    </RadzenCard>
-                </RadzenStack>
-
-            </RadzenCard>
-
-            <!-- ACTIVITY -->
-            <ActMetadataCard @bind-Value="Model.ACTMetaJson" />
-
-        </RadzenColumn>
-
-    </RadzenRow>
-
-    <!-- ================================================= -->
-    <!-- STICKY ACTION BAR -->
-    <!-- ================================================= -->
-
-    <div style="
-        position:sticky;
-        bottom:0;
-        margin-top:18px;
-        padding:10px;
-        border-radius:30px;
-        background: #d1d5db;
-        backdrop-filter:blur(18px);
-        box-shadow: 0 10px 30px rgba(0,0,0,1.0);">
-
-        <RadzenStack Orientation="Orientation.Horizontal"
-                     JustifyContent="JustifyContent.End"
-                     Gap="0.5rem">
-
-            <RadzenButton Icon="open_in_new"
-                          Text="Open Online"
-                          ButtonStyle="ButtonStyle.Primary"
-                          Click="@OpenOnline"
-                          Style="@ActionButtonStyle"
-                          title="Open this item in the online view" />
-
-            <RadzenButton ButtonStyle="ButtonStyle.Primary"
-                          Icon="save"
-                          Text="Save Changes"
-                          Click="@SaveAsync"
-                          Style="@ActionButtonStyle"
-                          title="Save all changes made to this item" />
-
-            <RadzenButton Icon="delete"
-                          Text="Delete"
-                          ButtonStyle="ButtonStyle.Primary"
-                          Click="@ConfirmDeleteAsync"
-                          Style="@ActionButtonStyle"
-                          title="Permanently delete this item (cannot be undone)" />
-
-            <RadzenButton ButtonStyle="ButtonStyle.Warning"
-                          Icon="close"
-                          Text="Cancel"
-                          Click="@BackToLibrary"
-                          Style="@ActionButtonStyle"
-                          title="Cancel and return without saving changes" />
-
-
-        </RadzenStack>
-
+@inject AuthenticationStateProvider AuthState
+
+<PageTitle>LMS Content Editor — MITANZ360Edu</PageTitle>
+
+<style>
+    /* =============================================================
+       MITANZ360Edu LMS Content Editor
+       Design: Microsoft Fluent + Enterprise Grade
+       Primary #2563EB | Dark #0F172A | Gold #F59E0B
+    ============================================================= */
+
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
+
+    .lms-editor {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: #F8FAFC;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        color: #0F172A;
+    }
+
+    /* ── TOPBAR ── */
+    .lms-topbar {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563EB 60%, #1d4ed8 100%);
+        padding: 0 28px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 2px 12px rgba(37,99,235,.35);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        flex-shrink: 0;
+    }
+
+        .lms-topbar .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,.15);
+            border: 1px solid rgba(255,255,255,.25);
+            color: #fff;
+            border-radius: 8px;
+            padding: 0 14px;
+            height: 34px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .15s;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+
+            .lms-topbar .back-btn:hover {
+                background: rgba(255,255,255,.25);
+            }
+
+        .lms-topbar h1 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+            letter-spacing: .3px;
+        }
+
+        .lms-topbar .topbar-file {
+            background: rgba(255,255,255,.12);
+            border: 1px solid rgba(255,255,255,.2);
+            border-radius: 6px;
+            padding: 3px 12px;
+            font-size: 0.78rem;
+            color: rgba(255,255,255,.9);
+            font-weight: 500;
+            max-width: 280px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .lms-topbar .topbar-spacer {
+            flex: 1;
+        }
+
+    .topbar-status {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 12px;
+    }
+
+        .topbar-status.published {
+            background: rgba(16,185,129,.25);
+            color: #6ee7b7;
+        }
+
+        .topbar-status.unpublished {
+            background: rgba(239,68,68,.25);
+            color: #fca5a5;
+        }
+
+        .topbar-status.archived {
+            background: rgba(245,158,11,.25);
+            color: #fde68a;
+        }
+
+    /* ── BREADCRUMB ── */
+    .lms-breadcrumb {
+        background: #fff;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 8px 28px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.78rem;
+        color: #64748b;
+        flex-shrink: 0;
+    }
+
+        .lms-breadcrumb a {
+            color: #2563EB;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+            .lms-breadcrumb a:hover {
+                text-decoration: underline;
+            }
+
+        .lms-breadcrumb .crumb-sep {
+            color: #cbd5e1;
+        }
+
+    /* ── BODY GRID ── */
+    .lms-body {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 0;
+        flex: 1;
+        min-height: 0;
+    }
+
+    @@media (max-width: 1024px) {
+        .lms-body {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* ── MAIN PANEL ── */
+    .lms-main {
+        padding: 24px 28px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* ── RIGHT PANEL ── */
+    .lms-right {
+        background: #fff;
+        border-left: 1px solid #e2e8f0;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* ── FLUENT CARDS ── */
+    .f-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        box-shadow: 0 1px 4px rgba(15,23,42,.05), 0 4px 16px rgba(37,99,235,.04);
+        overflow: hidden;
+    }
+
+    .f-card-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 20px;
+        border-bottom: 1px solid #f1f5f9;
+        background: #fafbfe;
+    }
+
+    .f-card-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background: #eff6ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .f-card-header h3 {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #0F172A;
+        margin: 0;
+    }
+
+    .f-card-badge {
+        margin-left: auto;
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: #2563EB;
+        background: #eff6ff;
+        border-radius: 4px;
+        padding: 2px 8px;
+        letter-spacing: .3px;
+        text-transform: uppercase;
+    }
+
+    .f-card-body {
+        padding: 20px;
+    }
+
+    /* ── FORM FIELDS ── */
+    .f-field {
+        margin-bottom: 16px;
+    }
+
+        .f-field:last-child {
+            margin-bottom: 0;
+        }
+
+    .f-label {
+        display: block;
+        font-size: 0.77rem;
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 5px;
+        letter-spacing: .2px;
+        text-transform: uppercase;
+    }
+
+        .f-label .req {
+            color: #ef4444;
+            margin-left: 2px;
+        }
+
+    .f-hint {
+        font-size: 0.71rem;
+        color: #94a3b8;
+        margin-top: 3px;
+        display: block;
+    }
+
+    .f-input,
+    .f-select,
+    .f-textarea {
+        width: 100%;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 0.875rem;
+        color: #0F172A;
+        background: #fff;
+        transition: border-color .15s, box-shadow .15s;
+        outline: none;
+    }
+
+    .f-input, .f-select {
+        height: 38px;
+        padding: 0 12px;
+    }
+
+    .f-textarea {
+        padding: 10px 12px;
+        min-height: 80px;
+        resize: vertical;
+    }
+
+        .f-input:focus, .f-select:focus, .f-textarea:focus {
+            border-color: #2563EB;
+            box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+        }
+
+    .f-input[readonly], .f-input:disabled {
+        background: #f8fafc;
+        color: #94a3b8;
+        border-color: #f1f5f9;
+        cursor: default;
+    }
+
+    /* ── FIELD GRID ── */
+    .f-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .f-grid-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 16px;
+    }
+
+    @@media (max-width: 700px) {
+        .f-grid-2, .f-grid-3 {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* ── TOGGLE SWITCH ── */
+    .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+        .toggle-row:last-child {
+            border-bottom: none;
+        }
+
+    .toggle-label {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+        .toggle-label strong {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #0F172A;
+        }
+
+        .toggle-label span {
+            font-size: 0.72rem;
+            color: #94a3b8;
+        }
+
+    .f-toggle {
+        position: relative;
+        width: 44px;
+        height: 24px;
+        flex-shrink: 0;
+    }
+
+        .f-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+
+        .f-toggle .track {
+            position: absolute;
+            inset: 0;
+            background: #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background .2s;
+        }
+
+            .f-toggle .track::after {
+                content: '';
+                position: absolute;
+                width: 18px;
+                height: 18px;
+                background: #fff;
+                border-radius: 50%;
+                top: 3px;
+                left: 3px;
+                transition: transform .2s;
+                box-shadow: 0 1px 4px rgba(0,0,0,.2);
+            }
+
+        .f-toggle input:checked + .track {
+            background: #2563EB;
+        }
+
+            .f-toggle input:checked + .track::after {
+                transform: translateX(20px);
+            }
+
+        .f-toggle input:disabled + .track {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+    /* ── QUICK INFO PANEL ── */
+    .quick-info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.8rem;
+    }
+
+        .quick-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .quick-info-row .qi-label {
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .quick-info-row .qi-value {
+            color: #0F172A;
+            font-weight: 500;
+            text-align: right;
+            max-width: 60%;
+            word-break: break-all;
+        }
+
+    /* ── FILE TYPE BADGE ── */
+    .file-type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: .3px;
+        text-transform: uppercase;
+    }
+
+    .ft-pdf {
+        background: #fef2f2;
+        color: #ef4444;
+    }
+
+    .ft-word {
+        background: #eff6ff;
+        color: #2563EB;
+    }
+
+    .ft-excel {
+        background: #f0fdf4;
+        color: #10b981;
+    }
+
+    .ft-ppt {
+        background: #fff7ed;
+        color: #f59e0b;
+    }
+
+    .ft-video {
+        background: #fdf4ff;
+        color: #a855f7;
+    }
+
+    .ft-image {
+        background: #f0fdfa;
+        color: #14b8a6;
+    }
+
+    .ft-html {
+        background: #fef9c3;
+        color: #d97706;
+    }
+
+    .ft-folder {
+        background: #f8fafc;
+        color: #64748b;
+    }
+
+    .ft-other {
+        background: #f8fafc;
+        color: #64748b;
+    }
+
+    /* ── STATUS ALERTS ── */
+    .f-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 0.83rem;
+        font-weight: 500;
+        margin-bottom: 16px;
+        line-height: 1.5;
+    }
+
+        .f-alert.success {
+            background: #f0fdf4;
+            color: #16a34a;
+            border-left: 4px solid #10b981;
+        }
+
+        .f-alert.error {
+            background: #fef2f2;
+            color: #dc2626;
+            border-left: 4px solid #ef4444;
+        }
+
+        .f-alert.info {
+            background: #eff6ff;
+            color: #2563EB;
+            border-left: 4px solid #2563EB;
+        }
+
+        .f-alert.warn {
+            background: #fffbeb;
+            color: #d97706;
+            border-left: 4px solid #f59e0b;
+        }
+
+    /* ── STICKY BOTTOM ACTION BAR ── */
+    .lms-action-bar {
+        position: sticky;
+        bottom: 0;
+        background: rgba(255,255,255,.97);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid #e2e8f0;
+        padding: 14px 28px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 -4px 20px rgba(15,23,42,.08);
+        z-index: 50;
+    }
+
+    /* ── BUTTONS ── */
+    .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        background: #2563EB;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0 20px;
+        height: 38px;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .15s, box-shadow .15s;
+        white-space: nowrap;
+    }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #1d4ed8;
+            box-shadow: 0 4px 12px rgba(37,99,235,.35);
+        }
+
+        .btn-primary:disabled {
+            background: #93c5fd;
+            cursor: not-allowed;
+        }
+
+    .btn-danger {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        background: transparent;
+        color: #ef4444;
+        border: 1.5px solid #fca5a5;
+        border-radius: 8px;
+        padding: 0 18px;
+        height: 38px;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .15s, border-color .15s;
+        white-space: nowrap;
+    }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+
+        .btn-danger:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        background: transparent;
+        color: #475569;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0 18px;
+        height: 38px;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .15s, border-color .15s;
+        white-space: nowrap;
+    }
+
+        .btn-secondary:hover:not(:disabled) {
+            border-color: #2563EB;
+            color: #2563EB;
+            background: #eff6ff;
+        }
+
+        .btn-secondary:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+    .btn-ghost {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: transparent;
+        color: #2563EB;
+        border: none;
+        border-radius: 8px;
+        padding: 0 14px;
+        height: 36px;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .15s;
+        white-space: nowrap;
+    }
+
+        .btn-ghost:hover {
+            background: #eff6ff;
+        }
+
+    /* ── SPINNER ── */
+    .spin {
+        width: 15px;
+        height: 15px;
+        border: 2px solid rgba(255,255,255,.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: rotate .65s linear infinite;
+        display: inline-block;
+    }
+
+    .spin-blue {
+        width: 18px;
+        height: 18px;
+        border: 3px solid #dbeafe;
+        border-top-color: #2563EB;
+        border-radius: 50%;
+        animation: rotate .65s linear infinite;
+        display: inline-block;
+    }
+
+    @@keyframes rotate {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* ── LOADING ── */
+    .loading-state {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        padding: 60px 20px;
+        font-size: 0.9rem;
+        color: #2563EB;
+        font-weight: 500;
+    }
+
+    /* ── SKELETON ── */
+    .skeleton {
+        background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.4s infinite;
+        border-radius: 6px;
+    }
+
+    @@keyframes shimmer {
+        to {
+            background-position: -200% 0;
+        }
+    }
+
+    /* ── CONFIRM DIALOG ── */
+    .confirm-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15,23,42,.55);
+        backdrop-filter: blur(4px);
+        z-index: 999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .confirm-box {
+        background: #fff;
+        border-radius: 14px;
+        padding: 28px 32px;
+        max-width: 420px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(15,23,42,.25);
+        animation: popIn .2s ease;
+    }
+
+    @@keyframes popIn {
+        from {
+            transform: scale(.94);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .confirm-box h4 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #0F172A;
+        margin: 0 0 8px;
+    }
+
+    .confirm-box p {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin: 0 0 20px;
+        line-height: 1.5;
+    }
+
+    .confirm-box .confirm-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    /* ── JSON EDITOR ── */
+    .json-editor {
+        font-family: 'Consolas', 'Courier New', monospace;
+        font-size: 0.8rem;
+        min-height: 120px;
+        min-width: 100%;
+        background: #0F172A;
+        color: #e2e8f0;
+        border: 1.5px solid #334155;
+        border-radius: 8px;
+        padding: 12px;
+        resize: vertical;
+        outline: none;
+        line-height: 1.6;
+    }
+
+        .json-editor:focus {
+            border-color: #2563EB;
+            box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+        }
+
+    /* ── RIGHT PANEL MINI CARDS ── */
+    .mini-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 14px 16px;
+    }
+
+        .mini-card h4 {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            margin: 0 0 10px;
+        }
+
+    /* ── PUBLISH BANNER ── */
+    .publish-banner {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #fff;
+        border-radius: 10px;
+        padding: 14px 18px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+        .publish-banner.unpublished {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .publish-banner.archived {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+        }
+
+    /* ── CONTENT TYPE TAG ── */
+    .ct-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        background: #eff6ff;
+        color: #2563EB;
+        border: 1px solid #bfdbfe;
+    }
+
+    /* ── OPEN ONLINE BTN ── */
+    .btn-open-online {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        background: transparent;
+        color: #475569;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0 16px;
+        height: 38px;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .15s;
+        white-space: nowrap;
+    }
+
+        .btn-open-online:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+    /* ── METADATA SECTION TABS ── */
+    .meta-tabs {
+        display: flex;
+        gap: 2px;
+        background: #f1f5f9;
+        border-radius: 8px;
+        padding: 3px;
+        margin-bottom: 16px;
+    }
+
+    .meta-tab {
+        flex: 1;
+        padding: 6px 10px;
+        border: none;
+        border-radius: 6px;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        color: #64748b;
+        background: transparent;
+        transition: all .15s;
+        white-space: nowrap;
+    }
+
+        .meta-tab.active {
+            background: #fff;
+            color: #2563EB;
+            box-shadow: 0 1px 4px rgba(15,23,42,.08);
+        }
+
+    /* ── ACT TYPE PILLS ── */
+    .act-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        cursor: pointer;
+        border: 1.5px solid transparent;
+        transition: all .15s;
+    }
+
+        .act-pill.selected {
+            background: #2563EB;
+            color: #fff;
+            border-color: #2563EB;
+        }
+
+        .act-pill:not(.selected) {
+            background: #f1f5f9;
+            color: #64748b;
+            border-color: #e2e8f0;
+        }
+
+            .act-pill:not(.selected):hover {
+                border-color: #2563EB;
+                color: #2563EB;
+            }
+
+    .act-pills-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 14px;
+    }
+</style>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TOP BAR
+═══════════════════════════════════════════════════════════ -->
+<div class="lms-editor">
+
+    <div class="lms-topbar">
+        <a href="/lms-library-introduction" class="back-btn">← Back</a>
+        <h1>LMS Content Editor</h1>
+        @if (Item != null)
+        {
+            <div class="topbar-file" title="@Item.Name">📄 @Item.Name</div>
+            <span class="topbar-status @GetPublishStatusClass()">
+                @GetPublishStatusLabel()
+            </span>
+        }
+        <div class="topbar-spacer"></div>
+        @if (Item != null)
+        {
+            <span style="font-size:.75rem;color:rgba(255,255,255,.7);">
+                Modified @Item.LastModified?.ToString("dd MMM yyyy HH:mm")
+            </span>
+        }
     </div>
 
-</div>
-
-@code {
-
-    [Parameter]
-    public string Id { get; set; } = string.Empty;
-    [Parameter]
-    public string FolderId { get; set; } = "root";
-
-    private LibraryItem Model = new();
-    private IReadOnlyList<CourseModel> Courses = [];
-
-    private List<ReferenceDataItem> Countries = new();
-    private List<ReferenceDataItem> ContentTypes = new();
-    private List<ReferenceDataItem> SourceTypes = new();
-    private List<ReferenceDataItem> CourseModels = new();
-
-    private string? SelectedCountry;
-    private string? SelectedCurrency;
-    private string? SelectedTimezone;
-    private bool IsLoading;
-
-    private bool IsAiButtonDisabled =>
-    IsLoading ||
-    Model?.Name?.ToLower().EndsWith(".jpg") == true ||
-    Model?.Name?.ToLower().EndsWith(".jpeg") == true ||
-    Model?.Name?.ToLower().EndsWith(".png") == true ||
-    Model?.Name?.ToLower().EndsWith(".gif") == true ||
-    Model?.Name?.ToLower().EndsWith(".bmp") == true ||
-    Model?.Name?.ToLower().EndsWith(".mp4") == true ||
-    Model?.Name?.ToLower().EndsWith(".mp3") == true;
-
-
-    // =====================================================
-    // STYLES
-    // =====================================================
-    private const string GlassCardStyle = @"
-        margin-bottom:24px;
-        border-radius:24px;
-        padding:28px;
-        background:
-            rgba(255,255,255,0.62);
-        backdrop-filter:blur(18px);
-        border:1px solid rgba(255,255,255,0.22);
-        box-shadow:
-            0 10px 30px rgba(0,0,0,0.08);";
-    private const string AiCardStyle = @"
-        margin-bottom:24px;
-        border-radius:24px;
-        padding:28px;
-        background:
-            linear-gradient(
-                135deg,
-                rgba(0,120,212,0.08),
-                rgba(202,80,16,0.08));
-        backdrop-filter:blur(18px);
-        border:1px solid rgba(255,255,255,0.22);
-        box-shadow:
-            0 10px 30px rgba(0,0,0,0.08);";
-    private const string InputStyle = @"
-        width:100%;
-        border-radius:16px;";
-    private const string SectionHeaderStyle = @"
-        font-weight:700;
-        color:#004578;";
-    private const string ActionButtonStyle = @"
-    min-width:120px;
-    height:42px;
-    border-radius:18px;
-    font-weight:600;
-    font-size:0.92rem;
-    color:black;
-    background: linear-gradient( 135deg, rgba(255,255,255,1), rgba(255,255,255,0.02));
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border:1px solid rgba(255,255,255,0.25);
-    box-shadow:0 8px 24px rgba(0,0,0,0.18);
-    transition: all 0.22s ease;
-    letter-spacing:0.3px; ";
-    private const string PrimaryButtonStyle = @"
-        min-width:220px;
-        height:52px;
-        border-radius:18px;
-        font-weight:700;
-        background:
-            linear-gradient(
-                135deg,
-                #0078D4,
-                #CA5010);";
-
-    // =====================================================
-    // LOAD (RUNS ON EVERY ID CHANGE)
-    // =====================================================
-    protected override async Task OnParametersSetAsync()
-    {
-        try
+    <!-- ── BREADCRUMB ── -->
+    <div class="lms-breadcrumb">
+        <a href="/lms-library">📚 LMS Library</a>
+        <span class="crumb-sep">›</span>
+        @if (Item != null && !string.IsNullOrEmpty(Item.CourseId))
         {
-            // =====================================================
-            // ✅ VALIDATION: Prevent invalid navigation / refresh
-            // =====================================================
-            if (string.IsNullOrWhiteSpace(Id))
+            <a href="/lms-library">@Item.CourseId</a>
+            <span class="crumb-sep">›</span>
+        }
+        <span>@(Item?.Name ?? "Loading…")</span>
+    </div>
+    
+    <!-- ═══════════════════════════════════════════════════════════
+         BODY
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="lms-body">
+
+        <!-- ── MAIN EDIT PANEL ── -->
+        <div class="lms-main">
+
+            @if (isLoading)
             {
-                NavigationManager.NavigateTo("/lms-library-introduction", true);
-                return;
+                <div class="loading-state">
+                    <span class="spin-blue"></span>
+                    Loading content item…
+                </div>
+                <!-- Skeleton cards -->
+                <div class="f-card">
+                    <div class="f-card-body">
+                        <div class="skeleton" style="height:20px;width:40%;margin-bottom:16px;"></div>
+                        <div class="skeleton" style="height:38px;margin-bottom:12px;"></div>
+                        <div class="skeleton" style="height:38px;margin-bottom:12px;"></div>
+                        <div class="skeleton" style="height:80px;"></div>
+                    </div>
+                </div>
             }
-
-            // =====================================================
-            // Load reference data
-            // =====================================================
-            Courses = await SharePointService.GetCoursesAsync();
-            ContentTypes = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "ContentType");
-            SourceTypes = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "SourceType");
-            CourseModels = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "CourseModelType");
-            Countries = await SharePointService.GetReferenceDataByCategoryAsync("LMS", "Country");
-
-            // =====================================================
-            // Get LMS Drive
-            // =====================================================
-            var driveId = await SharePointService.GetPublicLmsDriveIdAsync();
-
-            // =====================================================
-            // Load item
-            // =====================================================
-            var item = await SharePointService.GetItemAsync(driveId, Id);
-
-            // =====================================================
-            // ✅ HARD GUARD: If item not found → redirect
-            // =====================================================
-            if (item == null)
+            else if (Item == null)
             {
-                NavigationManager.NavigateTo("/lms-library-introduction", true);
-                return;
-            }
-
-            Model = item;
-
-            // =====================================================
-            // ✅ Restore metadata safely
-            // =====================================================
-            if (!string.IsNullOrWhiteSpace(Model.MetadataJson))
-            {
-                try
-                {
-                    var metadata = JsonSerializer.Deserialize<Dictionary<string, object>>(Model.MetadataJson);
-
-                    if (metadata != null && metadata.TryGetValue("CountryCode", out var countryCode))
-                    {
-                        SelectedCountry = countryCode?.ToString();
-                    }
-                }
-                catch
-                {
-                    // ignore invalid JSON
-                }
-            }
-        }
-        catch
-        {
-            // =====================================================
-            // ✅ GLOBAL FAILSAFE: Redirect on ANY failure
-            // =====================================================
-            NavigationManager.NavigateTo("/lms-library-introduction", true);
-        }
-    }
-    // =====================================================
-    // SAVE
-    // =====================================================
-    private async Task SaveAsync()
-    {
-        try
-        {
-            var driveId = await SharePointService.GetPublicLmsDriveIdAsync();
-            await SharePointService.UpdateLibraryItemAsync(driveId,Id,Model);
-            NotificationService.Notify(NotificationSeverity.Success,"Success","Content updated successfully.");
-            NavigationManager.NavigateTo("/lms-library-introduction");
-        }
-        catch (Exception ex)
-        {
-            NotificationService.Notify(NotificationSeverity.Error,"Error",ex.Message);
-        }
-    }
-
-    // =====================================================
-    // BACK
-    // =====================================================
-    private void BackToLibrary()
-    {
-        NavigationManager.NavigateTo("/lms-library-introduction");
-    }
-
-    // =====================================================
-    // FORMAT
-    // =====================================================
-    private static string FormatBytes(long bytes)
-    {
-        if (bytes <= 0)
-            return "0 B";
-
-        string[] sizes =
-        [
-            "B",
-            "KB",
-            "MB",
-            "GB"
-        ];
-
-        var order =
-            (int)Math.Log(bytes, 1024);
-
-        return string.Format(
-            "{0:0.##} {1}",
-            bytes / Math.Pow(1024, order),
-            sizes[order]);
-    }
-
-    // =====================================================
-    // Open Document Online
-    // =====================================================
-    private async Task OpenOnline()
-    {
-        if (Model == null || string.IsNullOrWhiteSpace(Model.WebUrl))
-        {
-            NotificationService.Notify(
-                NotificationSeverity.Warning,
-                "Unavailable",
-                "Online preview is not available for this document.");
-            return;
-        }
-
-        await JS.InvokeVoidAsync(
-            "open",
-            Model.WebUrl,
-            "_blank");
-    }
-
-    // =====================================================
-    // Delete Selected Content
-    // =====================================================
-    private async Task DeleteAsync()
-    {
-        if (Model == null)
-            return;
-
-        await SharePointService.DeleteItemAsync(
-            Model.DriveId,
-            Model.Id);
-
-        NotificationService.Notify(
-            NotificationSeverity.Success,
-            "Deleted",
-            "Content deleted successfully.");
-
-        NavigationManager.NavigateTo("/lms-library");
-    }
-    private async Task ConfirmDeleteAsync()
-    {
-        var confirmed = await DialogService.Confirm(
-            "Are you sure you want to delete this item?",
-            "Confirm Delete",
-            new ConfirmOptions
-            {
-                OkButtonText = "Delete",
-                CancelButtonText = "Cancel"
-            });
-
-        if (confirmed != true)
-            return;
-
-        await DeleteAsync();
-    }
-
-    // =====================================================
-    // On Change {Country,Course, }
-    // =====================================================
-    private void OnCountryChanged(object value)
-    {
-        var isoCode = value?.ToString();
-        var selected = Countries.FirstOrDefault(x => x.Code == isoCode);
-
-        if (selected == null) return;
-
-        SelectedCountry = isoCode ?? string.Empty;
-
-        // =====================================================
-        // Parse Existing Metadata
-        // =====================================================
-
-        Dictionary<string, object> metadata;
-
-        try
-        {
-            metadata =
-                string.IsNullOrWhiteSpace(
-                    Model.MetadataJson)
-                    ? []
-                    : JsonSerializer.Deserialize<
-                        Dictionary<string, object>>(
-                        Model.MetadataJson) ?? [];
-        }
-        catch
-        {
-            metadata = [];
-        }
-
-        // =====================================================
-        // UPDATE EXISTING VALUES
-        // =====================================================
-
-        metadata["CountryCode"] = selected.Code;
-        metadata["CountryName"] = selected.Title;
-
-        // =====================================================
-        // SAVE UPDATED METADATA
-        // =====================================================
-
-        Model.MetadataJson = JsonSerializer.Serialize( metadata, new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                });
-    }
-    private void OnCourseChanged(object value)
-    {
-        var courseCode = value?.ToString();
-        var selected = Courses.FirstOrDefault(x => x.CourseCode == courseCode);
-
-        if (selected == null) return;
-
-        // =====================================================
-        // UPDATE MODEL
-        // =====================================================
-
-        Model.CourseId = selected.CourseCode;
-
-        // =====================================================
-        // PARSE EXISTING METADATA
-        // =====================================================
-
-        Dictionary<string, object> metadata;
-
-        try
-        {
-            metadata =
-                string.IsNullOrWhiteSpace(
-                    Model.MetadataJson)
-                    ? []
-                    : JsonSerializer.Deserialize<
-                        Dictionary<string, object>>(
-                        Model.MetadataJson) ?? [];
-        }
-        catch
-        {
-            metadata = [];
-        }
-
-        // =====================================================
-        // UPDATE COURSE METADATA
-        // =====================================================
-
-        metadata["CourseId"] = selected.CourseCode;
-        metadata["CourseTitle"] = selected.Title;
-
-        metadata["CourseDescription"] = ContentCleaner.CleanForLms(selected.Description);
-        metadata["CourseLearningOutcomes"] = ContentCleaner.CleanForLms(selected.LearningOutcomes);
-
-        // =====================================================
-        // SAVE UPDATED METADATA
-        // =====================================================
-
-        Model.MetadataJson =
-            JsonSerializer.Serialize(
-                metadata,
-                new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                });
-    }
-
-    // =====================================================
-    //AI output to the UI
-    // =====================================================
-    private async Task GenerateAIFeedbackAsync()
-    {
-        if (IsLoading || Model == null || string.IsNullOrWhiteSpace(Model.Id))
-        {
-            NotificationService.Notify(
-                NotificationSeverity.Warning,
-                "Unavailable",
-                "No content item is loaded.");
-            return;
-        }
-
-        try
-        {
-            IsLoading = true;
-
-            NotificationService.Notify(
-                NotificationSeverity.Info,
-                "AI Processing",
-                "AI intelligence generation started.");
-
-            // =====================================================
-            // 1️⃣ Parse metadata (SAFE)
-            // =====================================================
-            var json =
-                JsonNode.Parse(Model.MetadataJson ?? "{}")?.AsObject();
-
-            if (json != null)
-            {
-                if (json["CourseDescription"] != null)
-                {
-                    json["CourseDescription"] = HtmlToText(json["CourseDescription"]!.ToString());
-                }
-
-                if (json["CourseLearningOutcomes"] != null)
-                {
-                    json["CourseLearningOutcomes"] = HtmlToText(json["CourseLearningOutcomes"]!.ToString());
-                }
-            }
-
-            var metadata = new Dictionary<string, string>();
-
-            // ✅ STEP 1 — READ JSON AND CLEAN HTML
-            if (json != null)
-            {
-                foreach (var item in json)
-                {
-                    var value = item.Value?.ToString() ?? "";
-
-                    // ✅ remove HTML
-                    value = HtmlToText(value);
-
-                    metadata[item.Key] = value;
-                }
-            }
-
-            // ✅ STEP 2 — FALLBACK ONLY IF MISSING
-            if (!metadata.ContainsKey("CourseTitle") || string.IsNullOrWhiteSpace(metadata["CourseTitle"]))
-            {
-                metadata["CourseTitle"] = Model.Title ?? "";
-            }
-
-            if (!metadata.ContainsKey("CourseDescription") || string.IsNullOrWhiteSpace(metadata["CourseDescription"]))
-            {
-                metadata["CourseDescription"] = Model.Description ?? "";
-            }
-
-            if (!metadata.ContainsKey("CourseLearningOutcomes") || string.IsNullOrWhiteSpace(metadata["CourseLearningOutcomes"]))
-            {
-                metadata["CourseLearningOutcomes"] = "";
-            }
-
-            // =====================================================
-            // 2️⃣ Extract content
-            // =====================================================
-            var extractedContent =
-                await SharePointService.ExtractDocumentContentAsync(
-                    Model.DriveId,
-                    Model.Id);
-
-            if (string.IsNullOrWhiteSpace(extractedContent))
-            {
-
-                NotificationService.Notify(
-                    NotificationSeverity.Warning,
-                    "Unsupported File",
-                    "OCR is not supported. Please upload text-based content.");
-
-                return;
-            }
-
-            // =====================================================
-            // ✅ RUN AI ENGINE
-            // =====================================================
-            var aiResult = await AutomationService.GenerateAIFeedbackAsync(
-                metadata,
-                extractedContent);
-
-            // =====================================================
-            // ✅ HANDLE RESULT
-            // =====================================================
-            if (string.IsNullOrWhiteSpace(aiResult))
-            {
-                Model.AiFeed = "⚠ AI completed, but returned empty response.";
-
-                NotificationService.Notify(
-                    NotificationSeverity.Warning,
-                    "AI Warning",
-                    "AI returned no content.");
+                <div class="f-alert error">
+                    ⛔ Content item not found. It may have been moved or deleted.
+                    <a href="/lms-library" class="btn-ghost" style="margin-left:auto;">← Back to Library</a>
+                </div>
             }
             else
             {
-                Model.AiFeed = aiResult;
+                <!-- STATUS MESSAGE -->
+                @if (!string.IsNullOrEmpty(StatusMessage))
+                {
+                    <div class="f-alert @StatusClass">
+                        <span>@StatusIcon</span>
+                        <span style="flex:1;">@StatusMessage</span>
+                        <button type="button" class="btn-ghost" style="padding:0 6px;"
+                                @onclick="() => StatusMessage = string.Empty">
+                            ✕
+                        </button>
+                    </div>
+                }
 
-                // ✅ Detect if AI returned failure message
-                if (aiResult.Contains("⚠"))
-                {
-                    NotificationService.Notify(
-                        NotificationSeverity.Warning,
-                        "AI Warning",
-                        "AI validation detected issues.");
-                }
-                else
-                {
-                    NotificationService.Notify(
-                        NotificationSeverity.Success,
-                        "AI Completed",
-                        "AI intelligence report generated successfully.");
-                }
+                <!-- ═══════════════════════════════════════
+                     CARD 1 — GENERAL INFORMATION
+                     Fields: Title, ContentId, CourseId, Description
+                ═══════════════════════════════════════ -->
+                <div class="f-card">
+                    <div class="f-card-header">
+                        <div class="f-card-icon">📋</div>
+                        <h3>General Information</h3>
+                        <span class="f-card-badge">Core</span>
+                    </div>
+                    <div class="f-card-body">
+
+                        <div class="f-grid-2">
+                            <!-- COR_ContentId -->
+                            <div class="f-field">
+                                <label class="f-label">Content ID</label>
+                                <input class="f-input" @bind="Item.ContentId"
+                                       placeholder="e.g. COR-001" readonly/>
+                            </div>
+                            <!-- COR_CourseId -->
+                            <div class="f-field">
+                                <label class="f-label">Course ID</label>
+                                <RadzenDropDown Name="CourseDropdown"
+                                                Data="@courseDropdownList"
+                                                TextProperty="Display"
+                                                ValueProperty="Code"
+                                                @bind-Value="Item.CourseId"
+                                                Change="@(args => OnCourseChanged(args))"
+                                                Placeholder="Select a Course"
+                                                Style="width:100%"
+                                                AllowFiltering="true" />
+
+                            </div>
+                        </div>
+
+                        <!-- Title -->
+                        <div class="f-field">
+                            <label class="f-label">Title <span class="req">*</span></label>
+                            <input class="f-input" @bind="Item.Title"
+                                   placeholder="Enter a descriptive title for this content" />
+                            <span class="f-hint">SP: Title — displayed in course explorer and search results.</span>
+                        </div>
+
+                        <!-- _ExtendedDescription -->
+                        <div class="f-field">
+                            <label class="f-label">Description</label>
+                            <textarea class="f-textarea" @bind="Item.Description"
+                                      rows="3"
+                                      placeholder="Describe what learners will find in this content…"></textarea>
+                        </div>
+
+                        <!-- COR_CourseModel -->
+                        <div class="f-field" style="max-width:340px;">
+                            <label class="f-label">Course Model Code</label>
+                            <input class="f-input" @bind="Item.CourseModelCode"
+                                   placeholder="e.g. MOD-01" />
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════
+                     CARD 2 — METADATA / GOVERNANCE
+                     Fields: ContentTypeCode, Source, IsPublished, IsArchived
+                ═══════════════════════════════════════ -->
+                <div class="f-card">
+                    <div class="f-card-header">
+                        <div class="f-card-icon">🏷️</div>
+                        <h3>Metadata &amp; Governance</h3>
+                        <span class="f-card-badge">Governance</span>
+                    </div>
+                    <div class="f-card-body">
+
+                        <!-- Tabs: Governance | Extended | AI -->
+                        <div class="meta-tabs">
+                            <button type="button"
+                                    class="meta-tab @(MetaTab == 0 ? "active" : "")"
+                                    @onclick="() => MetaTab = 0">
+                                ⚙️ Governance
+                            </button>
+                            <button type="button"
+                                    class="meta-tab @(MetaTab == 1 ? "active" : "")"
+                                    @onclick="() => MetaTab = 1">
+                                📦 Extended
+                            </button>
+                            <button type="button"
+                                    class="meta-tab @(MetaTab == 2 ? "active" : "")"
+                                    @onclick="() => MetaTab = 2">
+                                🤖 AI Feed
+                            </button>
+                            <button type="button"
+                                    class="meta-tab @(MetaTab == 3 ? "active" : "")"
+                                    @onclick="() => MetaTab = 3">
+                                🎯 ACT
+                            </button>
+                        </div>
+
+                        @if (MetaTab == 0)
+                        {
+                            <!-- GOVERNANCE TAB -->
+                            <div class="f-grid-2">
+                                <!-- COR_ContentType -->
+                                <div class="f-field">
+                                    <label class="f-label">Content Type</label>
+                                    <select class="f-select" @bind="Item.ContentTypeCode">
+                                        <option value="">— Select —</option>
+                                        <option value="reading">📖 Reading</option>
+                                        <option value="video">🎬 Video</option>
+                                        <option value="quiz">✅ Quiz</option>
+                                        <option value="assignment">📝 Assignment</option>
+                                        <option value="lab">🧪 Lab</option>
+                                        <option value="group">👥 Group Activity</option>
+                                        <option value="resource">📎 Resource</option>
+                                        <option value="image">🖼️ Image</option>
+                                        <option value="audio">🔊 Audio</option>
+                                        <option value="other">📄 Other</option>
+                                    </select>
+                                </div>
+                                <!-- GOV_Source -->
+                                <div class="f-field">
+                                    <label class="f-label">Content Source</label>
+                                    <select class="f-select" @bind="Item.Source">
+                                        <option value="">— Select —</option>
+                                        <option value="internal">Internal</option>
+                                        <option value="microsoft-learn">Microsoft Learn</option>
+                                        <option value="external">External URL</option>
+                                        <option value="upload">Uploaded File</option>
+                                        <option value="ai-generated">AI Generated</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- REL_IsPublished / ARC_IsArchived -->
+                            <div style="margin-top:8px;">
+                                <div class="toggle-row">
+                                    <div class="toggle-label">
+                                        <strong>Published</strong>
+                                        <span>SP: Published — only published items are visible to learners.</span>
+                                    </div>
+                                    <label class="f-toggle">
+                                        <input type="checkbox" @bind="Item.IsPublished" />
+                                        <span class="track"></span>
+                                    </label>
+                                </div>
+                                <div class="toggle-row">
+                                    <div class="toggle-label">
+                                        <strong>Archived</strong>
+                                        <span>SP: Archived — archived items are hidden from learners.</span>
+                                    </div>
+                                    <label class="f-toggle">
+                                        <input type="checkbox" @bind="Item.IsArchived" />
+                                        <span class="track"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                        else if (MetaTab == 1)
+                        {
+                            <!-- EXTENDED METADATA JSON -->
+                            <div class="f-field">
+                                <label class="f-label">Extended Metadata JSON</label>
+                                <textarea class="json-editor" @bind="Item.MetadataJson"
+                                          rows="8"
+                                          placeholder='{ "key": "value" }'></textarea>
+                                <span class="f-hint">SP: Ext. Metadata — Free form JSON for custom attributes.</span>
+                            </div>
+                            <div style="display:flex;gap:8px;margin-top:6px;">
+                                <button type="button" class="btn-ghost" @onclick="FormatMetadataJson">
+                                    ✨ Format JSON
+                                </button>
+                                <button type="button" class="btn-ghost" @onclick="ValidateMetadataJson">
+                                    ✔ Validate
+                                </button>
+                            </div>
+                            @if (!string.IsNullOrEmpty(JsonValidationMsg))
+                            {
+                                <div class="f-alert @JsonValidationClass" style="margin-top:10px;">
+                                    @JsonValidationMsg
+                                </div>
+                            }
+                        }
+                        else if (MetaTab == 2)
+                        {
+                            <!-- AI FEED -->
+                            <div class="f-alert info" style="margin-bottom:12px;">
+                                🤖 AI Feed is used by the MITANZ AI Engine to generate summaries,
+                                quizzes, and learning recommendations for this content.
+                            </div>
+                            <div class="f-field">
+                                <label class="f-label">AI Feed Content</label>
+                                <textarea class="f-textarea" @bind="Item.AiFeed"
+                                          rows="6"
+                                          placeholder="Paste the AI-readable content excerpt or prompt feed here…"></textarea>
+                                <span class="f-hint">SP: AI Feed — Plain text or structured content for AI processing.</span>
+                            </div>
+                        }
+                        else if (MetaTab == 3)
+                        {
+                            <!-- ACT METADATA -->
+                            <div class="f-alert info" style="margin-bottom:12px;">
+                                🎯 Activity metadata controls how this item behaves in the LMS
+                                activity sequence (reading, video, quiz, lab, etc).
+                            </div>
+
+                            <!-- ACT Type Pills -->
+                            <div class="f-field">
+                                <label class="f-label">Activity Type</label>
+                                <div class="act-pills-row">
+                                    @foreach (var t in new[] { "reading", "video", "quiz", "group", "lab", "assignment" })
+                                    {
+                                        <button type="button"
+                                                class="act-pill @(ActMeta.Type == t ? "selected" : "")"
+                                                @onclick="() => ActMeta.Type = t">
+                                            @GetActTypeIcon(t) @t
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="f-grid-2">
+                                <div class="f-field">
+                                    <label class="f-label">Activity Title</label>
+                                    <input class="f-input" @bind="ActMeta.Title"
+                                           placeholder="Short activity title" />
+                                </div>
+                                <div class="f-field">
+                                    <label class="f-label">External URL</label>
+                                    <input class="f-input" @bind="ActMeta.Url"
+                                           placeholder="https://…" type="url" />
+                                    <span class="f-hint">For MS-Learn / Quiz / Lab links.</span>
+                                </div>
+                            </div>
+
+                            <div class="f-grid-3">
+                                <div class="f-field">
+                                    <label class="f-label">Duration (min)</label>
+                                    <input class="f-input" @bind="ActMeta.DurationMinutes"
+                                           type="number" min="0" placeholder="0" />
+                                </div>
+                                <div class="f-field">
+                                    <label class="f-label">Passing Score (%)</label>
+                                    <input class="f-input" @bind="ActMeta.PassingScore"
+                                           type="number" min="0" max="100" placeholder="0" />
+                                </div>
+                                <div class="f-field" style="display:flex;align-items:center;gap:10px;padding-top:22px;">
+                                    <label class="f-toggle">
+                                        <input type="checkbox" @bind="ActMeta.IsMandatory" />
+                                        <span class="track"></span>
+                                    </label>
+                                    <div class="toggle-label">
+                                        <strong>Mandatory</strong>
+                                        <span>Required for completion</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="f-field">
+                                <label class="f-label">Activity Description</label>
+                                <textarea class="f-textarea" @bind="ActMeta.Description"
+                                          rows="3"
+                                          placeholder="What does the learner do in this activity?"></textarea>
+                            </div>
+
+                            <div style="display:flex;gap:8px;margin-top:6px;">
+                                <button type="button" class="btn-ghost" @onclick="SyncActMetaToJson">
+                                    💾 Sync ACT to JSON
+                                </button>
+                            </div>
+                        }
+
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════
+                     CARD 3 — FILE INFORMATION (READ ONLY)
+                ═══════════════════════════════════════ -->
+                <div class="f-card">
+                    <div class="f-card-header">
+                        <div class="f-card-icon">📁</div>
+                        <h3>File Information</h3>
+                        <span class="f-card-badge">Read Only</span>
+                    </div>
+                    <div class="f-card-body">
+                        <div class="f-grid-2">
+                            <div class="f-field">
+                                <label class="f-label">File Name</label>
+                                <input class="f-input" value="@Item.Name" readonly />
+                            </div>
+                            <div class="f-field">
+                                <label class="f-label">File Size</label>
+                                <input class="f-input" value="@FormatFileSize(Item.Size)" readonly />
+                            </div>
+                            <div class="f-field">
+                                <label class="f-label">MIME Type</label>
+                                <input class="f-input" value="@(Item.ContentType ?? "Folder")" readonly />
+                            </div>
+                            <div class="f-field">
+                                <label class="f-label">Last Modified</label>
+                                <input class="f-input" value="@Item.LastModified?.ToString("dd MMM yyyy  HH:mm")" readonly />
+                            </div>
+                            <div class="f-field">
+                                <label class="f-label">Drive ID</label>
+                                <input class="f-input" value="@Item.DriveId" readonly
+                                       style="font-family:monospace;font-size:.75rem;" />
+                            </div>
+                            <div class="f-field">
+                                <label class="f-label">Item ID</label>
+                                <input class="f-input" value="@Item.Id" readonly
+                                       style="font-family:monospace;font-size:.75rem;" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── STICKY ACTION BAR ── -->
+                <div class="lms-action-bar">
+                    <button type="button"
+                            class="btn-primary"
+                            @onclick="SaveChangesAsync"
+                            disabled="@isSaving">
+                        @if (isSaving)
+                        {
+                            <span class="spin"></span> <span>Saving…</span>
+                        }
+                        else
+                        {
+
+                            <span>💾</span> <span>Save Changes</span>
+                        }
+                    </button>
+
+                    <button type="button"
+                            class="btn-open-online"
+                            @onclick="OpenOnlineAsync"
+                            disabled="@string.IsNullOrEmpty(Item.WebUrl)">
+                        🔗 Open Online
+                    </button>
+
+                    <button type="button"
+                            class="btn-danger"
+                            @onclick="() => showDeleteConfirm = true"
+                            disabled="@(isSaving || isDeleting)">
+                        🗑 Delete
+                    </button>
+
+                    <button type="button"
+                            class="btn-secondary"
+                            @onclick="CancelEdit"
+                            disabled="@isSaving">
+                        ✕ Cancel
+                    </button>
+
+                    <button @onclick="ViewDocument" class="btn-secondary">
+                        View / Download
+                    </button>
+
+
+                    @if (LastSavedAt.HasValue)
+                    {
+                        <span style="font-size:.75rem;color:#94a3b8;margin-left:8px;">
+                            ✔ Saved @LastSavedAt.Value.ToString("HH:mm:ss")
+                        </span>
+                    }
+                </div>
             }
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             RIGHT PANEL — QUICK INFO + STATUS + RELATED
+        ═══════════════════════════════════════════════════════════ -->
+        <div class="lms-right">
+
+            @if (Item != null)
+            {
+                <!-- PUBLISH STATUS BANNER -->
+                <div class="publish-banner @GetPublishBannerClass()">
+                    <span style="font-size:1.2rem;">@GetPublishBannerIcon()</span>
+                    <div>
+                        <div style="font-weight:700;font-size:.88rem;">@GetPublishStatusLabel()</div>
+                        <div style="font-size:.72rem;opacity:.85;">@GetPublishBannerSub()</div>
+                    </div>
+                </div>
+
+                <!-- QUICK INFO -->
+                <div class="mini-card">
+                    <h4>Quick Info</h4>
+                    <div class="quick-info-row">
+                        <span class="qi-label">File</span>
+                        <span class="qi-value">@Item.Name</span>
+                    </div>
+                    <div class="quick-info-row">
+                        <span class="qi-label">Type</span>
+                        <span class="qi-value">
+                            <span class="file-type-badge @GetFileTypeCss()">
+                                @GetFileTypeIcon() @GetFileTypeLabel()
+                            </span>
+                        </span>
+                    </div>
+                    <div class="quick-info-row">
+                        <span class="qi-label">Size</span>
+                        <span class="qi-value">@FormatFileSize(Item.Size)</span>
+                    </div>
+                    <div class="quick-info-row">
+                        <span class="qi-label">Modified</span>
+                        <span class="qi-value">@Item.LastModified?.ToString("dd MMM yyyy")</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Item.CourseId))
+                    {
+                        <div class="quick-info-row">
+                            <span class="qi-label">Course</span>
+                            <span class="qi-value">@Item.CourseId</span>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Item.ContentId))
+                    {
+                        <div class="quick-info-row">
+                            <span class="qi-label">Content ID</span>
+                            <span class="qi-value" style="font-family:monospace;font-size:.75rem;">@Item.ContentId</span>
+                        </div>
+                    }
+                </div>
+
+                <!-- CONTENT TYPE -->
+                @if (!string.IsNullOrEmpty(Item.ContentTypeCode))
+                {
+                    <div class="mini-card">
+                        <h4>Content Type</h4>
+                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                            <span class="ct-tag">@GetActTypeIcon(Item.ContentTypeCode) @Item.ContentTypeCode</span>
+                            @if (!string.IsNullOrEmpty(Item.Source))
+                            {
+                                <span class="ct-tag" style="background:#f0fdf4;color:#10b981;border-color:#bbf7d0;">
+                                    🌐 @Item.Source
+                                </span>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- GOVERNANCE FLAGS -->
+                <div class="mini-card">
+                    <h4>Governance</h4>
+                    <div class="toggle-row">
+                        <div class="toggle-label">
+                            <strong>Published</strong>
+                            <span>Visible to learners</span>
+                        </div>
+                        <label class="f-toggle">
+                            <input type="checkbox" @bind="Item.IsPublished" />
+                            <span class="track"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-row">
+                        <div class="toggle-label">
+                            <strong>Archived</strong>
+                            <span>Hidden from learners</span>
+                        </div>
+                        <label class="f-toggle">
+                            <input type="checkbox" @bind="Item.IsArchived" />
+                            <span class="track"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- ACT METADATA QUICK VIEW -->
+                @if (ActMeta != null && !string.IsNullOrEmpty(ActMeta.Type))
+                {
+                    <div class="mini-card">
+                        <h4>Activity</h4>
+                        <div class="quick-info-row">
+                            <span class="qi-label">Type</span>
+                            <span class="qi-value">@GetActTypeIcon(ActMeta.Type) @ActMeta.Type</span>
+                        </div>
+                        @if (ActMeta.DurationMinutes > 0)
+                        {
+                            <div class="quick-info-row">
+                                <span class="qi-label">Duration</span>
+                                <span class="qi-value">@ActMeta.DurationMinutes min</span>
+                            </div>
+                        }
+                        <div class="quick-info-row">
+                            <span class="qi-label">Mandatory</span>
+                            <span class="qi-value">@(ActMeta.IsMandatory ? "✅ Yes" : "No")</span>
+                        </div>
+                    </div>
+                }
+
+                <!-- QUICK ACTIONS -->
+                <div class="mini-card">
+                    <h4>Quick Actions</h4>
+                    <div style="display:flex;flex-direction:column;gap:6px;">
+                        <button type="button" class="btn-secondary"
+                                style="width:100%;justify-content:flex-start;"
+                                @onclick="TogglePublishAsync"
+                                disabled="@isSaving">
+                            @(Item.IsPublished ? "⬇️ Unpublish" : "✅ Publish Now")
+                        </button>
+                        <button type="button" class="btn-secondary"
+                                style="width:100%;justify-content:flex-start;"
+                                @onclick="ToggleArchiveAsync"
+                                disabled="@isSaving">
+                            @(Item.IsArchived ? "📤 Unarchive" : "🗄 Archive")
+                        </button>
+                        <button type="button" class="btn-ghost"
+                                style="width:100%;justify-content:flex-start;"
+                                @onclick="CopyItemIdToClipboard">
+                            📋 Copy Item ID
+                        </button>
+                    </div>
+                </div>
+            }
+            else if (isLoading)
+            {
+                <div class="skeleton" style="height:80px;border-radius:10px;"></div>
+                <div class="skeleton" style="height:140px;border-radius:10px;"></div>
+                <div class="skeleton" style="height:100px;border-radius:10px;"></div>
+            }
+
+        </div>
+
+    </div><!-- end lms-body -->
+
+</div>
+<!-- end lms-editor -->
+
+<!-- ═══════════════════════════════════════════════════════════
+     DELETE CONFIRMATION DIALOG
+═══════════════════════════════════════════════════════════ -->
+@if (showDeleteConfirm)
+{
+    <div class="confirm-overlay" @onclick="() => showDeleteConfirm = false">
+        <div class="confirm-box" @onclick:stopPropagation="true">
+            <h4>🗑 Delete this item?</h4>
+            <p>
+                <strong>@Item?.Name</strong> will be permanently deleted from SharePoint.
+                This action cannot be undone.
+            </p>
+            <div class="confirm-actions">
+                <button type="button" class="btn-secondary"
+                        @onclick="() => showDeleteConfirm = false">
+                    Cancel
+                </button>
+                <button type="button" class="btn-danger"
+                        @onclick="DeleteItemAsync"
+                        disabled="@isDeleting">
+                    @if (isDeleting)
+                    {
+                        <span class="spin" style="border-top-color:#ef4444;border-color:rgba(239,68,68,.3);"></span>
+                        <span>Deleting…</span>
+                    }
+                    else
+                    {
+
+                        <span>🗑 Delete Permanently</span>
+                    }
+                </button>
+
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+
+    [Parameter] public string ItemId { get; set; } = "";
+
+    // ✅ Inject Configuration directly (clean solution)
+    [Inject] IConfiguration Config { get; set; } = default!;
+
+    private string DriveId = "";
+
+    private LibraryItem? Item;
+    private ActMetadata ActMeta = new();
+
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private bool isDeleting = false;
+    private bool showDeleteConfirm = false;
+
+    private string StatusMessage = "";
+    private string StatusClass = "info";
+    private string StatusIcon = "ℹ️";
+
+    private DateTime? LastSavedAt;
+
+    private int MetaTab = 0;
+
+    private string JsonValidationMsg = "";
+    private string JsonValidationClass = "info";
+
+    List<CourseModel> courses = new();
+    List<CourseDropdownDto> courseDropdownList = new();
+
+    // ✅ INIT
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            if (string.IsNullOrWhiteSpace(ItemId))
+            {
+                SetStatus("❌ Invalid item URL.", "error");
+                return;
+            }
+
+            DriveId = Config["SharePoint:Libraries:LMS:DriveId"];
+
+            if (string.IsNullOrWhiteSpace(DriveId))
+            {
+                SetStatus("❌ DriveId missing in config.", "error");
+                return;
+            }
+
+            // ✅ Load item
+            Item = await _spService.GetItemAsync(DriveId, ItemId);
+
+            if (Item == null)
+            {
+                SetStatus("❌ Item not found.", "error");
+                return;
+            }
+
+            // ✅ EXISTING LOGIC
+            ParseActMeta();
+
+            // ✅ ✅ ✅ ADD THIS BLOCK (Course Dropdown)
+
+            courses = (await _spService.GetCoursesAsync()).ToList();
+
+            courses = (await _spService.GetCoursesAsync())
+                .Where(c => !c.Archived && c.CourseStatus == "Active")
+                .ToList();
+
+
+            courseDropdownList = courses.Select(c => new CourseDropdownDto
+            {
+                Id = c.Id,
+                Code = c.CourseCode,
+                Display = $"{c.CourseCode} - {c.Title}"
+            }).ToList();
+
         }
         catch (Exception ex)
         {
-            NotificationService.Notify(
-                NotificationSeverity.Error,
-                "AI Failed",
-                ex.Message);
+            SetStatus($"❌ Load error: {ex.Message}", "error");
         }
         finally
         {
-            IsLoading = false;
-            await InvokeAsync(StateHasChanged);
+            isLoading = false;
         }
     }
-    private JsonObject BuildCourseMetadataJson()
+    // ✅ SAVE
+    private async Task SaveChangesAsync()
     {
-        return new JsonObject
+        if (Item == null) return;
+
+        try
         {
-            ["CourseId"] = Model.CourseId,
-            ["CourseTitle"] = Model.Title,
-            ["CourseDescription"] = Model.Description,
-            ["CourseLearningOutcomes"] = Model.MetadataJson
+            isSaving = true;
+            StatusMessage = "";
+
+            SyncActMetaToJson();
+
+            // ✅ ✅ ADD HERE (THIS IS THE FIX)
+            if (string.IsNullOrWhiteSpace(Item.ContentId))
+            {
+                Item.ContentId = GenerateCONTref();
+            }
+
+            // ✅ Save AFTER assigning ID
+            await _spService.UpdateLibraryItemFullAsync(DriveId, ItemId, Item);
+
+            LastSavedAt = DateTime.Now;
+            SetStatus("✅ Saved successfully.", "success");
+        }
+        catch (Exception ex)
+        {
+            SetStatus($"❌ Save failed: {ex.Message}", "error");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+    // ✅ DELETE
+    private async Task DeleteItemAsync()
+    {
+        if (Item == null) return;
+
+        try
+        {
+            isDeleting = true;
+            showDeleteConfirm = false;
+
+            await _spService.DeleteItemAsync(DriveId, ItemId);
+
+            Nav.NavigateTo("/lms-library?deleted=1");
+        }
+        catch (Exception ex)
+        {
+            SetStatus($"❌ Delete failed: {ex.Message}", "error");
+        }
+        finally
+        {
+            isDeleting = false;
+        }
+    }
+
+    // ✅ QUICK ACTIONS
+    private async Task TogglePublishAsync()
+    {
+        if (Item == null) return;
+        Item.IsPublished = !Item.IsPublished;
+        await SaveChangesAsync();
+    }
+
+    private async Task ToggleArchiveAsync()
+    {
+        if (Item == null) return;
+        Item.IsArchived = !Item.IsArchived;
+        await SaveChangesAsync();
+    }
+
+    private void CancelEdit() => Nav.NavigateTo("/lms-library");
+
+    private async Task OpenOnlineAsync()
+    {
+        if (Item == null || string.IsNullOrEmpty(Item.WebUrl)) return;
+        await JS.InvokeVoidAsync("open", Item.WebUrl, "_blank");
+    }
+
+    private async Task CopyItemIdToClipboard()
+    {
+        if (Item == null) return;
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", Item.Id);
+        SetStatus("✅ Copied.", "success");
+    }
+
+    // ✅ ACT META
+    private void ParseActMeta()
+    {
+        if (Item == null || string.IsNullOrWhiteSpace(Item.ACTMetaJson))
+        {
+            ActMeta = new();
+            return;
+        }
+
+        try
+        {
+            ActMeta = JsonSerializer.Deserialize<ActMetadata>(
+                Item.ACTMetaJson,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            ) ?? new();
+        }
+        catch { ActMeta = new(); }
+    }
+
+    private void SyncActMetaToJson()
+    {
+        if (Item == null) return;
+
+        try
+        {
+            Item.ACTMetaJson = JsonSerializer.Serialize(ActMeta);
+        }
+        catch { }
+    }
+
+    // ✅ JSON
+    private void FormatMetadataJson()
+    {
+        if (Item == null) return;
+
+        try
+        {
+            var parsed = JsonDocument.Parse(Item.MetadataJson ?? "{}");
+            Item.MetadataJson = JsonSerializer.Serialize(parsed, new JsonSerializerOptions { WriteIndented = true });
+
+            JsonValidationMsg = "✅ JSON formatted.";
+            JsonValidationClass = "success";
+        }
+        catch (Exception ex)
+        {
+            JsonValidationMsg = $"❌ Invalid JSON: {ex.Message}";
+            JsonValidationClass = "error";
+        }
+    }
+
+    private void ValidateMetadataJson()
+    {
+        if (Item == null) return;
+
+        try
+        {
+            JsonDocument.Parse(Item.MetadataJson ?? "{}");
+
+            JsonValidationMsg = "✅ Valid JSON.";
+            JsonValidationClass = "success";
+        }
+        catch (Exception ex)
+        {
+            JsonValidationMsg = $"❌ Invalid JSON: {ex.Message}";
+            JsonValidationClass = "error";
+        }
+    }
+
+    // ✅ UI HELPERS
+    private void SetStatus(string message, string type)
+    {
+        StatusMessage = message;
+        StatusClass = type;
+        StatusIcon = type switch
+        {
+            "success" => "✅",
+            "error" => "⛔",
+            _ => "ℹ️"
         };
     }
-    private static string HtmlToText(string? html)
+
+    private string GetPublishStatusClass() =>
+        Item?.IsArchived == true ? "archived" :
+        Item?.IsPublished == true ? "published" : "unpublished";
+
+    private string GetPublishStatusLabel() =>
+        Item?.IsArchived == true ? "Archived" :
+        Item?.IsPublished == true ? "Published" : "Draft";
+
+    private string GetPublishBannerClass() =>
+        Item?.IsArchived == true ? "archived" :
+        Item?.IsPublished == true ? "" : "unpublished";
+
+    private string GetPublishBannerIcon() =>
+        Item?.IsArchived == true ? "🗄" :
+        Item?.IsPublished == true ? "✅" : "⏳";
+
+    private string GetPublishBannerSub() =>
+        Item?.IsArchived == true ? "Archived" :
+        Item?.IsPublished == true ? "Visible" :
+        "Draft";
+
+    // ✅ FILE TYPE
+    private string GetFileTypeCss()
     {
-        if (string.IsNullOrWhiteSpace(html))
-            return string.Empty;
-
-        var doc = new HtmlDocument();
-        doc.LoadHtml(html);
-
-        return WebUtility.HtmlDecode(doc.DocumentNode.InnerText)
-                         .Trim();
+        var mime = Item?.ContentType?.ToLower() ?? "";
+        if (Item?.IsFolder == true) return "ft-folder";
+        if (mime.Contains("pdf")) return "ft-pdf";
+        if (mime.Contains("word")) return "ft-word";
+        if (mime.Contains("excel")) return "ft-excel";
+        if (mime.Contains("powerpoint")) return "ft-ppt";
+        if (mime.Contains("video")) return "ft-video";
+        if (mime.Contains("image")) return "ft-image";
+        return "ft-other";
     }
 
+    private string GetFileTypeIcon()
+    {
+        if (Item?.IsFolder == true) return "📁";
+        var mime = Item?.ContentType?.ToLower() ?? "";
+        if (mime.Contains("pdf")) return "📕";
+        if (mime.Contains("word")) return "📘";
+        if (mime.Contains("excel")) return "📗";
+        if (mime.Contains("powerpoint")) return "📙";
+        if (mime.Contains("video")) return "🎬";
+        if (mime.Contains("image")) return "🖼️";
+        return "📄";
+    }
 
+    private string GetFileTypeLabel()
+    {
+        if (Item?.IsFolder == true) return "Folder";
+        var mime = Item?.ContentType?.ToLower() ?? "";
+        if (mime.Contains("pdf")) return "PDF";
+        if (mime.Contains("word")) return "Word";
+        if (mime.Contains("excel")) return "Excel";
+        if (mime.Contains("powerpoint")) return "PowerPoint";
+        if (mime.Contains("video")) return "Video";
+        if (mime.Contains("image")) return "Image";
+        return "File";
+    }
+
+    private string GetActTypeIcon(string? type) => type?.ToLower() switch
+    {
+        "reading" => "📖",
+        "video" => "🎬",
+        "quiz" => "✅",
+        "group" => "👥",
+        "lab" => "🧪",
+        "assignment" => "📝",
+        _ => "📄"
+    };
+
+    private string FormatFileSize(long bytes)
+    {
+        if (bytes <= 0) return "—";
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / (1024.0 * 1024):F2} MB";
+    }
+
+    private async Task ViewDocument()
+    {
+        await JS.InvokeVoidAsync("open", $"/api/files/{ItemId}", "_blank");
+    }
+    
+    public class CourseDropdownDto
+    {
+        public int Id { get; set; }
+        public string Code { get; set; }
+        public string Display { get; set; } = string.Empty;
+    }
+
+    public string GenerateCONTref()
+    {
+        var now = DateTime.UtcNow;
+
+        return $"CONT-{now:yyyy-ddHHmmssfff}";
+    }
+
+    private void OnCourseChanged(object value)
+    {
+        if (Item == null) return;
+
+        var selectedCode = value?.ToString();
+
+        if (string.IsNullOrWhiteSpace(selectedCode)) return;
+
+        var course = courses.FirstOrDefault(c => c.CourseCode == selectedCode);
+
+        if (course == null) return;
+
+        // ✅ Create metadata JSON object
+        var meta = new
+        {
+            courseDescription = StripHtml(course.Description),
+            courseTitle = course.Title,
+            courseCode = course.CourseCode
+        };
+
+        // ✅ Save to EXT_Metadata
+        Item.MetadataJson = JsonSerializer.Serialize(meta, new JsonSerializerOptions
+        {
+            WriteIndented = true
+        });
+    }
+
+    private string StripHtml(string? html)
+    {
+        if (string.IsNullOrWhiteSpace(html)) return "";
+
+        // ✅ Remove HTML tags
+        var text = System.Text.RegularExpressions.Regex.Replace(html, "<.*?>", string.Empty);
+
+        // ✅ Decode HTML entities (&nbsp;, &#128216;, etc.)
+        text = System.Net.WebUtility.HtmlDecode(text);
+
+        // ✅ Optional: normalize spaces
+        text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ").Trim();
+
+        return text;
+    }
 }
-
-<style>
-    .lms-inline-fields {
-        display: flex;
-        gap: 10px;
-        width: 100%;
-    }
-
-</style>

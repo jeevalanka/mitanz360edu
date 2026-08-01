@@ -1,0 +1,291 @@
+﻿@page "/trainer-dashboard"
+@layout MainLayout_No_Left_RightPan
+
+@using System.Security.Claims
+@using Radzen
+@using Radzen.Blazor
+
+@inject AuthenticationStateProvider AuthState
+
+<PageTitle>Trainer Dashboard</PageTitle>
+
+<style>
+
+    /* ✅ PAGE LAYER */
+    .td-page {
+        background: #F3F6FB;
+        min-height: 100vh;
+        padding: 24px;
+    }
+
+    /* ✅ FLUENT CARD */
+    .td-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 16px;
+
+        box-shadow:
+            0 1px 2px rgba(0,0,0,.04),
+            0 4px 12px rgba(0,0,0,.06);
+    }
+
+    /* ✅ KPI */
+    .td-kpi {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .td-kpi-value {
+        font-size: 30px;
+        font-weight: 700;
+        color: #2563EB;
+    }
+
+    .td-kpi-label {
+        font-size: 13px;
+        color: #64748B;
+    }
+
+</style>
+
+<div class="td-page">
+
+    <!-- ✅ HEADER -->
+    <div style="margin-bottom:20px;">
+        <div style="font-size:28px;font-weight:700;">
+            👨‍🏫 @Greeting, @UserName
+        </div>
+        <div style="color:#64748B;font-size:13px;">
+            @DateTime.Now.ToString("dddd, dd MMM yyyy")
+        </div>
+    </div>
+
+    <!-- ✅ KPI -->
+    <div class="row g-3">
+
+        @foreach (var kpi in KPIs)
+        {
+            <div class="col-xl-2 col-md-4 col-sm-6">
+                <div class="td-card td-kpi">
+                    <div class="td-kpi-value">@kpi.Value</div>
+                    <div class="td-kpi-label">@kpi.Label</div>
+                </div>
+            </div>
+        }
+
+    </div>
+
+    <!-- ✅ MAIN ROW -->
+    <div class="row g-3 mt-2">
+
+        <!-- ✅ CLASSES -->
+        <div class="col-xl-7">
+
+            <div class="td-card">
+
+                <div style="font-weight:600;margin-bottom:8px;">
+                    📅 Today’s Classes
+                </div>
+
+                <RadzenDataGrid Data="@TodayClasses"
+                                TItem="ClassRow"
+                                GridLines="DataGridGridLines.None"
+                                Style="border:none;">
+
+                    <Columns>
+                        <RadzenDataGridColumn Property="Time" Title="Time" />
+                        <RadzenDataGridColumn Property="Course" Title="Course" />
+                        <RadzenDataGridColumn Property="Group" Title="Group" />
+                        <RadzenDataGridColumn Property="Location" Title="Location" />
+                        <RadzenDataGridColumn Property="Mode" Title="Mode" />
+                    </Columns>
+
+                </RadzenDataGrid>
+
+            </div>
+        </div>
+
+        <!-- ✅ AI + CARDS -->
+        <div class="col-xl-5">
+
+            <div class="td-card mb-3">
+                <div style="font-weight:600;">🤖 AI Insights</div>
+                <ul style="font-size:13px;margin-top:8px;">
+                    <li>⚠ 3 students at risk</li>
+                    <li>✅ 12 assignments graded</li>
+                </ul>
+            </div>
+
+            <div class="td-card mb-2">
+                📩 6 Messages | 📧 4 Emails | 📲 3 SMS
+            </div>
+
+            <div class="td-card mb-2">
+                📚 LMS Activity (Lessons, Uploads, Discussions)
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ✅ CHARTS -->
+    <div class="row g-3 mt-3">
+
+        <div class="col-xl-6">
+            <div class="td-card">
+                <div style="font-weight:600;">📊 Attendance Trend</div>
+
+                <RadzenChart>
+                    <RadzenLineSeries Data="@ChartData"
+                                      CategoryProperty="Day"
+                                      ValueProperty="Value" />
+                </RadzenChart>
+
+            </div>
+        </div>
+
+        <div class="col-xl-6">
+            <div class="td-card">
+                <div style="font-weight:600;">📈 Performance</div>
+
+                <RadzenChart>
+                    <RadzenColumnSeries Data="@ChartData"
+                                        CategoryProperty="Day"
+                                        ValueProperty="Value" />
+                </RadzenChart>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ✅ ASSESSMENT GRID -->
+    <div class="td-card mt-3">
+
+        <div style="font-weight:600;margin-bottom:10px;">
+            📝 Pending Assessments
+        </div>
+
+        <RadzenDataGrid Data="@Assessments"
+                        TItem="AssessmentRow"
+                        GridLines="DataGridGridLines.None"
+                        RowHover="true">
+
+            <Columns>
+
+                <RadzenDataGridColumn Property="Student" Title="Student" />
+                <RadzenDataGridColumn Property="Course" Title="Course" />
+                <RadzenDataGridColumn Property="DueDate" Title="Due Date" />
+                <RadzenDataGridColumn Property="Status" Title="Status" />
+
+                <RadzenDataGridColumn Title="">
+                    <Template Context="row">
+                        <RadzenButton Text="Grade"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Primary" />
+                    </Template>
+                </RadzenDataGridColumn>
+
+            </Columns>
+
+        </RadzenDataGrid>
+
+    </div>
+
+    <!-- ✅ EVENTS -->
+    <div class="row g-3 mt-3">
+
+        <div class="col-xl-6">
+            <div class="td-card">
+                <div style="font-weight:600;">🎓 Events</div>
+                <ul style="font-size:13px;margin-top:8px;">
+                    <li>Faculty Meeting</li>
+                    <li>Student Seminar</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-xl-6">
+            <div class="td-card">
+                <div style="font-weight:600;">📅 Calendar</div>
+                <RadzenCalendar />
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+@code {
+
+    private string Greeting = "";
+    private string UserName = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthState.GetAuthenticationStateAsync();
+        var user = auth.User;
+
+        UserName = user?.Identity?.Name ?? "Trainer";
+
+        var hour = DateTime.Now.Hour;
+
+        Greeting = hour switch
+        {
+            < 12 => "Good Morning",
+            < 17 => "Good Afternoon",
+            _ => "Good Evening"
+        };
+    }
+
+    private List<Kpi> KPIs = new()
+    {
+        new() { Value="142", Label="Students"},
+        new() { Value="5", Label="Classes"},
+        new() { Value="8", Label="Pending"},
+        new() { Value="92%", Label="Attendance"},
+        new() { Value="76%", Label="Engagement"},
+        new() { Value="85%", Label="Pass Rate"}
+    };
+
+    private List<ClassRow> TodayClasses = new()
+    {
+        new() { Time="08:30", Course="Cloud", Group="G1", Location="Lab 1", Mode="Physical" },
+        new() { Time="10:30", Course="Azure", Group="G2", Location="Online", Mode="Teams" }
+    };
+
+    private List<ChartRow> ChartData = new()
+    {
+        new() { Day="Mon", Value=70 },
+        new() { Day="Tue", Value=60 },
+        new() { Day="Wed", Value=80 }
+    };
+
+    private List<AssessmentRow> Assessments = new()
+    {
+        new() { Student="Nimal", Course="Azure", DueDate="02 Jul", Status="Pending" }
+    };
+
+    class Kpi { public string Value { get; set; } public string Label { get; set; } }
+
+    class ClassRow
+    {
+        public string Time { get; set; }
+        public string Course { get; set; }
+        public string Group { get; set; }
+        public string Location { get; set; }
+        public string Mode { get; set; }
+    }
+
+    class ChartRow { public string Day { get; set; } public int Value { get; set; } }
+
+    class AssessmentRow
+    {
+        public string Student { get; set; }
+        public string Course { get; set; }
+        public string DueDate { get; set; }
+        public string Status { get; set; }
+    }
+
+}

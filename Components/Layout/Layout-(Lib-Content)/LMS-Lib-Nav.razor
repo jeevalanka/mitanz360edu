@@ -1,128 +1,87 @@
-﻿@using System.Text.Json
-@using Microsoft.AspNetCore.Components
-@using Microsoft.JSInterop
-@using MITANZ360Edu.Web.Services
-@using Radzen
-@using Radzen.Blazor
-@using Microsoft.Extensions.Options
-@using MITANZ360Edu.Web.Models
+﻿@page "/lms-lib-nav"
 
-@inject IOptions<ApplicationSettings> AppSettings
-@inject SharePointService SharePointService
-@inject NotificationService NotificationService
-@inject NavigationManager NavigationManager
-@inject IJSRuntime JS
+@using System.IO
+@using System.Linq
+@using Microsoft.AspNetCore.Components
 
 <PageTitle>LMS Documents</PageTitle>
 
-<div class="lms-doc-layout">
+<div class="sp-page">
 
-    <!-- ===================================================== -->
-    <!-- NAVIGATION CARD -->
-    <!-- ===================================================== -->
+    <!-- ================= HEADER ================= -->
+    <div class="sp-header">
+        <span class="sp-title">LMS Library</span>
+    </div>
 
-    <div class="lms-navigation-card">
+    <!-- ================= COMMAND BAR ================= -->
+    <div class="sp-commandbar">
 
-        <!-- HEADER -->
+        <button class="sp-btn">←</button>
 
-        <div class="lms-sidebar-header">
+        <div class="sp-breadcrumb">
+            Home / @CurrentFolder?.Name
+        </div>
 
-            <div class="lms-sidebar-branding">
+        <input class="sp-search" placeholder="Search documents..." />
 
-                <div class="lms-sidebar-title">
-                    🧠 Knowledge
-                </div>
+        <div class="sp-actions">
+            <button class="sp-btn primary" @onclick="OpenNewFolderDialog">New</button>
+            <button class="sp-btn" @onclick="OpenUploadDialog">Upload</button>
+            <button class="sp-btn" @onclick="RefreshAsync">Refresh</button>
+        </div>
 
-            </div>
+    </div>
+
+    <!-- ================= WORKSPACE ================= -->
+    <div class="sp-layout">
+
+        <!-- ================= LEFT: FOLDER TREE ================= -->
+        <div class="sp-left">
+
+            @foreach (var item in RootItems)
+            {
+                @RenderTreeItem(item, 0)
+            }
 
         </div>
 
-        <!-- ===================================================== -->
-        <!-- SECTION -->
-        <!-- ===================================================== -->
+        <!-- ================= RIGHT: FILE CONTENT ================= -->
+        <div class="sp-right-content">
 
-        <div class="lms-sidebar-section-title lms-title-with-refresh">
+            @if (CurrentFolder == null)
+            {
+                <div class="sp-empty">Select a folder</div>
+            }
+            else if (!FolderChildren.ContainsKey(CurrentFolder.Id))
+            {
+                <div class="sp-empty">Loading...</div>
+            }
+            else
+            {
+                var items = FolderChildren[CurrentFolder.Id];
 
-            <span>LMS Content</span>
+                <div class="sp-file-grid">
 
-            <!-- REFRESH -->
+                    @foreach (var file in items.Where(x => !x.IsFolder))
+                    {
+                        <div class="sp-tile"
+                             tabindex="0"
+                             @onclick="() => SelectItemAsync(file)">
 
-            <button class="lms-refresh-icon"
-                    @onclick="RefreshAsync"
-                    title="Refresh">
-                🔄
-            </button>
+                            <div class="sp-tile-icon">
+                                @((MarkupString)GetFileIconSvg(file.Name))
+                            </div>
 
-            <!-- UPLOAD -->
+                            <div class="sp-tile-name">
+                                @file.Name
+                            </div>
 
-            <button class="lms-refresh-icon"
-                    @onclick="OpenUploadDialog"
-                    title="Upload">
-                📤
-            </button>
-
-        </div>
-
-        <!-- ===================================================== -->
-        <!-- UPLOAD POPUP -->
-        <!-- ===================================================== -->
-        @if (ShowUploadPopup)
-        {
-            <div class="lms-upload-popup-overlay">
-
-                <div class="lms-upload-popup-card">
-
-                    <!-- HEADER -->
-
-                    <div class="lms-upload-popup-header">
-
-                        <span>📤 Upload Content</span>
-
-                        <button class="lms-popup-close"
-                                @onclick="CloseUploadDialog">
-                            ✖
-                        </button>
-
-                    </div>
-
-                    <!-- BODY -->
-
-                    <div class="lms-upload-popup-body">
-
-                        <RadzenUpload Auto="false"
-                                      Multiple="true"
-                                      ChooseText="Choose Files"
-                                      Change="@OnUploadSelected" />
-
-                    </div>
+                        </div>
+                    }
 
                 </div>
+            }
 
-            </div>
-        }
-
-        <!-- TREE -->
-        @if (IsLoading)
-        {
-            <div class="p-4 text-white">
-
-                <RadzenProgressBarCircular Mode="ProgressBarMode.Indeterminate" />
-
-            </div>
-        }
-        else
-        {
-            <div class="lms-tree-container">
-
-                @RenderTreeItem(RootNode)
-
-            </div>
-        }
-
-        <!-- FOOTER -->
-
-        <div class="lms-sidebar-footer" style="color:darkgray">
-            © @DateTime.Now.Year @AppSettings.Value.Name. All rights reserved.
         </div>
 
     </div>
@@ -131,616 +90,153 @@
 
 @code {
 
-    private bool IsLoading = true;
+    // ================= STATE =================
 
-    private bool ShowUploadPopup = false;
+    private LibraryItem? CurrentFolder;
 
-    private LibraryItem RootNode = new();
+    private List<LibraryItem> RootItems = new();
 
-    private LibraryItem? CurrentFolder = null;
+    private Dictionary<string, List<LibraryItem>> FolderChildren = new();
 
-    private LibraryItem? SelectedItem;
-
-    private List<LibraryItem> RootItems = [];
-
-    private readonly Dictionary<string, List<LibraryItem>>
-        FolderChildren = [];
-
-    private readonly HashSet<string>
-        ExpandedFolders = [];
-
-    // =====================================================
-    // INITIAL LOAD
-    // =====================================================
-
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await LoadRootAsync();
+        LoadSampleData();
     }
 
-    // =====================================================
-    // POPUP
-    // =====================================================
+    // ================= DATA =================
 
-    private void OpenUploadDialog()
+    private void LoadSampleData()
     {
-        ShowUploadPopup = true;
+        var module = new LibraryItem { Name = "Module 1", IsFolder = true };
+        var course = new LibraryItem { Name = "AZ900-104", IsFolder = true };
+        var root = new LibraryItem { Name = "Courses", IsFolder = true };
+
+        RootItems.Add(root);
+
+        FolderChildren[root.Id] = new() { course };
+        FolderChildren[course.Id] = new() { module };
+
+        FolderChildren[module.Id] = new()
+        {
+            new LibraryItem { Name = "File.pdf" },
+            new LibraryItem { Name = "Notes.docx" },
+            new LibraryItem { Name = "Excel.xlsx" }
+        };
+
+        CurrentFolder = root;
     }
 
-    private void CloseUploadDialog()
-    {
-        ShowUploadPopup = false;
-    }
-
-    // =====================================================
-    // LOAD ROOT
-    // =====================================================
-
-    private async Task LoadRootAsync()
-    {
-        try
-        {
-            IsLoading = true;
-
-            await InvokeAsync(StateHasChanged);
-
-            var driveId =
-                await SharePointService
-                    .GetPublicLmsDriveIdAsync();
-
-            RootItems =
-                await SharePointService
-                    .GetLibraryRootAsync();
-
-            RootNode = new LibraryItem
-            {
-                Id = "root",
-                Name = "LMS Library",
-                Title = "LMS Library",
-                IsFolder = true,
-                DriveId = driveId
-            };
-
-            FolderChildren.Clear();
-
-            FolderChildren["root"] = RootItems;
-
-            ExpandedFolders.Clear();
-
-            ExpandedFolders.Add("root");
-
-            CurrentFolder = RootNode;
-
-            SelectedItem = RootNode;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-
-            NotificationService.Notify(
-                NotificationSeverity.Error,
-                "Root Load Failed",
-                ex.Message);
-        }
-        finally
-        {
-            IsLoading = false;
-
-            await InvokeAsync(StateHasChanged);
-        }
-    }
-
-    // =====================================================
-    // OPEN FOLDER
-    // =====================================================
-
-    private async Task OpenFolderAsync(
-        LibraryItem folder)
-    {
-        try
-        {
-            CurrentFolder = folder;
-
-            if (ExpandedFolders.Contains(folder.Id))
-            {
-                ExpandedFolders.Remove(folder.Id);
-
-                await InvokeAsync(StateHasChanged);
-
-                return;
-            }
-
-            ExpandedFolders.Add(folder.Id);
-
-            if (folder.Id == "root")
-            {
-                await InvokeAsync(StateHasChanged);
-
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(folder.DriveId))
-            {
-                NotificationService.Notify(
-                    NotificationSeverity.Warning,
-                    "Drive Missing",
-                    "Folder DriveId is missing.");
-
-                return;
-            }
-
-            if (!FolderChildren.ContainsKey(folder.Id))
-            {
-                FolderChildren[folder.Id] =
-                    await SharePointService
-                        .GetLibraryFolderChildrenAsync(
-                            folder.DriveId,
-                            folder.Id);
-            }
-
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-
-            NotificationService.Notify(
-                NotificationSeverity.Error,
-                "Folder Load Failed",
-                ex.Message);
-        }
-    }
-
-    // =====================================================
-    // SELECT ITEM
-    // =====================================================
-
-    private async Task SelectItemAsync(
-        LibraryItem item)
-    {
-        SelectedItem = item;
-
-        if (item.IsFolder)
-        {
-            await OpenFolderAsync(item);
-
-            return;
-        }
-
-        var folderId =
-            CurrentFolder?.Id ?? "root";
-
-        await InvokeAsync(StateHasChanged);
-
-        NavigationManager.NavigateTo(
-            $"/lms-crud-edit/{item.Id}/{folderId}");
-    }
-
-    // =====================================================
-    // REFRESH
-    // =====================================================
+    // ================= ACTIONS =================
 
     private async Task RefreshAsync()
     {
-        ExpandedFolders.Clear();
-
-        FolderChildren.Clear();
-
-        SelectedItem = null;
-
-        CurrentFolder = null;
-
-        await LoadRootAsync();
+        await Task.Delay(50);
     }
 
-    // =====================================================
-    // UPLOAD FILES
-    // =====================================================
-
-    private async Task OnUploadSelected(
-        UploadChangeEventArgs args)
+    private async Task SelectItemAsync(LibraryItem item)
     {
-        if (args.Files == null ||
-            !args.Files.Any())
+        if (item.IsFolder)
         {
-            return;
+            CurrentFolder = item;
         }
 
-        try
-        {
-            var driveId =
-                await SharePointService
-                    .GetPublicLmsDriveIdAsync();
-
-            var folderId =
-                CurrentFolder?.Id ?? "root";
-
-            foreach (var file in args.Files)
-            {
-                await using var stream =
-                    file.OpenReadStream(
-                        maxAllowedSize: 52428800);
-
-                var contentId =
-                    SharePointService
-                        .GenerateContentId();
-
-                var driveItem =
-                    await SharePointService
-                        .UploadFileAsync(
-                            driveId,
-                            folderId,
-                            file.Name,
-                            stream);
-
-                if (driveItem == null ||
-                    string.IsNullOrWhiteSpace(
-                        driveItem.Id))
-                {
-                    NotificationService.Notify(
-                        NotificationSeverity.Error,
-                        "Upload Failed",
-                        $"Unable to upload: {file.Name}");
-
-                    continue;
-                }
-
-                var model =
-                    new LibraryItem
-                    {
-                        ContentId = contentId,
-
-                        Title =
-                            Path.GetFileNameWithoutExtension(
-                                file.Name),
-
-                        ContentTypeCode = "Document",
-
-                        Description =
-                            $"Uploaded LMS content: {file.Name}",
-
-                        Source = "Internal",
-
-                        IsPublished = true,
-
-                        IsArchived = false
-                    };
-
-                await SharePointService
-                    .UpdateLibraryItemAsync(
-                        driveId,
-                        driveItem.Id,
-                        model);
-
-                Console.WriteLine(
-                    $"Uploaded: {file.Name}");
-            }
-
-            NotificationService.Notify(
-                NotificationSeverity.Success,
-                "Upload Successful",
-                $"{args.Files.Count()} file(s) uploaded.");
-
-            ShowUploadPopup = false;
-
-            await RefreshAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-
-            NotificationService.Notify(
-                NotificationSeverity.Error,
-                "Upload Error",
-                ex.Message);
-        }
+        await Task.CompletedTask;
     }
 
-    // =====================================================
-    // TREE RENDER
-    // =====================================================
+    private void OpenNewFolderDialog() { }
+    private void OpenUploadDialog() { }
 
-    private RenderFragment RenderTreeItem(
-        LibraryItem item)
+    // ================= TREE (FOLDERS ONLY) =================
+
+    private RenderFragment RenderTreeItem(LibraryItem item, int depth)
         => builder =>
         {
+            if (!item.IsFolder) return;
+
             var seq = 0;
 
-            var expanded =
-                ExpandedFolders.Contains(item.Id);
-
-            var icon = item.IsFolder
-                ? expanded
-                    ? "📖"
-                    : "📁"
-                : GetSmallFileIcon(item.Name);
+            builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "style", $"padding-left:{depth * 16}px");
 
             builder.OpenElement(seq++, "div");
+            builder.AddAttribute(seq++, "class", "sp-tree-item");
+            builder.AddAttribute(seq++, "onclick",
+                EventCallback.Factory.Create(this, () => SelectItemAsync(item)));
 
-            builder.OpenElement(seq++, "button");
-
-            builder.AddAttribute(
-                seq++,
-                "class",
-                SelectedItem?.Id == item.Id
-                    ? "lms-tree-item active"
-                    : "lms-tree-item");
-
-            builder.AddAttribute(
-                seq++,
-                "onclick",
-                EventCallback.Factory.Create(
-                    this,
-                    async () => await SelectItemAsync(item)));
-
-            builder.AddContent(
-                seq++,
-                $"{icon} {(!string.IsNullOrWhiteSpace(item.Title) ? item.Title : item.Name)}");
-
+            builder.AddContent(seq++, item.Name);
             builder.CloseElement();
 
-            List<LibraryItem> children = [];
-
-            if (item.Id == "root")
+            if (FolderChildren.ContainsKey(item.Id))
             {
-                children = RootItems;
-            }
-            else if (FolderChildren.ContainsKey(item.Id))
-            {
-                children = FolderChildren[item.Id];
-            }
-
-            if (item.IsFolder &&
-                expanded &&
-                children.Any())
-            {
-                builder.OpenElement(seq++, "div");
-
-                builder.AddAttribute(
-                    seq++,
-                    "class",
-                    "lms-child-items");
-
-                foreach (var child in children)
+                foreach (var child in FolderChildren[item.Id]
+                         .Where(x => x.IsFolder)) // ✅ CRITICAL FIX
                 {
-                    builder.AddContent(
-                        seq++,
-                        RenderTreeItem(child));
+                    builder.AddContent(seq++, RenderTreeItem(child, depth + 1));
                 }
-
-                builder.CloseElement();
             }
 
             builder.CloseElement();
         };
 
-    // =====================================================
-    // ICONS
-    // =====================================================
+    // ================= FILE ICON =================
 
-    private string GetSmallFileIcon(
-        string fileName)
+    private string GetFileIconSvg(string? name)
     {
-        var extension =
-            Path.GetExtension(fileName)
-                .ToLowerInvariant();
+        var ext = Path.GetExtension(name ?? "").ToLower();
 
-        return extension switch
+        return ext switch
         {
-            ".xlsx" => "📗",
-            ".docx" => "📘",
-            ".pdf" => "📕",
-            ".png" => "🖼️",
-            ".jpg" => "🖼️",
-            ".html" => "📄",
-            _ => "📄"
+            ".pdf" => Icon.File("PDF", "#C4314B"),
+            ".docx" => Icon.File("W", "#185ABD"),
+            ".xlsx" => Icon.File("X", "#107C41"),
+            ".pptx" => Icon.File("P", "#C43E1C"),
+            _ => Icon.File("DOC", "#605E5C")
         };
     }
+
+    // ================= MODEL =================
+
+    public class LibraryItem
+    {
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string Name { get; set; } = "";
+        public bool IsFolder { get; set; }
+    }
+
+    // ================= ICON =================
+
+    private static class Icon
+    {
+        public static string File(string text, string color)
+            => $"<div style='width:32px;height:32px;background:{color};color:white;font-size:10px;display:flex;align-items:center;justify-content:center;border-radius:6px'>{text}</div>";
+    }
+
 }
 
 <style>
+    /* ================= LAYOUT ================= */
 
-    * {
-        box-sizing: border-box;
-    }
-
-    html,
-    body {
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        background: #f3f6fb;
-        font-family: "Segoe UI", sans-serif;
-    }
-
-    .lms-doc-layout {
+    .sp-layout {
         display: flex;
-        width: 100%;
-        height: calc(100vh - 56px);
-        overflow: hidden;
+        height: calc(100vh - 110px);
+        background: #FFFFFF;
     }
 
-    .lms-title-with-refresh {
-        display: flex;
-        align-items: center;
-        gap: 8px;
+    /* ================= LEFT ================= */
+
+    .sp-left {
+        width: 260px;
+        border-right: 1px solid #E1E1E1;
+        background: #FFFFFF;
+        padding: 8px;
     }
 
-    .lms-refresh-icon {
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        font-size: 25px;
-        color: white;
-        padding: 5px;
-    }
+    /* ================= RIGHT ================= */
 
-        .lms-refresh-icon:hover {
-            opacity: 0.8;
-        }
-
-    /* =====================================================
-           NAVIGATION CARD
-        ===================================================== */
-
-    .lms-navigation-card {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        background: rgba(10, 23, 49, 1);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
-        border: 1px solid rgba(255,255,255,0.12);
-        box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-        color: white;
-        border-radius: 24px;
-        overflow: hidden;
-    }
-
-    .lms-sidebar-header {
-        display: flex;
-        align-items: center;
-        padding: 18px;
-    }
-
-    .lms-sidebar-title {
-        font-size: 22px;
-        font-weight: 700;
-        color: #ff6b00;
-    }
-
-    .lms-sidebar-section-title {
-        padding: 0 15px;
-        margin-bottom: 10px;
-        font-size: 16px;
-        font-weight: 700;
-    }
-
-    /* =====================================================
-           TREE
-        ===================================================== */
-
-    .lms-tree-container {
+    .sp-right-content {
         flex: 1;
-        overflow-y: auto;
-        padding: 0 12px 12px 12px;
-        width: 100%;
+        padding: 16px;
     }
 
-    .lms-tree-item {
-        display: block;
-        width: 100%;
-        border: none;
-        border-radius: 14px;
-        margin-bottom: 8px;
-        padding: 12px 14px;
-        background: rgba(255,255,255,0.05);
-        color: white;
-        font-size: 13px;
-        font-weight: 600;
-        text-align: left;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-        .lms-tree-item:hover {
-            background: rgba(255,255,255,0.12);
-        }
-
-        .lms-tree-item.active {
-            background: linear-gradient(90deg, #17b44f, #1ed760);
-            color: white;
-        }
-
-    .lms-child-items {
-        margin-left: 12px;
-    }
-
-    /* =====================================================
-           FOOTER
-        ===================================================== */
-
-    .lms-sidebar-footer {
-        height: 30px;
-        padding: 5px 10px;
-        font-size: 10px;
-        background: rgba(0,0,0,0.25);
-    }
-
-    /* =====================================================
-           UPLOAD POPUP
-        ===================================================== */
-
-    .lms-upload-popup-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.55);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 999999;
-    }
-
-    .lms-upload-popup-card {
-        width: 420px;
-        background: #0a1731;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-        animation: popupFade 0.2s ease;
-    }
-
-    .lms-upload-popup-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 16px 20px;
-        color: white;
-        font-size: 18px;
-        font-weight: 600;
-        border-bottom: 1px solid rgba(255,255,255,0.08);
-    }
-
-    .lms-upload-popup-body {
-        padding: 25px;
-    }
-
-    .lms-popup-close {
-        background: transparent;
-        border: none;
-        color: white;
-        font-size: 18px;
-        cursor: pointer;
-    }
-
-    /* =====================================================
-           ANIMATION
-        ===================================================== */
-
-    @@keyframes popupFade {
-
-        from {
-            opacity: 0;
-            transform: scale(0.95);
-        }
-
-        to {
-            opacity: 1;
-            transform: scale(1);
-        }
-    }
-
-    /* =====================================================
-           RESPONSIVE
-        ===================================================== */
-
-    @@media (max-width: 900px) {
-
-        .lms-doc-layout {
-            flex-direction: column;
-            overflow: auto;
-        }
-    }
-
+    /* ================= TREE ================= */
 </style>

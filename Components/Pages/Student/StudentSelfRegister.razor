@@ -1,0 +1,1139 @@
+﻿@page "/student-self-register"
+@layout MainLayout_No_Left_RightPan
+@attribute [AllowAnonymous]
+
+@using MITANZ360Edu.Web.Models
+@using MITANZ360Edu.Web.Services
+
+@inject SharePointService _studentService
+@inject IConfiguration _config
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Student Self Registration — MITANZ360Edu</PageTitle>
+
+<style>
+    /* =============================================
+           MITANZ360Edu Design Standard v1.0
+           Primary: #0078D4 | Gold: #F4B400
+           Font: Segoe UI | Rounded controls
+        ============================================= */
+
+    .reg-page {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: #f3f6fb;
+        min-height: 100vh;
+        padding: 0;
+    }
+
+    /* ── PAGE HEADER ── */
+    .reg-page-header {
+        background: #fff;
+        border-bottom: 1px solid #e1e8f0;
+        padding: 16px 32px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        box-shadow: 0 1px 4px rgba(0,120,212,.08);
+    }
+
+        .reg-page-header .brand-bar {
+            width: 4px;
+            height: 36px;
+            background: linear-gradient(180deg, #0078D4 60%, #F4B400 100%);
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .reg-page-header h1 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .reg-page-header .sub {
+            font-size: 0.78rem;
+            color: #666;
+            margin: 0;
+        }
+
+        .reg-page-header .mitanz-badge {
+            margin-left: auto;
+            background: #F4B400;
+            color: #1a1a2e;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+        }
+
+    /* ── MAIN LAYOUT ── */
+    .reg-body {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 24px;
+        padding: 28px 32px;
+        max-width: 1280px;
+        margin: 0 auto;
+    }
+
+    @@media (max-width: 900px) {
+        .reg-body {
+            grid-template-columns: 1fr;
+            padding: 16px;
+        }
+    }
+
+    /* ── GLASS CARD ── */
+    .fluent-card {
+        background: #fff;
+        border: 1px solid #e1e8f0;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,120,212,.06);
+        margin-bottom: 16px;
+        overflow: hidden;
+    }
+
+    .fluent-card-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 20px 12px;
+        border-bottom: 1px solid #f0f4fa;
+        background: #fafcff;
+    }
+
+        .fluent-card-header .section-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #e8f1fd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .fluent-card-header h5 {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin: 0;
+        }
+
+        .fluent-card-header .section-badge {
+            margin-left: auto;
+            font-size: 0.7rem;
+            color: #0078D4;
+            background: #e8f1fd;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-weight: 600;
+        }
+
+    .fluent-card-body {
+        padding: 20px 20px 8px;
+    }
+
+    /* ── FORM CONTROLS ── */
+    .field-group {
+        margin-bottom: 16px;
+    }
+
+    .field-label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #444;
+        margin-bottom: 5px;
+        letter-spacing: .1px;
+    }
+
+        .field-label .required-star {
+            color: #c4262e;
+            margin-left: 2px;
+        }
+
+    .field-hint {
+        font-size: 0.72rem;
+        color: #888;
+        margin-top: 3px;
+    }
+
+    .fluent-input,
+    .fluent-select {
+        width: 100%;
+        height: 36px;
+        padding: 0 12px;
+        border: 1.5px solid #d0d7e0;
+        border-radius: 6px;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 0.88rem;
+        color: #1a1a2e;
+        background: #fff;
+        transition: border-color .15s, box-shadow .15s;
+        outline: none;
+        box-sizing: border-box;
+    }
+
+        .fluent-input:focus,
+        .fluent-select:focus {
+            border-color: #0078D4;
+            box-shadow: 0 0 0 3px rgba(0,120,212,.12);
+        }
+
+        .fluent-input[readonly],
+        .fluent-input:disabled {
+            background: #f5f7fa;
+            color: #888;
+            border-color: #e0e0e0;
+            cursor: not-allowed;
+        }
+
+        .fluent-input.input-error {
+            border-color: #c4262e;
+            box-shadow: 0 0 0 3px rgba(196,38,46,.1);
+        }
+
+        .fluent-input.input-success {
+            border-color: #107c10;
+            box-shadow: 0 0 0 3px rgba(16,124,16,.1);
+        }
+
+    .fluent-textarea {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1.5px solid #d0d7e0;
+        border-radius: 6px;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 0.88rem;
+        color: #1a1a2e;
+        background: #fff;
+        resize: vertical;
+        min-height: 70px;
+        transition: border-color .15s, box-shadow .15s;
+        outline: none;
+        box-sizing: border-box;
+    }
+
+        .fluent-textarea:focus {
+            border-color: #0078D4;
+            box-shadow: 0 0 0 3px rgba(0,120,212,.12);
+        }
+
+    /* ── FIELD ROW ── */
+    .field-row {
+        display: grid;
+        gap: 16px;
+        margin-bottom: 0;
+    }
+
+    .field-row-2 {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .field-row-1 {
+        grid-template-columns: 1fr;
+    }
+
+    @@media (max-width: 640px) {
+        .field-row-2 {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* ── EMAIL CHECK ── */
+    .email-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: end;
+    }
+
+    .email-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.78rem;
+        font-weight: 500;
+        margin-top: 5px;
+        padding: 5px 10px;
+        border-radius: 5px;
+    }
+
+        .email-status.available {
+            color: #107c10;
+            background: #dff6dd;
+        }
+
+        .email-status.exists {
+            color: #c4262e;
+            background: #fde7e9;
+        }
+
+        .email-status.checking {
+            color: #605e5c;
+            background: #f3f2f1;
+        }
+
+    /* ── STATUS MESSAGES ── */
+    .status-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 16px;
+    }
+
+        .status-bar.success {
+            background: #dff6dd;
+            color: #107c10;
+            border-left: 4px solid #107c10;
+        }
+
+        .status-bar.error {
+            background: #fde7e9;
+            color: #c4262e;
+            border-left: 4px solid #c4262e;
+        }
+
+        .status-bar.info {
+            background: #e8f1fd;
+            color: #0078D4;
+            border-left: 4px solid #0078D4;
+        }
+
+    /* ── DECLARATION ── */
+    .declaration-box {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        background: #fffbea;
+        border: 1.5px solid #F4B400;
+        border-radius: 8px;
+        padding: 14px 16px;
+        margin-bottom: 20px;
+    }
+
+        .declaration-box input[type=checkbox] {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            margin-top: 1px;
+            accent-color: #0078D4;
+            cursor: pointer;
+        }
+
+        .declaration-box label {
+            font-size: 0.85rem;
+            color: #444;
+            line-height: 1.5;
+            cursor: pointer;
+            margin: 0;
+        }
+
+    /* ── STICKY ACTION BAR ── */
+    .sticky-action-bar {
+        position: sticky;
+        bottom: 0;
+        background: rgba(255,255,255,0.96);
+        backdrop-filter: blur(8px);
+        border-top: 1px solid #e1e8f0;
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-radius: 0 0 10px 10px;
+        box-shadow: 0 -2px 12px rgba(0,120,212,.08);
+    }
+
+    /* ── BUTTONS ── */
+    .btn-fluent-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        background: #0078D4;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 22px;
+        height: 36px;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .15s, box-shadow .15s;
+        white-space: nowrap;
+    }
+
+        .btn-fluent-primary:hover:not(:disabled) {
+            background: #006cbe;
+            box-shadow: 0 2px 8px rgba(0,120,212,.3);
+        }
+
+        .btn-fluent-primary:disabled {
+            background: #a8c7e8;
+            cursor: not-allowed;
+        }
+
+    .btn-fluent-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        background: transparent;
+        color: #444;
+        border: 1.5px solid #d0d7e0;
+        border-radius: 6px;
+        padding: 0 18px;
+        height: 36px;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: border-color .15s, background .15s;
+        white-space: nowrap;
+    }
+
+        .btn-fluent-secondary:hover:not(:disabled) {
+            border-color: #0078D4;
+            color: #0078D4;
+            background: #f0f6ff;
+        }
+
+        .btn-fluent-secondary:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+    .btn-fluent-outline {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: transparent;
+        color: #0078D4;
+        border: 1.5px solid #0078D4;
+        border-radius: 6px;
+        padding: 0 14px;
+        height: 34px;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .15s;
+        white-space: nowrap;
+    }
+
+        .btn-fluent-outline:hover:not(:disabled) {
+            background: #e8f1fd;
+        }
+
+        .btn-fluent-outline:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+    /* ── PROGRESS STEPS ── */
+    .progress-steps {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        margin-bottom: 24px;
+        background: #fff;
+        border: 1px solid #e1e8f0;
+        border-radius: 10px;
+        padding: 14px 20px;
+        box-shadow: 0 1px 4px rgba(0,120,212,.05);
+    }
+
+    .step-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+    }
+
+    .step-circle {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2px solid #d0d7e0;
+        background: #f5f7fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #888;
+        flex-shrink: 0;
+        transition: all .2s;
+    }
+
+        .step-circle.active {
+            border-color: #0078D4;
+            background: #0078D4;
+            color: #fff;
+        }
+
+        .step-circle.done {
+            border-color: #107c10;
+            background: #107c10;
+            color: #fff;
+        }
+
+    .step-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #888;
+    }
+
+        .step-label.active {
+            color: #0078D4;
+        }
+
+        .step-label.done {
+            color: #107c10;
+        }
+
+    .step-line {
+        flex: 1;
+        height: 2px;
+        background: #e1e8f0;
+        margin: 0 8px;
+        border-radius: 2px;
+    }
+
+        .step-line.done {
+            background: #107c10;
+        }
+
+    /* ── RIGHT PANEL ── */
+    .guide-panel {
+        background: #fff;
+        border: 1px solid #e1e8f0;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,120,212,.06);
+        overflow: hidden;
+        height: fit-content;
+        position: sticky;
+        top: 20px;
+    }
+
+    .guide-panel-header {
+        background: linear-gradient(135deg, #0078D4 0%, #005fa3 100%);
+        color: #fff;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .guide-panel-header h6 {
+            margin: 0;
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+
+    .guide-panel iframe {
+        width: 100%;
+        height: 560px;
+        border: none;
+        display: block;
+    }
+
+    /* ── VALIDATION ── */
+    .validation-summary-errors {
+        background: #fde7e9;
+        border: 1px solid #c4262e;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        font-size: 0.82rem;
+        color: #c4262e;
+    }
+
+    /* ── SPINNER ── */
+    .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,.4);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin .7s linear infinite;
+        display: inline-block;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* ── STUDENT NUMBER CHIP ── */
+    .student-number-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #e8f1fd;
+        border: 1.5px solid #b3d1f0;
+        border-radius: 6px;
+        padding: 6px 14px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #0078D4;
+        font-family: 'Consolas', 'Courier New', monospace;
+        letter-spacing: .5px;
+    }
+
+    .status-pending-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #fff4ce;
+        border: 1.5px solid #F4B400;
+        border-radius: 6px;
+        padding: 6px 14px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #835800;
+    }
+</style>
+
+<!-- =============================================
+     PAGE HEADER
+============================================= -->
+<div class="reg-page">
+
+    <div class="reg-page-header">
+        <div class="brand-bar"></div>
+        <div>
+            <h1>Student Self Registration</h1>
+            <p class="sub">Complete all sections below and submit for approval</p>
+        </div>
+        <span class="mitanz-badge">MITANZ360Edu</span>
+    </div>
+
+    <!-- =============================================
+         MAIN BODY
+    ============================================= -->
+    <div class="reg-body">
+
+        <!-- ── LEFT: FORM ── -->
+        <div>
+
+            <!-- PROGRESS STEPS -->
+            <div class="progress-steps">
+                <div class="step-item">
+                    <div class="step-circle active">1</div>
+                    <span class="step-label active">Contact</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item">
+                    <div class="step-circle">2</div>
+                    <span class="step-label">Personal</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item">
+                    <div class="step-circle">3</div>
+                    <span class="step-label">Identity</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item">
+                    <div class="step-circle">4</div>
+                    <span class="step-label">Academic</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item">
+                    <div class="step-circle">5</div>
+                    <span class="step-label">Review</span>
+                </div>
+            </div>
+
+            <!-- STATUS MESSAGE -->
+            @if (!string.IsNullOrEmpty(StatusMessage))
+            {
+                <div class="status-bar @GetStatusClass()">
+                    <span>@GetStatusIcon()</span>
+                    <span>@StatusMessage</span>
+                </div>
+            }
+
+            <EditForm Model="Model" OnValidSubmit="Register">
+                <DataAnnotationsValidator />              
+                <ValidationSummary class="validation-summary-errors" />
+
+                @if (ShowValidationSummary)
+                {
+                    <ValidationSummary class="validation-summary-errors" />
+                }
+
+                <!-- ═══════════════════════════════════════
+                     SECTION 1 — CONTACT INFORMATION
+                ═══════════════════════════════════════ -->
+                <div class="fluent-card">
+                    <div class="fluent-card-header">
+                        <div class="section-icon">📧</div>
+                        <h5>Contact Information</h5>
+                        <span class="section-badge">Step 1</span>
+                    </div>
+                    <div class="fluent-card-body">
+
+                        <!-- Email + Check -->
+                        <div class="field-group">
+                            <label class="field-label">
+                                Email Address
+                                <span class="required-star">*</span>
+                            </label>
+                            <div class="email-row">
+                                <InputText @bind-Value="Model.Email"
+                                           class="@($"fluent-input {GetEmailInputClass()}")"
+                                           placeholder="student@example.com"
+                                           type="email" />
+                                <button type="button"
+                                        class="btn-fluent-outline"
+                                        @onclick="CheckEmailManually"
+                                        disabled="@(string.IsNullOrWhiteSpace(Model.Email) || isCheckingEmail)">
+                                    @if (isCheckingEmail)
+                                    {
+                                        <span class="spinner" style="border-color:rgba(0,120,212,.3);border-top-color:#0078D4;"></span>
+                                    }
+                                    else
+                                    {
+                                        <span>🔍</span>
+                                    }
+                                    Check
+                                </button>
+                            </div>
+                            @if (!string.IsNullOrEmpty(EmailCheckMessage))
+                            {
+                                <div class="email-status @(IsEmailExists ? "exists" : isCheckingEmail ? "checking" : "available")">
+                                    @(IsEmailExists ? "⛔" : "✅") @EmailCheckMessage
+                                </div>
+                            }
+                            <span class="field-hint">This email will be used for all academic correspondence.</span>
+                        </div>
+
+                        <div class="field-row field-row-2">
+                            <div class="field-group">
+                                <label class="field-label">Phone Number</label>
+                                <InputText @bind-Value="Model.Phone"
+                                           class="fluent-input"
+                                           placeholder="+94 7X XXX XXXX" />
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Residential Address</label>
+                                <InputText @bind-Value="Model.Address"
+                                           class="fluent-input"
+                                           placeholder="Street, City" />
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════
+                     SECTION 2 — PERSONAL INFORMATION
+                ═══════════════════════════════════════ -->
+                <div class="fluent-card">
+                    <div class="fluent-card-header">
+                        <div class="section-icon">👤</div>
+                        <h5>Personal Information</h5>
+                        <span class="section-badge">Step 2</span>
+                    </div>
+                    <div class="fluent-card-body">
+
+                        <div class="field-row field-row-2">
+                            <div class="field-group">
+                                <label class="field-label">
+                                    First Name <span class="required-star">*</span>
+                                </label>
+                                <InputText @bind-Value="Model.FirstName"
+                                           class="fluent-input"
+                                           placeholder="As per passport / NIC" />
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">
+                                    Last Name <span class="required-star">*</span>
+                                </label>
+                                <InputText @bind-Value="Model.LastName"
+                                           class="fluent-input"
+                                           placeholder="As per passport / NIC" />
+                            </div>
+                        </div>
+
+                        <div class="field-row field-row-2">
+                            <div class="field-group">
+                                <label class="field-label">Preferred Name</label>
+                                <InputText @bind-Value="Model.PreferredName"
+                                           class="fluent-input"
+                                           placeholder="Name you go by" />
+                                <span class="field-hint">Optional.</span>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Date of Birth</label>
+                                <InputDate TValue="DateTime?"
+                                           @bind-Value="Model.DOB_Date"
+                                           class="fluent-input" />
+                            </div>
+                        </div>
+
+                        <div class="field-row" style="grid-template-columns: 1fr 2fr;">
+                            <div class="field-group">
+                                <label class="field-label">Gender</label>
+                                <InputSelect @bind-Value="Model.Gender" class="fluent-select">
+                                    <option value="">— Select —</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other / Prefer not to say</option>
+                                </InputSelect>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════
+                     SECTION 3 — IDENTITY DETAILS
+                ═══════════════════════════════════════ -->
+                <div class="fluent-card">
+                    <div class="fluent-card-header">
+                        <div class="section-icon">🪪</div>
+                        <h5>Identity Details</h5>
+                        <span class="section-badge">Step 3</span>
+                    </div>
+                    <div class="fluent-card-body">
+
+                        <div class="field-row field-row-2">
+                            <div class="field-group">
+                                <label class="field-label">NIC/DLN Number</label>
+                                <InputText @bind-Value="Model.NIC"
+                                           class="fluent-input"
+                                           placeholder="e.g. 123456789V" />
+                                <span class="field-hint">National Identity Number or Driving Licence Number</span>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Passport Number</label>
+                                <InputText @bind-Value="Model.Passport"
+                                           class="fluent-input"
+                                           placeholder="e.g. N1234567" />
+                                <span class="field-hint">Required for international students</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════
+                     SECTION 4 — ACADEMIC INFORMATION
+                ═══════════════════════════════════════ -->
+                <div class="fluent-card">
+                    <div class="fluent-card-header">
+                        <div class="section-icon">🎓</div>
+                        <h5>Academic Information</h5>
+                        <span class="section-badge">Step 4</span>
+                    </div>
+                        <div class="fluent-card-body">
+                             <div class="field-row field-row-2">
+
+                            <div class="field-group">
+                                <label class="field-label">Country</label>
+
+                                <RadzenDropDown Data="@Country"
+                                                TextProperty="Title"
+                                                ValueProperty="Code"
+                                                @bind-Value="Model.Country"
+                                                Placeholder="Select Country"
+                                                Style="width:100%"
+                                                Class="fluent-input" />
+                            </div>
+
+                            <div class="field-group">
+                                <label class="field-label">Faculty</label>
+
+                                <RadzenDropDown Data="@Faculty"
+                                                TextProperty="Title"
+                                                ValueProperty="Code"
+                                                @bind-Value="Model.Faculty"
+                                                Placeholder="Select Faculty"
+                                                Style="width:100%"
+                                                Class="fluent-input" />
+                            </div>
+
+                        </div>
+                        </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════
+                     SECTION 5 — SYSTEM / REVIEW
+                ═══════════════════════════════════════ -->
+                <div class="fluent-card">
+                    <div class="fluent-card-header">
+                        <div class="section-icon">⚙️</div>
+                        <h5>Registration Summary</h5>
+                        <span class="section-badge">Step 5</span>
+                    </div>
+                    <div class="fluent-card-body">
+
+                        <div class="field-row field-row-2" style="margin-bottom:8px;">
+                            <div class="field-group">
+                                <label class="field-label">Assigned Student Referance</label>
+                                @if (!string.IsNullOrEmpty(Model.StudentNumber))
+                                {
+                                    <div class="student-number-chip">
+                                        🎫 @Model.StudentNumber
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="student-number-chip" style="color:#aaa;background:#f5f7fa;border-color:#e0e0e0;">
+                                        Auto-assigned on submit
+                                    </div>
+                                }
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Registration Status</label>
+                                <div class="status-pending-chip">
+                                    ⏳ Pending Approval
+                                </div>
+                                <span class="field-hint">An administrator will review and activate your account.</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════
+                     DECLARATION
+                ═══════════════════════════════════════ -->
+                <div class="declaration-box">
+                    <InputCheckbox @bind-Value="IsConfirmed"
+                                   id="declaration-check"
+                                   style="width:18px;height:18px;accent-color:#0078D4;flex-shrink:0;margin-top:1px;" />
+                    <label for="declaration-check">
+                        I confirm that all information provided above is <strong>true and accurate</strong>.
+                        I understand that providing false information may result in cancellation of my registration.
+                    </label>
+                </div>
+
+                <!-- ═══════════════════════════════════════
+                     STICKY ACTION BAR
+                ═══════════════════════════════════════ -->
+                <div class="sticky-action-bar">
+
+                    <button type="submit"
+                            class="btn-fluent-primary"
+                            aria-disabled="@(isSubmitting || !IsConfirmed || IsEmailExists)"
+                            disabled="@(isSubmitting || !IsConfirmed || IsEmailExists)"
+                            autofocus>
+
+                        @if (isSubmitting)
+                        {
+                            <span class="spinner"></span>
+                            <span>Submitting…</span>
+                        }
+                        else
+                        {
+                            <span>✔</span>
+                            <span>Submit Registration</span>
+                        }
+
+                    </button>
+
+                    <button type="button"
+                            class="btn-fluent-secondary"
+                            @onclick="ConfirmReset"
+                            disabled="@isSubmitting">
+                        ✕ Clear Form
+                    </button>
+
+                    @if (!IsConfirmed)
+                    {
+                        <span class="text-muted small ms-2">
+                            ☑ Tick declaration to enable submit
+                        </span>
+                    }
+                    else if (IsEmailExists)
+                    {
+                        <span class="text-danger small ms-2">
+                            ✖ Email already exists
+                        </span>
+                    }
+
+                </div>
+            </EditForm>
+        </div>
+
+        <!-- ── RIGHT: GUIDE PANEL ── -->
+        <div>
+            <div class="guide-panel">
+                <div class="guide-panel-header">
+                    <span>📖</span>
+                    <h6>Registration Guide</h6>
+                </div>
+                <iframe src="Files/Registration-Instruction.html"
+                        title="Registration Instructions" />
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@code {
+
+    private List<ReferenceDataItem> Country = new();
+    private List<ReferenceDataItem> Faculty = new();
+
+    // ── STATE ──────────────────────────────────────
+    private StudentProfile Model = new();
+    private string StatusMessage = "";
+    private bool isSubmitting = false;
+    private bool isCheckingEmail = false;
+    private bool IsConfirmed = false;
+    private bool ShowValidationSummary = false;
+
+    // ── EMAIL CHECK ────────────────────────────────
+    private string EmailCheckMessage = "";
+    private bool IsEmailExists = false;
+
+    // ── HELPERS ────────────────────────────────────
+    private string GetStatusClass() =>
+        StatusMessage.StartsWith("✅") ? "success" :
+        StatusMessage.StartsWith("❌") ? "error" : "info";
+
+    private string GetStatusIcon() =>
+        StatusMessage.StartsWith("✅") ? "✅" :
+        StatusMessage.StartsWith("❌") ? "⛔" : "ℹ️";
+
+    private string GetEmailInputClass()
+    {
+        if (string.IsNullOrEmpty(EmailCheckMessage)) return "";
+        return IsEmailExists ? "input-error" : "input-success";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Model.StudentNumber = await _studentService.GenerateTempStudentNumberAsync();
+        Country = await _studentService.GetReferenceDataByCategoryAsync("LMS", "Country");
+        Faculty = await _studentService.GetReferenceDataByCategoryAsync("LMS", "Faculty");
+
+    }
+
+    // ── EMAIL CHECK ────────────────────────────────
+    private async Task CheckEmailManually()
+    {
+        if (string.IsNullOrWhiteSpace(Model.Email))
+            return;
+
+        isCheckingEmail = true;
+        EmailCheckMessage = "Checking…";
+        IsEmailExists = false;
+
+        try
+        {
+            var results = await _studentService.SearchStudentsAsync(Model.Email);
+
+            IsEmailExists = results.Any(s =>
+                s.Email.Equals(Model.Email, StringComparison.OrdinalIgnoreCase));
+
+            EmailCheckMessage = IsEmailExists
+                ? "This email is already registered. Contact the Administrator."
+                : "Email is available — you can proceed.";
+        }
+        catch
+        {
+            EmailCheckMessage = "Could not verify email. Please try again.";
+            IsEmailExists = false;
+        }
+        finally
+        {
+            isCheckingEmail = false;
+        }
+    }
+
+    // ── REGISTER ───────────────────────────────────
+    private async Task Register()
+    {
+        ShowValidationSummary = false;
+
+        try
+        {
+            isSubmitting = true;
+            StatusMessage = "";
+
+            if (IsEmailExists)
+            {
+                StatusMessage = "❌ Cannot submit — this email is already registered.";
+                return;
+            }
+
+            // Double-check email server-side before creating
+            var existing = await _studentService.SearchStudentsAsync(Model.Email);
+
+            if (existing.Any(s =>
+                s.Email.Equals(Model.Email, StringComparison.OrdinalIgnoreCase)))
+            {
+                StatusMessage = "❌ Email already registered.";
+                IsEmailExists = true;
+                return;
+            }
+
+            Model.Normalize();
+            Model.StudentNumber = await _studentService.GenerateTempStudentNumberAsync();
+            Model.IsActive = false;
+
+            var id = await _studentService.CreateStudentAsync(Model);
+
+            if (id == 0)
+            {
+                StatusMessage = "❌ Registration could not be completed. Please try again.";
+                return;
+            }
+
+            StatusMessage = $"✅ Registered successfully! Your temporary number is {Model.StudentNumber}. " +
+                            "An administrator will review your application.";
+            ResetForm();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"❌ Unexpected error: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    // ── RESET ──────────────────────────────────────
+    private async Task ResetForm()
+    {
+        Model = new StudentProfile();
+
+        Model.StudentNumber =
+            await _studentService.GenerateTempStudentNumberAsync();
+
+        IsConfirmed = false;
+        EmailCheckMessage = "";
+        IsEmailExists = false;
+    }
+
+
+    private async Task ConfirmReset()
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>(
+            "confirm",
+            "Clear all entered data?"
+        );
+
+        if (confirmed)
+        {
+            await ResetForm();
+        }
+    }
+
+}

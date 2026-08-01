@@ -1,0 +1,349 @@
+﻿@page "/student/course-dashboard"
+@layout MainLayout_No_Left_RightPan
+
+@using MITANZ360Edu.Web.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Web
+@using System.Security.Claims
+@using Radzen
+@using Radzen.Blazor
+
+@inject SharePointService _spService
+@inject AuthenticationStateProvider AuthState
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<h4 class="mb-2">Course Content Viewer</h4>
+<small class="text-muted">Student Learning Portal</small>
+
+<RadzenRow Gap="12px" class="mt-2">
+
+    <!-- LEFT TREE -->
+    <RadzenColumn Size="3">
+        <RadzenCard>
+
+            <RadzenTextBox @bind-Value="TreeSearch"
+                           Placeholder="Search..."
+                           Style="width:100%"
+                           Change="@OnSearchChanged" />
+
+            <RadzenTree Data="@TreeData"
+                        Expand="@OnNodeExpand"
+                        Change="@OnTreeChange"
+                        tabindex="0"
+                        @onkeydown="HandleKeyNavigation"
+                        Style="height:400px; margin-top:10px">
+
+                <RadzenTreeLevel TextProperty="Text"
+                                 ChildrenProperty="Children">
+
+                    <Template Context="context">
+
+                        @{
+                            var wrapper = context;
+                            var node = wrapper?.GetType().GetProperty("Value")?.GetValue(wrapper) as TreeNode;
+                        }
+
+                        @if (node != null)
+                        {
+                            <div id="@GetNodeElementId(node.Item.Id)"
+                                 class="ccd-tree-node @(node.Item.Id == SelectedNodeId ? "active" : "")">
+
+                                <RadzenIcon Icon="@GetFolderIcon(node.Item.Name)"
+                                            Style="margin-right:6px;" />
+
+                                <span>@GetDisplayName(node.Item.Name)</span>
+
+                            </div>
+                        }
+
+                    </Template>
+
+                </RadzenTreeLevel>
+
+            </RadzenTree>
+
+        </RadzenCard>
+    </RadzenColumn>
+
+    <!-- CENTER GRID -->
+    <RadzenColumn Size="6">
+        <RadzenCard>
+
+            <RadzenDataGrid Data="@Items"
+                            TItem="LibraryItem"
+                            AllowPaging="true"
+                            PageSize="10"
+                            AllowSorting="true"
+                            AllowFiltering="true">
+
+                <Columns>
+
+                    <RadzenDataGridColumn TItem="LibraryItem">
+                        <Template Context="item">
+                            <RadzenIcon Icon="@(item.IsFolder ? "folder" : "description")" />
+                        </Template>
+                    </RadzenDataGridColumn>
+
+                    <RadzenDataGridColumn TItem="LibraryItem" Property="Name" Title="Name" />
+
+                    <RadzenDataGridColumn TItem="LibraryItem" Title="Published">
+                        <Template Context="item">
+
+                            @if (CanManageContent)
+                            {
+                                <RadzenSwitch TValue="bool"
+                                              Value="@item.IsPublished"
+                                              Change="@(v => TogglePublish(item, v))" />
+                            }
+                            else
+                            {
+                                <RadzenBadge Text="@(item.IsPublished ? "Published" : "Draft")" />
+                            }
+
+                        </Template>
+                    </RadzenDataGridColumn>
+
+                    <RadzenDataGridColumn TItem="LibraryItem" Title="View">
+                        <Template Context="item">
+
+                            @if (!item.IsFolder)
+                            {
+                                <RadzenButton Text="Open"
+                                              Click="@(() => OpenFile(item))" />
+                            }
+
+                        </Template>
+                    </RadzenDataGridColumn>
+
+                </Columns>
+
+            </RadzenDataGrid>
+
+        </RadzenCard>
+    </RadzenColumn>
+
+    <!-- RIGHT DETAILS -->
+    <RadzenColumn Size="3">
+        <RadzenCard>
+
+            @if (SelectedItem != null)
+            {
+                <h6>@SelectedItem.Name</h6>
+                <p><b>Type:</b> @(SelectedItem.IsFolder ? "Folder" : "File")</p>
+                <p><b>Published:</b> @(SelectedItem.IsPublished ? "Yes" : "No")</p>
+                <p>@SelectedItem.Description</p>
+            }
+
+        </RadzenCard>
+    </RadzenColumn>
+
+</RadzenRow>
+
+@code {
+
+    // ================= MODEL =================
+    private class TreeNode
+    {
+        public string Text { get; set; } = "";
+        public LibraryItem Item { get; set; } = new();
+        public List<TreeNode> Children { get; set; } = new();
+        public bool Loaded { get; set; }
+    }
+
+    private List<TreeNode> TreeData = new();
+    private List<TreeNode> OriginalTreeData = new();
+
+    private List<LibraryItem> Items = new();
+
+    private TreeNode? SelectedTreeNode;
+    private LibraryItem? SelectedItem;
+
+    private string TreeSearch = "";
+    private string? SelectedNodeId;
+
+    private List<string> roles = new();
+
+    private bool IsStudent =>
+        !roles.Contains("Tutor") &&
+        !roles.Contains("Trainer") &&
+        !roles.Contains("Admin") &&
+        !roles.Contains("SysAdmin");
+
+    private bool CanManageContent => !IsStudent;
+
+    // ================= INIT =================
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthState.GetAuthenticationStateAsync();
+        var user = auth.User;
+
+        roles = user.Claims
+            .Where(c => c.Type == "roles" || c.Type == ClaimTypes.Role)
+            .Select(c => c.Value)
+            .ToList();
+
+        var courses = await _spService.GetCourseFoldersAsync();
+
+        OriginalTreeData = courses.Select(c => new TreeNode
+        {
+            Text = c.Name,
+            Item = c
+        }).ToList();
+
+        TreeData = OriginalTreeData;
+    }
+
+    // ================= TREE =================
+    private async Task OnNodeExpand(TreeExpandEventArgs args)
+    {
+        var wrapper = args.Value;
+        var node = wrapper?.GetType().GetProperty("Value")?.GetValue(wrapper) as TreeNode;
+
+        if (node == null || node.Loaded) return;
+
+        var children = await _spService
+            .GetLibraryFolderChildrenAsync(node.Item.DriveId, node.Item.Id);
+
+        var filtered = children.Where(x =>
+            x.IsFolder &&
+            (
+                x.Name.StartsWith("01_") ||
+                x.Name.StartsWith("02_") ||
+                x.Name.StartsWith("03_") ||
+                x.Name.StartsWith("04_") ||
+                x.Name.StartsWith("05_")
+            )
+        );
+
+        node.Children = filtered.Select(c => new TreeNode
+        {
+            Text = c.Name,
+            Item = c
+        }).ToList();
+
+        node.Loaded = true;
+    }
+
+    private async Task OnTreeChange(TreeEventArgs args)
+    {
+        var wrapper = args.Value;
+        var node = wrapper?.GetType().GetProperty("Value")?.GetValue(wrapper) as TreeNode;
+
+        if (node == null) return;
+
+        SelectedTreeNode = node;
+        SelectedNodeId = node.Item.Id;
+
+        var children = await _spService
+            .GetLibraryFolderChildrenAsync(node.Item.DriveId, node.Item.Id);
+
+        Items = IsStudent
+            ? children.Where(x => x.IsFolder || x.IsPublished).ToList()
+            : children;
+
+        await JS.InvokeVoidAsync("scrollTreeIntoView", GetNodeElementId(node.Item.Id));
+    }
+
+    // ================= SEARCH =================
+    private void OnSearchChanged(object value)
+    {
+        TreeSearch = value?.ToString() ?? "";
+
+        if (string.IsNullOrWhiteSpace(TreeSearch))
+        {
+            TreeData = OriginalTreeData;
+            return;
+        }
+
+        TreeData = OriginalTreeData
+            .Where(x => x.Text.Contains(TreeSearch, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+
+    // ================= KEYBOARD =================
+    private async Task HandleKeyNavigation(KeyboardEventArgs e)
+    {
+        if (SelectedTreeNode == null) return;
+
+        var flat = Flatten(TreeData);
+        var index = flat.IndexOf(SelectedTreeNode);
+
+        if (e.Key == "ArrowDown" && index < flat.Count - 1)
+            SelectedTreeNode = flat[index + 1];
+
+        if (e.Key == "ArrowUp" && index > 0)
+            SelectedTreeNode = flat[index - 1];
+
+        if (e.Key == "Enter" && SelectedTreeNode != null)
+            await OnTreeChange(new TreeEventArgs { Value = SelectedTreeNode });
+
+        if (SelectedTreeNode != null)
+        {
+            SelectedNodeId = SelectedTreeNode.Item.Id;
+
+            await JS.InvokeVoidAsync(
+                "scrollTreeIntoView",
+                GetNodeElementId(SelectedTreeNode.Item.Id));
+        }
+    }
+
+    private List<TreeNode> Flatten(List<TreeNode> nodes)
+    {
+        var list = new List<TreeNode>();
+
+        foreach (var n in nodes)
+        {
+            list.Add(n);
+            if (n.Children.Any())
+                list.AddRange(Flatten(n.Children));
+        }
+
+        return list;
+    }
+
+    // ================= ICONS =================
+    private string GetFolderIcon(string name)
+    {
+        if (name.StartsWith("01_")) return "school";
+        if (name.StartsWith("02_")) return "category";
+        if (name.StartsWith("03_")) return "edit_note";
+        if (name.StartsWith("04_")) return "folder_shared";
+        if (name.StartsWith("05_")) return "assessment";
+
+        return "menu_book";
+    }
+
+    private string GetDisplayName(string name)
+    {
+        if (name.StartsWith("01_")) return "Tutor";
+        if (name.StartsWith("02_")) return "Models";
+        if (name.StartsWith("03_")) return "Activities";
+        if (name.StartsWith("04_")) return "Shared";
+        if (name.StartsWith("05_")) return "Assessments";
+
+        return name;
+    }
+
+    private string GetNodeElementId(string id) => $"node-{id}";
+
+    // ================= ACTIONS =================
+    private async Task TogglePublish(LibraryItem item, bool value)
+    {
+        await _spService.UpdateStatus(item.DriveId, item.Id, value, item.IsArchived);
+    }
+
+    private void OpenFile(LibraryItem item)
+    {
+        Nav.NavigateTo($"/document/{item.Id}", true);
+    }
+}
+
+<script>
+    window.scrollTreeIntoView = function (elementId) {
+        var el = document.getElementById(elementId);
+        if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+    };
+</script>

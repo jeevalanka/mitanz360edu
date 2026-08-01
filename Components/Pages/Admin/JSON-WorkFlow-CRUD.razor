@@ -1,5 +1,6 @@
 ﻿@page "/admin/ai-configuration"
 @layout MainLayout_NoRightPan
+@attribute [Authorize(Roles = "Admin,SysAdmin")]
 
 @using Microsoft.AspNetCore.Components.Rendering
 @using System.Text.Json

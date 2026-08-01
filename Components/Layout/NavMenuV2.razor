@@ -16,15 +16,16 @@
                 @if (IsSysAdmin)
                 {
                     @MenuGroup("System", "sys", new[]
-                    {
+                    {   
                         NavItem("/sysdashboard","bi-speedometer2","Dashboard"),
                         NavItem("/admin/system-settings","bi-gear-wide-connected","System Values"),
                         NavItem("/system-doctor","bi-heart-pulse","Sys Doctor"),
-                        NavItem("/lms-library-CRUD","bi-collection","LMS-Library"),
                         NavItem("/admin/ai-configuration","bi-cpu","AI-Workflow"),
                         NavItem("/course-builder","bi-cpu","Course-Builder"),
                         NavItem("/reference-data/LMS","bi-cpu","Referance List"),
-                        NavItem("/app-nav-cards","bi-grid-1x2-fill","Navigation Cards"),
+                        NavItem("/app-nav-cards","bi-grid-1x2-fill","Infomation Cards"),                        
+                        NavItem("/users","bi-people-fill","Users"),
+
                     })
                 }
 
@@ -32,13 +33,19 @@
                 {
                     @MenuGroup("Admin", "admin", new[]
                     {
-                        NavItem("/lms-dashboard","bi-speedometer2","Dashboard"),
-                        NavItem("/users","bi-people-fill","Users"),
-                        NavItem("/admin/roles","bi-shield-lock-fill","Roles"),
-                        NavItem("/delete-user","bi-person-x-fill","Delete Users"),
-                        NavItem("/courses","bi-journal-bookmark-fill","Course+Cont"),
-                        NavItem("/App-Info-viewer-admin","bi-file-earmark-text","Edit-Infomation"),
-                        NavItem("/lms-library-introduction","bi-book","Documents-Lib"),
+                        NavItem("/lms-dashboard", "bi-speedometer", "Dashboard"),
+                        NavItem("/users", "bi-people", "Users"),
+                        NavItem("/delete-user", "bi-person-dash", "User Removal"),
+                        NavItem("/admin/roles", "bi-shield-lock", "Roles & Per..."),
+                        NavItem("/courses", "bi-journal-bookmark", "Courses"),
+                        NavItem("/admin/groups", "bi-journal-bookmark", "Groups"),
+                        NavItem("/admin/enrollments", "bi-journal-bookmark", "Enrollments"),
+
+                        NavItem("/App-Info-viewer-admin", "bi-file-earmark-text", "App Information"),
+                        NavItem("/lms-library", "bi-book", "Doc-Lib (Admin)"),
+                        NavItem("/ai-workflow-studio", "bi-diagram-3", "AI Workflows"),
+                        NavItem("/student-profiles", "bi-person-badge", "Student Profiles"),
+                        NavItem("/lms-trainer-cont-viewer", "bi-easel", "Content Viewer"),
                     })
                 }
 
@@ -54,7 +61,20 @@
                 {
                     @MenuGroup("Student", "student", new[]
                     {
-                        NavItem("/student-dashboard","bi-speedometer2","Dashboard")
+                        NavItem("/student-dashboard","bi-speedometer2","Dashboard"),
+                        NavItem("/courses","bi-journal-bookmark-fill","Course"),
+                        NavItem("/student/lms-library", "bi-book", "Cont-Lib (***)"),
+                    })
+                }
+                @if (IsTrainer)
+                {
+                    @MenuGroup("Trainer", "trainer", new[]
+                    {
+                        NavItem("/trainer-dashboard","bi-speedometer2","Dashboard"),
+                        NavItem("/lms-trainer-cont-viewer", "bi-easel", "Content Viewer"),
+                        NavItem("/lms-library", "bi-book", "Doc-Lib (Admin)"),
+                        NavItem("/courses","bi-journal-bookmark-fill","Course"),
+                        NavItem("/student/lms-library", "bi-book", "Cont-Lib (***)"),
                     })
                 }
 
@@ -77,7 +97,7 @@
                         NavItem("/help-documents","bi-journal-text","Help Docs"),
                         NavItem("/","bi-bell-fill","Notifications"),
                         NavItem("/","bi-bar-chart-fill","Reports"),
-                        NavItem("/","bi-gear-fill","Settings"),
+                        NavItem("/admin/system-settings","bi-gear-fill","Settings"),
                         NavItem("/","bi-life-preserver","Support"),
                      })
                 }
@@ -103,6 +123,7 @@
                 NavItem("/","bi-house-door-fill","Home"),
                 NavItem("/App-Info-viewer-all","bi-file-earmark-text","Infomation"),
                 NavItem("/contact","bi-envelope-fill","Contact"),
+                NavItem("/student-self-register","bi-person-badge","Student Self Registration"),
                 NavItem("/xlogin","bi-box-arrow-in-right","Login"),
             })
 
@@ -123,6 +144,7 @@
     private bool IsAdmin => UserRoles.Contains("Admin");
     private bool IsUser => UserRoles.Contains("User");
     private bool IsStudent => UserRoles.Contains("Student");
+    private bool IsTrainer => UserRoles.Contains("Trainer");
     private bool IsMarketing => UserRoles.Contains("Marketing");
 
     protected override async Task OnInitializedAsync()
@@ -143,6 +165,7 @@
             else if (IsUser) RoleCssClass = "role-user";
             else if (IsMarketing) RoleCssClass = "role-marketing";
             else if (IsStudent) RoleCssClass = "role-student";
+            else if (IsTrainer) RoleCssClass = "role-trainer";
         }
     }
 

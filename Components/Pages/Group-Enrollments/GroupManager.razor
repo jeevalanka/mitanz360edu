@@ -1,0 +1,715 @@
+﻿@page "/admin/groups"
+
+@using MITANZ360Edu.Web.Models
+@using MITANZ360Edu.Web.Services
+@using Radzen
+@using Radzen.Blazor
+@using Group = MITANZ360Edu.Web.Models.Group
+
+@inject IGroupService GroupService
+@inject NotificationService NotificationService
+@inject DialogService DialogService
+@inject ILogger<GroupManager> Logger
+
+<PageTitle>Manage Groups</PageTitle>
+
+<div class="container-fluid">
+    <!-- ================= HEADER ================= -->
+    <div class="card mb-3" style="background-color:darkorange">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+            <div>
+                <h3 class="mb-0" style="color:white">Group Management</h3>
+                <small class="text-muted">Manage academic groups</small>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap">
+
+                <RadzenTextBox @bind-Value="_searchText"
+                               Placeholder="Search..."
+                               Change="@(args => ApplySearch())" />
+
+                <RadzenButton Text="Search" Click="ApplySearch" />
+                <RadzenButton Text="New Group" Click="NewGroup" />
+                <RadzenButton Text="Refresh" Click="Refresh" />
+                <RadzenButton Text="Export" Disabled="true" />
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================= GRID ================= -->
+    <div class="card">
+        <div class="card-body p-0">
+
+            @if (_loading)
+            {
+                <RadzenSkeleton Count="5" />
+            }
+            else if (!_groups.Any())
+            {
+                <div class="p-4 text-center text-muted">
+                    No groups available
+                </div>
+            }
+            else
+            {
+                <RadzenDataGrid Data="@_groups"
+                                TItem="Group"
+                                AllowPaging="true"
+                                AllowSorting="true"
+                                AllowFiltering="true"
+                                AllowColumnResize="true"
+                                PageSize="10"
+                                SelectionMode="DataGridSelectionMode.Single">
+
+                    <Columns>
+                        <RadzenDataGridColumn Title="Actions">
+                            <Template Context="g">
+
+                                <RadzenButton Icon="edit" Size="ButtonSize.Small"
+                                              Click="@(() => OpenEditor(g))" />
+
+                                <RadzenButton Icon="content_copy" Size="ButtonSize.Small"
+                                              Click="@(() => Clone(g))" />
+
+                                <RadzenButton Icon="delete" Size="ButtonSize.Small"
+                                              ButtonStyle="ButtonStyle.Danger"
+                                              Click="@(() => Delete(g))" />
+
+                            </Template>
+                        </RadzenDataGridColumn>
+
+                        <RadzenDataGridColumn Property="GroupId" Title="Group ID" />
+                        <RadzenDataGridColumn Property="GroupCode" Title="Code" />
+                        <RadzenDataGridColumn Property="GroupName" Title="Name" />
+                        <RadzenDataGridColumn Property="IntakeName" Title="Intake" />
+                        <RadzenDataGridColumn Property="CourseName" Title="Programme" />
+                        <RadzenDataGridColumn Property="CampusName" Title="Campus" />
+                        <RadzenDataGridColumn Property="DeliveryMode" Title="Delivery" />
+                        <RadzenDataGridColumn Property="TutorName" Title="Tutor" />
+
+                    </Columns>
+
+                </RadzenDataGrid>
+            }
+
+        </div>
+    </div>
+</div>
+
+<!-- ================= OFFCANVAS ================= -->
+@if (_panelOpen)
+{
+    <div class="offcanvas-backdrop fade show"></div>
+
+    <div class="offcanvas offcanvas-end show d-flex flex-column"
+         style="width:600px;visibility:visible;">
+
+        <!-- HEADER -->
+        <div class="offcanvas-header">
+            <h5>@(_editModel.Id == 0 ? "New Group -> " : "Edit Group -> ")</h5>
+
+            <div class="d-flex gap-2">
+                <RadzenButton Text="Save" Click="SaveGroup" Disabled="@_saving" />
+                <RadzenButton Text="Close" Click="ClosePanel" />
+            </div>
+        </div>
+
+        <!-- BODY -->
+        <div class="offcanvas-body">
+
+            <EditForm Model="@_editModel" OnValidSubmit="SaveGroup">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <!-- ✅ CRITICAL: TABS wrapper required -->
+                <RadzenTabs>
+                    <Tabs>
+
+                        <!-- GENERAL -->
+                        <RadzenTabsItem Text="General">
+                            <div class="row g-3">
+
+                                <div class="col-12">
+                                    <label class="form-label">Title</label>
+                                    <RadzenTextBox @bind-Value="_editModel.Title" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Group ID</label>
+                                    <RadzenTextBox Value="@_editModel.GroupId" Disabled="true" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Group Code</label>
+                                    <RadzenTextBox @bind-Value="_editModel.GroupCode" Class="w-100" />
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">Group Name</label>
+                                    <RadzenTextBox @bind-Value="_editModel.GroupName" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Status</label>
+                                    <RadzenTextBox @bind-Value="_editModel.Status" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Active</label>
+                                    <RadzenCheckBox @bind-Value="_editModel.IsActive" />
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">Description</label>
+                                    <RadzenTextArea @bind-Value="_editModel.Metadata" Rows="3" Class="w-100" />
+                                </div>
+
+                            </div>
+                        </RadzenTabsItem>
+
+                        <!-- ACADEMIC -->
+                        <RadzenTabsItem Text="Academic">
+                            <div class="row g-3">
+
+                                <div class="col-4">
+                                    <label class="form-label">Course Code</label>
+                                    <RadzenTextBox @bind-Value="_editModel.CourseCode" Class="w-100" />
+                                </div>
+
+                                <div class="col-4">
+                                    <label class="form-label">Programme</label>
+                                    <RadzenTextBox @bind-Value="_editModel.CourseName" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Intake ID</label>
+                                    <RadzenTextBox @bind-Value="_editModel.IntakeId" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Intake Name</label>
+                                    <RadzenTextBox @bind-Value="_editModel.IntakeName" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Campus ID</label>
+                                    <RadzenTextBox @bind-Value="_editModel.CampusId" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Campus Name</label>
+                                    <RadzenTextBox @bind-Value="_editModel.CampusName" Class="w-100" />
+                                </div>
+
+                            </div>
+                        </RadzenTabsItem>
+
+                        <!-- DELIVERY -->
+                        <RadzenTabsItem Text="Delivery">
+                            <div class="row g-3">
+
+                                <div class="col-6">
+                                    <label class="form-label">Delivery Mode</label>
+                                    <RadzenTextBox @bind-Value="_editModel.DeliveryMode" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Study Mode</label>
+                                    <RadzenTextBox @bind-Value="_editModel.StudyMode" Class="w-100" />
+                                </div>
+
+                                <div class="col-4">
+                                    <label class="form-label">Orientation</label>
+                                    <RadzenDatePicker @bind-Value="_editModel.OrientationDate" Class="w-100" />
+                                </div>
+
+                                <div class="col-4">
+                                    <label class="form-label">Start</label>
+                                    <RadzenDatePicker @bind-Value="_editModel.StartDate" Class="w-100" />
+                                </div>
+
+                                <div class="col-4">
+                                    <label class="form-label">End</label>
+                                    <RadzenDatePicker @bind-Value="_editModel.EndDate" Class="w-100" />
+                                </div>
+
+                            </div>
+                        </RadzenTabsItem>
+
+                        <!-- CAPACITY -->
+                        <RadzenTabsItem Text="Capacity">
+                            <div class="row g-3">
+
+                                <div class="col-6">
+                                    <label class="form-label">Max Students</label>
+                                    <RadzenNumeric @bind-Value="_editModel.MaxStudents" TValue="int?" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Current</label>
+                                    <RadzenNumeric @bind-Value="_editModel.CurrentStudents" TValue="int?" Class="w-100" />
+                                </div>
+
+                            </div>
+                        </RadzenTabsItem>
+
+                        <!-- STAFF -->
+                        <RadzenTabsItem Text="Staff">
+                            <div class="row g-3">
+
+                                <div class="col-4">
+                                    <label class="form-label">Tutor ID</label>
+                                    <RadzenTextBox @bind-Value="_editModel.TutorId" Class="w-100" />
+                                </div>
+
+                                <div class="col-4">
+                                    <label class="form-label">Tutor</label>
+                                    <RadzenTextBox @bind-Value="_editModel.TutorName" Class="w-100" />
+                                </div>
+
+                                <div class="col-4">
+                                    <label class="form-label">Assistant ID</label>
+                                    <RadzenTextBox @bind-Value="_editModel.AssistantTutorId" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Assistant</label>
+                                    <RadzenTextBox @bind-Value="_editModel.AssistantTutorName" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Academic Manager</label>
+                                    <RadzenTextBox @bind-Value="_editModel.AcademicManagerName" Class="w-100" />
+                                </div>
+
+                            </div>
+                        </RadzenTabsItem>
+
+                        <!-- TEAMS -->
+                        <RadzenTabsItem Text="Teams">
+                            <div class="row g-3">
+
+                                <div class="col-6">
+                                    <label class="form-label">Teams Name</label>
+                                    <RadzenTextBox @bind-Value="_editModel.TeamsName" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Channel</label>
+                                    <RadzenTextBox @bind-Value="_editModel.TeamsChannel" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Meeting ID</label>
+                                    <RadzenTextBox @bind-Value="_editModel.TeamsMeetingId" Class="w-100" />
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">Teams URL</label>
+                                    <RadzenTextBox @bind-Value="_editModel.TeamsUrl" Class="w-100" />
+                                </div>
+
+                            </div>
+                        </RadzenTabsItem>
+
+                        <!-- ZOOM -->
+                        <RadzenTabsItem Text="Zoom">
+                            <div class="row g-3">
+
+                                <div class="col-6">
+                                    <label class="form-label">Zoom URL</label>
+                                    <RadzenTextBox @bind-Value="_editModel.ZoomUrl" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Meeting ID</label>
+                                    <RadzenTextBox @bind-Value="_editModel.ZoomMeetingId" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Passcode</label>
+                                    <RadzenTextBox @bind-Value="_editModel.ZoomPasscode" Class="w-100" />
+                                </div>
+
+                            </div>
+                        </RadzenTabsItem>
+
+                        <!-- SCHEDULE -->
+                        <RadzenTabsItem Text="Schedule">
+                            <div class="row g-3">
+
+                                <div class="col-6">
+                                    <label class="form-label">Calendar URL</label>
+                                    <RadzenTextBox @bind-Value="_editModel.CalendarUrl" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Country</label>
+                                    <RadzenTextBox @bind-Value="_editModel.CountryCode" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Time Zone</label>
+                                    <RadzenTextBox @bind-Value="_editModel.TimeZone" Class="w-100" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Language</label>
+                                    <RadzenTextBox @bind-Value="_editModel.Language" Class="w-100" />
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">Timetable JSON</label>
+                                    <RadzenTextArea @bind-Value="_editModel.TimetableJson" Rows="3" Class="w-100" />
+                                </div>
+
+                            </div>
+                        </RadzenTabsItem>
+
+                        <!-- AUDIT -->
+                        <RadzenTabsItem Text="Audit">
+                            <div class="row g-3">
+
+                                <div class="col-6">
+                                    <label class="form-label">Created</label>
+                                    <RadzenTextBox Value="@_editModel.Created?.ToString()" Disabled="true" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Modified</label>
+                                    <RadzenTextBox Value="@_editModel.Modified?.ToString()" Disabled="true" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Author</label>
+                                    <RadzenTextBox Value="@_editModel.Author" Disabled="true" />
+                                </div>
+
+                                <div class="col-6">
+                                    <label class="form-label">Editor</label>
+                                    <RadzenTextBox Value="@_editModel.Editor" Disabled="true" />
+                                </div>
+
+                            </div>
+                        </RadzenTabsItem>
+
+                    </Tabs>
+                </RadzenTabs>
+            </EditForm>
+
+        </div>
+
+    </div>
+}
+
+
+@code {
+
+    #region Fields
+    private List<Group> _groups = new();
+    private Group _editModel = new();
+    private string _searchText = "";
+    private bool _loading;
+    private bool _saving;
+    private bool _panelOpen;
+    #endregion
+
+    #region Lifecycle
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+    #endregion
+
+    #region Data
+    private async Task Load()
+    {
+        try
+        {
+            _loading = true;
+            Logger.LogInformation("Loading groups");
+
+            _groups = await GroupService.GetGroupsAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Load failed");
+            NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task Refresh() => await Load();
+
+    #endregion
+
+    #region Search
+    private void ApplySearch()
+    {
+        if (string.IsNullOrWhiteSpace(_searchText))
+            return;
+
+        _groups = _groups.Where(g =>
+            g.GroupCode.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
+            g.GroupName.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
+            g.CourseName.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
+            g.TutorName.Contains(_searchText, StringComparison.OrdinalIgnoreCase)
+        ).ToList();
+    }
+    #endregion
+
+    #region CRUD
+
+    private async Task NewGroup()
+    {
+        _editModel = new Group
+        {
+            GroupId = await GroupService.GenerateTempGroupNumberAsync()
+        };
+
+        _panelOpen = true;
+    }
+
+    private void OpenEditor(Group g)
+    {
+        _editModel = g.Clone();
+        _panelOpen = true;
+    }
+
+    private async Task SaveGroup()
+    {
+        try
+        {
+            _saving = true;
+
+            if (_editModel.Id == 0)
+                await GroupService.CreateGroupAsync(_editModel);
+            else
+                await GroupService.UpdateGroupAsync(_editModel);
+
+            NotificationService.Notify(NotificationSeverity.Success, "Success", "Saved");
+
+            await Load();
+            _panelOpen = false;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Save failed");
+            NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task Delete(Group g)
+    {
+        if (await DialogService.Confirm("Delete group?", "Confirm") == true)
+        {
+            await GroupService.DeleteGroupAsync(g.Id);
+            await Load();
+        }
+    }
+
+    private async Task Clone(Group g)
+    {
+        var x = g.Clone();
+        x.Id = 0;
+        x.GroupCode += "-COPY";
+        x.GroupId = await GroupService.GenerateTempGroupNumberAsync();
+
+        _editModel = x;
+        _panelOpen = true;
+
+        Logger.LogInformation("Clone created");
+    }
+
+    #endregion
+
+    #region UI
+    private void ClosePanel() => _panelOpen = false;
+    #endregion
+
+}
+
+<style>
+
+    /* ================= BASE ================= */
+    body {
+        background-color: #f3f2f1;
+        font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+        color: #323130;
+    }
+
+    /* ================= CARDS ================= */
+    .card {
+        border-radius: 8px;
+        border: 1px solid #edebe9;
+        background-color: #ffffff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+        /* Remove custom background */
+        .card[style*="antiquewhite"] {
+            background-color: #ffffff !important;
+        }
+
+    /* ================= HEADER ================= */
+    .card-body h4 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #201f1e;
+    }
+
+    .text-muted {
+        color:blue;
+        font-size: 12px;
+    }
+
+    /* ================= TOOLBAR ================= */
+    .card-body .rz-button {
+        height: 34px;
+    }
+
+    /* ================= INPUTS ================= */
+    .rz-inputtext,
+    .rz-dropdown,
+    .rz-numeric,
+    .rz-datepicker,
+    textarea {
+        border-radius: 4px !important;
+        border: 1px solid #8a8886 !important;
+        background: #ffffff;
+        font-size: 13px;
+        padding: 6px 8px;
+    }
+
+        /* Focus style (Fluent underline feel) */
+        .rz-inputtext:focus,
+        textarea:focus {
+            border-color: #0078d4 !important;
+            box-shadow: inset 0 -2px 0 #0078d4;
+            outline: none;
+        }
+
+    /* ================= LABELS ================= */
+    label.form-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #323130;
+        margin-bottom: 4px;
+    }
+
+    /* ================= GRID ================= */
+    .rz-datatable {
+        border: none !important;
+    }
+
+    /* Header */
+    .rz-datatable-header {
+        background-color: #faf9f8;
+        border-bottom: 1px solid #edebe9;
+        font-weight: 600;
+    }
+
+    /* Cells */
+    .rz-datatable td,
+    .rz-datatable th {
+        padding: 10px;
+        font-size: 13px;
+        border-bottom: 1px solid #f3f2f1;
+    }
+
+    /* Hover */
+    .rz-datatable tr:hover {
+        background-color: #f5f5f5;
+    }
+
+    /* ================= OFFCANVAS ================= */
+    .offcanvas {
+        background-color: #ffffff;
+        border-left: 1px solid #edebe9;
+    }
+
+    /* Header */
+    .offcanvas-header {
+        border-bottom: 1px solid #edebe9;
+    }
+
+    /* Body */
+    .offcanvas-body {
+        padding: 16px;
+        overflow-y: auto;
+    }
+
+    /* ================= TABS ================= */
+    .rz-tabview-nav {
+        border-bottom: 1px solid #edebe9;
+    }
+
+    /* Active tab */
+    .rz-tabview-selected {
+        color: #0078d4;
+        font-weight: 600;
+        border-bottom: 2px solid #0078d4;
+    }
+
+    /* Tab panel */
+    .rz-tabview-panel {
+        padding-top: 12px;
+    }
+
+    /* ================= BUTTONS ================= */
+    .rz-button {
+        border-radius: 4px;
+        font-size: 13px;
+    }
+
+        /* Primary button */
+        .rz-button.rz-primary {
+            background-color: #0078d4;
+            color: #ffffff;
+            border: none;
+        }
+
+            .rz-button.rz-primary:hover {
+                background-color: #106ebe;
+            }
+
+        /* Secondary (default) */
+        .rz-button:not(.rz-primary):not(.rz-danger) {
+            background-color: #ffffff;
+            border: 1px solid #8a8886;
+        }
+
+        /* Danger */
+        .rz-button.rz-danger {
+            background-color: #d13438;
+            color: white;
+        }
+
+    /* ================= SPACING FIX ================= */
+    .row.g-3 > div {
+        margin-bottom: 6px;
+    }
+
+    /* Enable multi-line tabs */
+    .rz-tabview-nav {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+        /* Tab items spacing */
+        .rz-tabview-nav li {
+            margin-right: 12px;
+            margin-bottom: 6px;
+        }
+
+</style>

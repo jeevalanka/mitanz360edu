@@ -1,5 +1,6 @@
 ﻿@page "/courses/list"
 @layout MainLayout_NoRightPan
+@attribute [Authorize(Roles = "Admin,SysAdmin")]
 
 @using Microsoft.AspNetCore.Components
 @using MITANZ360Edu.Web.Models

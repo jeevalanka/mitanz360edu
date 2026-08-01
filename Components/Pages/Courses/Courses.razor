@@ -1,5 +1,6 @@
 ﻿@page "/courses"
 @layout MainLayout_NoRightPan
+@attribute [Authorize(Roles = "Admin,SysAdmin,Trainer,Student")]
 
 @using MITANZ360Edu.Web.Models
 @using MITANZ360Edu.Web.Services
@@ -149,7 +150,8 @@ else
 
         var safeName = Uri.EscapeDataString(displayName);
 
-        Nav.NavigateTo($"/course/{course.FolderId}?name={safeName}");
+        //Nav.NavigateTo($"/course/{course.FolderId}?name={safeName}");
+        Nav.NavigateTo($"/lms-student-cont-viewer/{course.FolderId}");
     }
 
     private static string GetImageUrl(string? imageUrl)
@@ -164,18 +166,33 @@ else
 
     private async Task ConfirmDelete(int courseId, string? title)
     {
+        var confirmed = await DialogService.Confirm(
+            $"Are you sure you want to delete '{title ?? "this course"}'?",
+            "Confirm Delete",
+            new ConfirmOptions
+            {
+                OkButtonText = "Yes, Delete",
+                CancelButtonText = "Cancel"
+            });
+
+        if (confirmed != true)
+            return;
+
         try
         {
             await SharePointService.DeleteCourseAsync(courseId);
 
+            // ✅ Update UI immediately
             courses = courses.Where(c => c.Id != courseId).ToList();
+
+            // ✅ Optional success message (recommended)
+            await DialogService.Alert("Course deleted successfully.", "Success");
         }
         catch (Exception ex)
         {
             await DialogService.Alert(ex.Message, "Delete Failed");
         }
     }
-
     private async Task ConfirmClone(int courseId, string? title)
     {
         var original = await SharePointService.GetCourseByIdAsync(courseId);
